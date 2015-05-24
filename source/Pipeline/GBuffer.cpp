@@ -1,4 +1,4 @@
-#include <r3d/Utils/GBuffer.hpp>
+#include <r3d/Pipeline/GBuffer.hpp>
 #include <r3d/Core/Core.hpp>
 #include <r3d/Core/Texture.hpp>
 #include <r3d/Core/RenderTarget.hpp>
