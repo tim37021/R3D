@@ -1,0 +1,30 @@
+set(SOURCE_DIR_BASE ${PROJECT_DIR}/source)
+
+set(SOURCE
+	${SOURCE}
+	${SOURCE_DIR_BASE}/Camera/Camera.cpp
+	${SOURCE_DIR_BASE}/Core/Core.cpp
+	${SOURCE_DIR_BASE}/Core/OpenGLBuffer.cpp
+	${SOURCE_DIR_BASE}/Core/OpenGLRenderTarget.cpp
+	${SOURCE_DIR_BASE}/Core/OpenGLTexture.cpp
+	${SOURCE_DIR_BASE}/Core/OpenGLVertexArray.cpp
+	${SOURCE_DIR_BASE}/Core/Texture.cpp
+	${SOURCE_DIR_BASE}/Core/Transformation.cpp
+	${SOURCE_DIR_BASE}/Input/GLFW3MouseInput.cpp
+	${SOURCE_DIR_BASE}/Input/GLFW3KeyboardInput.cpp
+	${SOURCE_DIR_BASE}/Manager/BufferManager.cpp
+	${SOURCE_DIR_BASE}/Manager/VertexArrayManager.cpp
+	${SOURCE_DIR_BASE}/Manager/TextureManager.cpp
+	${SOURCE_DIR_BASE}/Manager/SceneManager.cpp
+	${SOURCE_DIR_BASE}/Utils/tiny_obj_loader.cc
+	${SOURCE_DIR_BASE}/Utils/GBuffer.cpp
+	${SOURCE_DIR_BASE}/Utils/Image.cpp
+	${SOURCE_DIR_BASE}/Renderer/OpenGLRenderer.cpp
+	${SOURCE_DIR_BASE}/Shader/OpenGLProgram.cpp
+	${SOURCE_DIR_BASE}/Shader/OpenGLShader.cpp
+	${SOURCE_DIR_BASE}/Scene/SceneNode.cpp
+	${SOURCE_DIR_BASE}/Scene/MeshSceneNode.cpp
+	${SOURCE_DIR_BASE}/Window/ContextWindow.cpp
+	${SOURCE_DIR_BASE}/Window/GLFW3ContextWindow.cpp
+	PARENT_SCOPE
+)

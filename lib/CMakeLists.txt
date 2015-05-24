@@ -1,0 +1,89 @@
+set(SOURCE_DIR_BASE ${PROJECT_DIR}/lib)
+
+set(JPEG_SOURCE
+	${JPEG_SOURCE}
+	${SOURCE_DIR_BASE}/libjpeg/jaricom.c 
+	${SOURCE_DIR_BASE}/libjpeg/jcapimin.c 
+	${SOURCE_DIR_BASE}/libjpeg/jcapistd.c 
+	${SOURCE_DIR_BASE}/libjpeg/jcarith.c 
+	${SOURCE_DIR_BASE}/libjpeg/jccoefct.c 
+	${SOURCE_DIR_BASE}/libjpeg/jccolor.c 
+	${SOURCE_DIR_BASE}/libjpeg/jcdctmgr.c 
+	${SOURCE_DIR_BASE}/libjpeg/jchuff.c 
+	${SOURCE_DIR_BASE}/libjpeg/jcinit.c 
+	${SOURCE_DIR_BASE}/libjpeg/jcmainct.c 
+	${SOURCE_DIR_BASE}/libjpeg/jcmarker.c 
+	${SOURCE_DIR_BASE}/libjpeg/jcmaster.c 
+	${SOURCE_DIR_BASE}/libjpeg/jcomapi.c 
+	${SOURCE_DIR_BASE}/libjpeg/jcparam.c 
+	${SOURCE_DIR_BASE}/libjpeg/jcprepct.c 
+	${SOURCE_DIR_BASE}/libjpeg/jcsample.c 
+	${SOURCE_DIR_BASE}/libjpeg/jctrans.c 
+	${SOURCE_DIR_BASE}/libjpeg/jdapimin.c 
+	${SOURCE_DIR_BASE}/libjpeg/jdapistd.c 
+	${SOURCE_DIR_BASE}/libjpeg/jdarith.c 
+	${SOURCE_DIR_BASE}/libjpeg/jdatadst.c 
+	${SOURCE_DIR_BASE}/libjpeg/jdatasrc.c 
+	${SOURCE_DIR_BASE}/libjpeg/jdcoefct.c 
+	${SOURCE_DIR_BASE}/libjpeg/jdcolor.c 
+	${SOURCE_DIR_BASE}/libjpeg/jddctmgr.c 
+	${SOURCE_DIR_BASE}/libjpeg/jdhuff.c 
+	${SOURCE_DIR_BASE}/libjpeg/jdinput.c 
+	${SOURCE_DIR_BASE}/libjpeg/jdmainct.c 
+	${SOURCE_DIR_BASE}/libjpeg/jdmarker.c 
+	${SOURCE_DIR_BASE}/libjpeg/jdmaster.c 
+	${SOURCE_DIR_BASE}/libjpeg/jdmerge.c 
+	${SOURCE_DIR_BASE}/libjpeg/jdpostct.c 
+	${SOURCE_DIR_BASE}/libjpeg/jdsample.c 
+	${SOURCE_DIR_BASE}/libjpeg/jdtrans.c 
+	${SOURCE_DIR_BASE}/libjpeg/jerror.c 
+	${SOURCE_DIR_BASE}/libjpeg/jfdctflt.c 
+	${SOURCE_DIR_BASE}/libjpeg/jfdctfst.c 
+	${SOURCE_DIR_BASE}/libjpeg/jfdctint.c 
+	${SOURCE_DIR_BASE}/libjpeg/jidctflt.c 
+	${SOURCE_DIR_BASE}/libjpeg/jidctfst.c 
+	${SOURCE_DIR_BASE}/libjpeg/jidctint.c 
+	${SOURCE_DIR_BASE}/libjpeg/jmemmgr.c 
+	${SOURCE_DIR_BASE}/libjpeg/jmemnobs.c 
+	${SOURCE_DIR_BASE}/libjpeg/jquant1.c 
+	${SOURCE_DIR_BASE}/libjpeg/jquant2.c 
+	${SOURCE_DIR_BASE}/libjpeg/jutils.c
+	PARENT_SCOPE
+)
+
+set(PNG_SOURCE
+	${PNG_SOURCE}
+	${SOURCE_DIR_BASE}/libpng/png.c 
+	${SOURCE_DIR_BASE}/libpng/pngerror.c 
+	${SOURCE_DIR_BASE}/libpng/pnggccrd.c 
+	${SOURCE_DIR_BASE}/libpng/pngget.c 
+	${SOURCE_DIR_BASE}/libpng/pngmem.c 
+	${SOURCE_DIR_BASE}/libpng/pngpread.c 
+	${SOURCE_DIR_BASE}/libpng/pngread.c 
+	${SOURCE_DIR_BASE}/libpng/pngrio.c 
+	${SOURCE_DIR_BASE}/libpng/pngrtran.c 
+	${SOURCE_DIR_BASE}/libpng/pngrutil.c 
+	${SOURCE_DIR_BASE}/libpng/pngset.c 
+	${SOURCE_DIR_BASE}/libpng/pngtrans.c 
+	${SOURCE_DIR_BASE}/libpng/pngvcrd.c 
+	${SOURCE_DIR_BASE}/libpng/pngwio.c 
+	${SOURCE_DIR_BASE}/libpng/pngwrite.c 
+	${SOURCE_DIR_BASE}/libpng/pngwtran.c 
+	${SOURCE_DIR_BASE}/libpng/pngwutil.c 
+	PARENT_SCOPE
+)
+
+set(ZLIB_SOURCE
+	${ZLIB_SOURCE}
+	${SOURCE_DIR_BASE}/zlib/adler32.c 
+	${SOURCE_DIR_BASE}/zlib/compress.c 
+	${SOURCE_DIR_BASE}/zlib/crc32.c 
+	${SOURCE_DIR_BASE}/zlib/deflate.c 
+	${SOURCE_DIR_BASE}/zlib/inffast.c 
+	${SOURCE_DIR_BASE}/zlib/inflate.c 
+	${SOURCE_DIR_BASE}/zlib/inftrees.c 
+	${SOURCE_DIR_BASE}/zlib/trees.c 
+	${SOURCE_DIR_BASE}/zlib/uncompr.c 
+	${SOURCE_DIR_BASE}/zlib/zutil.c 
+	PARENT_SCOPE
+)
