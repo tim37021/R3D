@@ -17,10 +17,12 @@ Real-time 3D Engine for our graduated project, it is still under early developme
   - Lua5.1(LuaJIT) / Lua 5.3(Offical Lua)
 
 ### How to Build
-  - Windows:
+
+  - If you wish to use Lua 53, unzip libRocketLua53.zip, and type the following commands. (You may need to rebuild libRocket on your own)
+  - NOTE: We are using LUAJIT for Lua 5.1, which has faster implementation than the offical one.
   
-        cmake . -G "MinGW Makefiles"
-        mingw32-make
+        cmake . -G "MinGW Makefiles" -DLUA_VERSION=53
+        make
 
 ### TODO
   - Context Resource Management
