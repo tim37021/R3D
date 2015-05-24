@@ -30,7 +30,7 @@ if(NOT LUA_VERSION)
 endif()
 
 include_directories(./include ./lib ./lib/lua${LUA_VERSION}/include)
-link_directories(./lib)
+link_directories(./lib ./lib/lua${LUA_VERSION})
 add_library(r3d ${SOURCE})
 
 add_executable(R3DTest ./source/Test/test.cpp ./source/Test/r3drocket.cpp ./source/Test/LuaInterface.cpp)
