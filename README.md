@@ -24,6 +24,10 @@ Real-time 3D Engine for our graduated project, it is still under early developme
         cmake . -G "MinGW Makefiles" -DLUA_VERSION=53
         make
 
+### Directory Description
+  - Any thing put in include directory is for user to export functionalities for library user
+  - Any thing put in source directory is to hide detail information to library user 
+
 ### TODO
   - Context Resource Management
   - Document
