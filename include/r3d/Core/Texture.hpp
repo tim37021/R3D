@@ -1,5 +1,5 @@
-#ifndef __CORE_TEXTURE_H_
-#define __CORE_TEXTURE_H_
+#ifndef __R3D_CORE_TEXTURE_H_
+#define __R3D_CORE_TEXTURE_H_
 
 #include <cstdint>
 #include <memory>

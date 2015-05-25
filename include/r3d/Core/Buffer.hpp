@@ -1,5 +1,5 @@
-#ifndef __CORE_BUFFER_HPP_
-#define __CORE_BUFFER_HPP_
+#ifndef __R3D_CORE_BUFFER_HPP_
+#define __R3D_CORE_BUFFER_HPP_
 
 #include <cstdint>
 

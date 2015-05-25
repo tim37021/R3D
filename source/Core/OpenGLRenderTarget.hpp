@@ -1,5 +1,5 @@
-#ifndef __CORE_OPENGL_RENDERTARGET_H_
-#define __CORE_OPENGL_RENDERTARGET_H_
+#ifndef __R3D_CORE_OPENGL_RENDERTARGET_H_
+#define __R3D_CORE_OPENGL_RENDERTARGET_H_
 
 #include <r3d/Core/RenderTarget.hpp>
 #include <stdexcept>

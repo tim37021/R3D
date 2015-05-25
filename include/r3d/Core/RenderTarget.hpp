@@ -1,5 +1,5 @@
-#ifndef __CORE_RENDERTARGET_HPP_
-#define __CORE_RENDERTARGET_HPP_
+#ifndef __R3D_CORE_RENDERTARGET_HPP_
+#define __R3D_CORE_RENDERTARGET_HPP_
 
 #include <vector>
 #include <cstdint>

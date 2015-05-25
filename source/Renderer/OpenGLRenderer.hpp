@@ -1,5 +1,5 @@
-#ifndef __RENDERER_OPENGLRENDERER_HPP_
-#define __RENDERER_OPENGLRENDERER_HPP_	
+#ifndef __R3D_RENDERER_OPENGLRENDERER_HPP_
+#define __R3D_RENDERER_OPENGLRENDERER_HPP_	
 
 #include <r3d/Renderer/Renderer.hpp>
 

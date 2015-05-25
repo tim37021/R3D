@@ -1,5 +1,5 @@
-#ifndef __MANAGER_TEXTURE_MANAGER_HPP_
-#define __MANAGER_TEXTURE_MANAGER_HPP_
+#ifndef __R3D_MANAGER_TEXTURE_MANAGER_HPP_
+#define __R3D_MANAGER_TEXTURE_MANAGER_HPP_
 
 #include <r3d/Core/Texture.hpp>
 #include <map>

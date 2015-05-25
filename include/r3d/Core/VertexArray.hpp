@@ -1,5 +1,5 @@
-#ifndef __CORE_VERTEX_ARRAY_HPP_
-#define __CORE_VERTEX_ARRAY_HPP_
+#ifndef __R3D_CORE_VERTEX_ARRAY_HPP_
+#define __R3D_CORE_VERTEX_ARRAY_HPP_
 
 #include <memory>
 #include <r3d/Core/Buffer.hpp>

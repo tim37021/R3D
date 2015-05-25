@@ -1,5 +1,5 @@
-#ifndef __CORE_OPENGL_OBJECT_HPP_
-#define __CORE_OPENGL_OBJECT_HPP_
+#ifndef __R3D_CORE_OPENGL_OBJECT_HPP_
+#define __R3D_CORE_OPENGL_OBJECT_HPP_
 
 #include <GL/glew.h>
 #include <vector>

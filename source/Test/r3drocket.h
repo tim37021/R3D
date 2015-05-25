@@ -1,5 +1,5 @@
-#ifndef __TEST_R3DROCKET_H_
-#define __TEST_R3DROCKET_H_
+#ifndef __R3D_TEST_R3DROCKET_H_
+#define __R3D_TEST_R3DROCKET_H_
 
 #include <Rocket/Core.h>
 #include <memory>

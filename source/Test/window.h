@@ -1,5 +1,5 @@
-#ifndef __TEST_WINDOW_H_
-#define __TEST_WINDOW_H_
+#ifndef __R3D_TEST_WINDOW_H_
+#define __R3D_TEST_WINDOW_H_
 
 namespace Rocket
 {

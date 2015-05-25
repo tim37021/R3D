@@ -1,5 +1,5 @@
-#ifndef __SCENE_MESH_SCENENODE_HPP_
-#define __SCENE_MESH_SCENENODE_HPP_
+#ifndef __R3D_SCENE_MESH_SCENENODE_HPP_
+#define __R3D_SCENE_MESH_SCENENODE_HPP_
 
 #include <r3d/Scene/SceneNode.hpp>
 #include <cstdint>
