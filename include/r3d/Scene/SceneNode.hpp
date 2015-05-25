@@ -1,5 +1,5 @@
-#ifndef __SCENE_SCENENODE_H_
-#define __SCENE_SCENENODE_H_
+#ifndef __R3D_SCENE_SCENENODE_H_
+#define __R3D_SCENE_SCENENODE_H_
 
 #include <memory>
 #include <list>

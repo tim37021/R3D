@@ -1,5 +1,5 @@
-#ifndef __SHADER_OPENGL_PROGRAM_HPP_
-#define __SHADER_OPENGL_PROGRAM_HPP_
+#ifndef __R3D_SHADER_OPENGL_PROGRAM_HPP_
+#define __R3D_SHADER_OPENGL_PROGRAM_HPP_
 
 #include <GL/glew.h>
 #include <r3d/Shader/Program.hpp>

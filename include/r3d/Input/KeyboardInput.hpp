@@ -1,5 +1,5 @@
-#ifndef __INPUT_KEYBOARD_INPUT_HPP_
-#define __INPUT_KEYBOARD_INPUT_HPP_
+#ifndef __R3D_INPUT_KEYBOARD_INPUT_HPP_
+#define __R3D_INPUT_KEYBOARD_INPUT_HPP_
 
 namespace r3d
 {

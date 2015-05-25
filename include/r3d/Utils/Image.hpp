@@ -21,8 +21,8 @@
 
 #pragma once
 
-#ifndef __UTILS_IMAGE_HPP
-#define __UTILS_IMAGE_HPP
+#ifndef __R3D_UTILS_IMAGE_HPP
+#define __R3D_UTILS_IMAGE_HPP
 
 #include <r3d/Utils/Color.hpp>
 #include <r3d/Utils/ByteBuffer.hpp>

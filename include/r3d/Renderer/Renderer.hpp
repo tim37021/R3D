@@ -1,5 +1,5 @@
-#ifndef __RENDERER_RENDERER_HPP_
-#define __RENDERER_RENDERER_HPP_
+#ifndef __R3D_RENDERER_RENDERER_HPP_
+#define __R3D_RENDERER_RENDERER_HPP_
 
 #include <r3d/Shader/Program.hpp>
 

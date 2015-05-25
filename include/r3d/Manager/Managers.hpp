@@ -1,5 +1,5 @@
-#ifndef __MANAGER_MANAGERS_HPP_
-#define __MANAGER_MANAGERS_HPP_
+#ifndef __R3D_MANAGER_MANAGERS_HPP_
+#define __R3D_MANAGER_MANAGERS_HPP_
 
 #include <r3d/Manager/VertexArrayManager.hpp>
 #include <r3d/Manager/BufferManager.hpp>

@@ -1,5 +1,5 @@
-#ifndef __WINDOW_CONTEXT_WINDOW_HPP_
-#define __WINDOW_CONTEXT_WINDOW_HPP_
+#ifndef __R3D_WINDOW_CONTEXT_WINDOW_HPP_
+#define __R3D_WINDOW_CONTEXT_WINDOW_HPP_
 
 #include <cstdint>
 #include <r3d/Core/Rectangle.hpp>

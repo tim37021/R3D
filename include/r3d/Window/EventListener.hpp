@@ -1,5 +1,5 @@
-#ifndef __WINDOW_EVENTLISTENER_HPP_
-#define __WINDOW_EVENTLISTENER_HPP_
+#ifndef __R3D_WINDOW_EVENTLISTENER_HPP_
+#define __R3D_WINDOW_EVENTLISTENER_HPP_
 
 #include <cstdint>
 

@@ -21,8 +21,8 @@
 
 #pragma once
 
-#ifndef __UTILS_BYTEBUFFER_HPP
-#define __UTILS_BYTEBUFFER_HPP
+#ifndef __R3D_UTILS_BYTEBUFFER_HPP
+#define __R3D_UTILS_BYTEBUFFER_HPP
 
 #include <vector>
 #include <climits>

@@ -1,5 +1,5 @@
-#ifndef __CORE_OPENGL_VERTEXARRAY_HPP_
-#define __CORE_OPENGL_VERTEXARRAY_HPP_
+#ifndef __R3D_CORE_OPENGL_VERTEXARRAY_HPP_
+#define __R3D_CORE_OPENGL_VERTEXARRAY_HPP_
 
 #include "OpenGLObject.hpp"
 #include <r3d/Core/VertexArray.hpp>
