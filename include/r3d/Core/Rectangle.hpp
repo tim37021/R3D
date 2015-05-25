@@ -1,5 +1,5 @@
-#ifndef __CORE_RECTANGLE_HPP_
-#define __CORE_RECTANGLE_HPP_
+#ifndef __R3D_CORE_RECTANGLE_HPP_
+#define __R3D_CORE_RECTANGLE_HPP_
 
 #include <glm/glm.hpp>
 

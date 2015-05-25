@@ -1,5 +1,5 @@
-#ifndef __SHADER_PROGRAM_HPP_
-#define __SHADER_PROGRAM_HPP_
+#ifndef __R3D_SHADER_PROGRAM_HPP_
+#define __R3D_SHADER_PROGRAM_HPP_
 
 #include <stdexcept>
 #include <memory>

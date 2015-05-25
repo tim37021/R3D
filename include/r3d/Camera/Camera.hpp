@@ -1,5 +1,5 @@
-#ifndef __CAMERA_CAMERA_HPP_
-#define __CAMERA_CAMERA_HPP_
+#ifndef __R3D_CAMERA_CAMERA_HPP_
+#define __R3D_CAMERA_CAMERA_HPP_
 
 #include <glm/glm.hpp>
 

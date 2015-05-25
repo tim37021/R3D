@@ -1,5 +1,5 @@
-#ifndef __CORE_ATTRIB_POINTER_HPP_
-#define __CORE_ATTRIB_POINTER_HPP_
+#ifndef __R3D_CORE_ATTRIB_POINTER_HPP_
+#define __R3D_CORE_ATTRIB_POINTER_HPP_
 
 #include <r3d/Core/Type.hpp>
 

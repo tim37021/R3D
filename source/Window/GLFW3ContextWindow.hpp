@@ -1,5 +1,5 @@
-#ifndef __PLATFORM_GLFW3_CONTEXT_WINDOW_HPP_
-#define __PLATFORM_GLFW3_CONTEXT_WINDOW_HPP_
+#ifndef __R3D_PLATFORM_GLFW3_CONTEXT_WINDOW_HPP_
+#define __R3D_PLATFORM_GLFW3_CONTEXT_WINDOW_HPP_
 
 #include <r3d/Window/ContextWindow.hpp>
 #include <GLFW/glfw3.h>

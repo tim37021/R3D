@@ -1,5 +1,5 @@
-#ifndef __MANAGER_SCENE_MANAGER_HPP_
-#define __MANAGER_SCENE_MANAGER_HPP_
+#ifndef __R3D_MANAGER_SCENE_MANAGER_HPP_
+#define __R3D_MANAGER_SCENE_MANAGER_HPP_
 
 #include <stdexcept>
 #include <memory>

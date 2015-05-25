@@ -1,5 +1,5 @@
-#ifndef __CORE_OPENGL_VERTEXBUFFER_HPP_
-#define __CORE_OPENGL_VERTEXBUFFER_HPP_
+#ifndef __R3D_CORE_OPENGL_VERTEXBUFFER_HPP_
+#define __R3D_CORE_OPENGL_VERTEXBUFFER_HPP_
 
 #include <r3d/Core/Buffer.hpp>
 #include <vector>

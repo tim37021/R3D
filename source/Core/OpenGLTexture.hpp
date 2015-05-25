@@ -1,5 +1,5 @@
-#ifndef __CORE_OPENGL_TEXTURE_HPP
-#define __CORE_OPENGL_TEXTURE_HPP
+#ifndef __R3D_CORE_OPENGL_TEXTURE_HPP
+#define __R3D_CORE_OPENGL_TEXTURE_HPP
 
 #include <r3d/Core/Texture.hpp>
 #include "OpenGLObject.hpp"

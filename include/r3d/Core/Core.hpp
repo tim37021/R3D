@@ -1,5 +1,5 @@
-#ifndef __CORE_CORE_HPP_
-#define __CORE_CORE_HPP_
+#ifndef __R3D_CORE_CORE_HPP_
+#define __R3D_ORE_CORE_HPP_
 
 #include <GL/glew.h>
 #include <memory>

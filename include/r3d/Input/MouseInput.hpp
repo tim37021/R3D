@@ -1,5 +1,5 @@
-#ifndef __INPUT_MOUSE_INPUT_HPP_
-#define __INPUT_MOUSE_INPUT_HPP_
+#ifndef __R3D_INPUT_MOUSE_INPUT_HPP_
+#define __R3D_INPUT_MOUSE_INPUT_HPP_
 
 #include <cstdint>
 #include <vector>
