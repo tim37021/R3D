@@ -1,5 +1,5 @@
-#ifndef __R3D_UTILS_GBUFFER_HPP_
-#define __R3D_UTILS_GBUFFER_HPP_
+#ifndef __R3D_PIPELINE_GBUFFER_HPP_
+#define __R3D_PIPELINE_GBUFFER_HPP_
 
 #include <memory>
 

@@ -1,5 +1,5 @@
-#ifndef __R3D_CORE_BUFFER_MANAGER_HPP_
-#define __R3D_CORE_BUFFER_MANAGER_HPP_
+#ifndef __R3D_MANAGER_BUFFER_MANAGER_HPP_
+#define __R3D_MANAGER_BUFFER_MANAGER_HPP_
 
 #include <r3d/Core/Buffer.hpp>
 #include <map>
