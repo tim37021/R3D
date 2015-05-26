@@ -6,5 +6,6 @@ install_manifest.txt
 *.exe
 *.a
 *.dll
-bin/
+bin/*
 !bin/assets/
+!bin/shaders/
