@@ -244,6 +244,9 @@ int main(int argc, char *argv[])
 	sMgr->setMainCamera(fps);
 
 	std::shared_ptr<r3d::GBuffer> gBuffer(new r3d::GBuffer(engine, cw->getWidth(), cw->getHeight()));
+	r3d::PostFX::Initialise();
+	r3d::PostFX PostFXTest(engine, cw); 
+	PostFXTest.pushEffect("bloom");
 
 	// render to texture
 	auto program = MakeShaderProgram(engine, vertex_shader, fragment_shader);
@@ -278,16 +281,13 @@ int main(int argc, char *argv[])
 			cw->getMouse()->getPos(&posx, &posy);
 			context->ProcessMouseMove((int)posx, (int)posy, 0);
 		}
-		
 		//Update GBuffer
 		gBuffer->beginScene();
 		sMgr->drawAll();
 		gBuffer->endScene();
 
+		PostFXTest.beginSource(); 
 		BeginLightPass(engine->getRenderer(), cw, program, gBuffer);
-
-		p.pos.x=10*cos(2*3.1415f/4*engine->getTime());
-		p.pos.z=10*sin(2*3.1415f/4*engine->getTime());
 
 		// setup post-processing lighting shader parameter
 		program->setUniform("eyePos", fps->getPos());
@@ -299,10 +299,12 @@ int main(int argc, char *argv[])
 			program->setUniform("lightColor", light->color);
 			engine->getRenderer()->drawElements(program.get(), vao, r3d::PT_TRIANGLES, 6);
 		}
+		PostFXTest.endSource();
+
+		engine->getRenderer()->clear();
+		PostFXTest.runAll();
 		engine->getRenderer()->enableBlending(true, r3d::BP_SRC_ALPHA, r3d::BP_ONE_MINUS_SRC_ALPHA, r3d::BF_ADD);
 		context->Render();
-		
-		engine->getRenderer()->enableBlending(false);
 		
 		cw->pollInput();
 		cw->swapBuffers();
