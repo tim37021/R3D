@@ -1,5 +1,5 @@
-#ifndef __SHADER_SHADER_HPP_
-#define __SHADER_SHADER_HPP_
+#ifndef __R3D_SHADER_SHADER_HPP_
+#define __R3D_SHADER_SHADER_HPP_
 
 #include <string>
 #include <stdexcept>

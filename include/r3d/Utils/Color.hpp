@@ -21,8 +21,8 @@
 
 #pragma once
 
-#ifndef __UTILS_COLOR_HPP
-#define __UTILS_COLOR_HPP
+#ifndef __R3D_UTILS_COLOR_HPP
+#define __R3D_UTILS_COLOR_HPP
 
 #include <cstdint>
 

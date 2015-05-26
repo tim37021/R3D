@@ -3,8 +3,8 @@
 //
 // Licensed under 2-clause BSD liecense.
 //
-#ifndef _TINY_OBJ_LOADER_H
-#define _TINY_OBJ_LOADER_H
+#ifndef __R3D_UTILS_TINY_OBJ_LOADER_H
+#define __R3D_UTILS_TINY_OBJ_LOADER_H
 
 #include <string>
 #include <vector>

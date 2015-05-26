@@ -1,5 +1,5 @@
-#ifndef __SCENE_LIGHT_HPP_
-#define __SCENE_LIGHT_HPP_
+#ifndef __R3D_SCENE_LIGHT_HPP_
+#define __R3D_SCENE_LIGHT_HPP_
 
 #include <glm/glm.hpp>
 

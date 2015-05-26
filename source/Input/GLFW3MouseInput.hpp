@@ -1,5 +1,5 @@
-#ifndef __PLATFORM_GLFW3MouseInput_HPP_
-#define __PLATFORM_GLFW3MouseInput_HPP_
+#ifndef __R3D_INPUT_GLFW3MouseInput_HPP_
+#define __R3D_INPUT_GLFW3MouseInput_HPP_
 
 #include <r3d/Input/MouseInput.hpp>
 

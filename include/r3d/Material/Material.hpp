@@ -1,5 +1,5 @@
-#ifndef __MATERIAL_MATERIAL_HPP_
-#define __MATERIAL_MATERIAL_HPP_
+#ifndef __R3D_MATERIAL_MATERIAL_HPP_
+#define __R3D_MATERIAL_MATERIAL_HPP_
 
 #include <glm/glm.hpp>
 #include <r3d/Shader/Program.hpp>

@@ -1,5 +1,5 @@
-#ifndef __CORE_TRANSFORMATION_HPP_
-#define __CORE_TRANSFORMATION_HPP_
+#ifndef __R3D_CORE_TRANSFORMATION_HPP_
+#define __R3D_CORE_TRANSFORMATION_HPP_
 
 #include <glm/glm.hpp>
 

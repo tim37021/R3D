@@ -1,5 +1,5 @@
-#ifndef __PRIMITIVE_MESH_HPP_
-#define __PRIMITIVE_MESH_HPP_
+#ifndef __R3D_PRIMITIVE_MESH_HPP_
+#define __R3D_PRIMITIVE_MESH_HPP_
 
 #include <r3d/Core/Vertex.hpp>
 #include <vector>

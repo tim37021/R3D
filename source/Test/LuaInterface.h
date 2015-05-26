@@ -1,5 +1,5 @@
-#ifndef __TEST_LUA_INTERFACE_H_
-#define __TEST_LUA_INTERFACE_H_
+#ifndef __R3D_TEST_LUA_INTERFACE_H_
+#define __R3D_TEST_LUA_INTERFACE_H_
 
 
 extern "C"

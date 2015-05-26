@@ -1,5 +1,5 @@
-#ifndef __CORE_VERTEX_ARRAY_MANAGER_HPP_
-#define __CORE_VERTEX_ARRAY_MANAGER_HPP_
+#ifndef __R3D_MANAGER_VERTEX_ARRAY_MANAGER_HPP_
+#define __R3D_MANAGER_VERTEX_ARRAY_MANAGER_HPP_
 
 #include <map>
 #include <string>

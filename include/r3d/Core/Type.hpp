@@ -1,5 +1,5 @@
-#ifndef __CORE_TYPE_HPP_
-#define __CORE_TYPE_HPP_
+#ifndef __R3D_CORE_TYPE_HPP_
+#define __R3D_CORE_TYPE_HPP_
 
 #include <cstdint>
 
