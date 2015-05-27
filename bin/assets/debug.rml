@@ -25,9 +25,22 @@
 	<body template="window" style="left: 7px; top: 330px;">
 	<h1>Diffuse</h1>
 	<p style="text-align: center;"><img src="/DiffuseMap" flipv width="400" height="250"/></p>
+<<<<<<< HEAD
 	<h1>Normal</h1>
+=======
+	<h1 style="text-align: center; color: black;">Diffuse</h1>
+	<p style="text-align: center;"><img src="/PositionMap" flipv width="400" height="250"/></p>
+	<h1 style="text-align: center; color: black;">Normal</h1>
+>>>>>>> 0711e96bcc5e5f8f45f2f495c0a7bb742d480e58
 	<p style="text-align: center;"><img src="/NormalMap" flipv width="400" height="250" /></p>
 	<h1>Depth</h1>
 	<p style="text-align: center;"><img src="/DepthMap" flipv width="400" height="250"/></p>
+<<<<<<< HEAD
+=======
+	<h1 style="text-align: center; color: black;" >Specular</h1>
+	<p style="text-align: center;"><img src="/SpecularMap" flipv width="400" height="250"/></p>
+	<h1 style="text-align: center; color: black;" >Lighted</h1>
+	<p style="text-align: center;"><img src="/LightedMap" flipv width="400" height="250"/></p>
+>>>>>>> 0711e96bcc5e5f8f45f2f495c0a7bb742d480e58
 	</body>
 </rml>

@@ -23,12 +23,13 @@ namespace r3d
 		ColorTexture2D *getPositionMap() { return m_posMap; }
 		ColorTexture2D *getDiffuseMap() { return m_diffuseMap; }
 		ColorTexture2D *getNormalMap() { return m_normMap; }
+		ColorTexture2D *getSpecularMap() { return m_specMap; }
 	private:
 		Engine *m_engine;
 
 		RenderTarget2DPtr m_fbo;
 
-		ColorTexture2D *m_posMap, *m_diffuseMap, *m_normMap;
+		ColorTexture2D *m_posMap, *m_diffuseMap, *m_normMap, *m_specMap;
 
 		DepthTexture2D *m_depthMap;
 

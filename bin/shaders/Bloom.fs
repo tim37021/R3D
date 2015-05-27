@@ -54,12 +54,11 @@ void main()
 	vec3 color = blur(tc, 2.0);
 	color += blur(tc, 3.0);
 	color += blur(tc, 5.0);
-	color += blur(tc, 7.0);
-	color /= 4.0;
+	color /= 3.0;
 	
 	color += sample(tc);
 	
-	outColor.xyz = mix(sample(tc), color, 0.4);
+	outColor.xyz = mix(sample(tc), color, 0.3);
 	outColor.w = 1.0;
 }
 
