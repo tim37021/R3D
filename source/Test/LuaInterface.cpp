@@ -6,6 +6,7 @@
 
 static r3d::Engine *engine;
 static lua_State *L;
+static lua_State *luacmd;
 
 static int LUALoadObjScene(lua_State *L)
 {
@@ -45,6 +46,17 @@ void LuaInterface::OnFilesDropIn(uint32_t count, const char *files[])
 
 	// We wish Rocket
 	Rocket::Core::Lua::Interpreter::ExecuteCall(1, 0);
+}
+
+void LuaInterface::updatemspos(int x,int y)
+{
+	lua_getglobal(L, "updatems");
+		// Lua array start from 1
+	lua_pushnumber(L, x);
+	lua_pushnumber(L, y);
+
+	// We wish Rocket
+	Rocket::Core::Lua::Interpreter::ExecuteCall(2, 0);
 }
 
 void LuaInterface::Initialise(r3d::Engine *engine)

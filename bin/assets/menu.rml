@@ -1,0 +1,144 @@
+<rml>
+	<head>
+		<title>Demo</title>
+		<style>
+			body
+			{	
+				height: 30;
+				width:600;
+				font-family: Delicious;
+				font-weight: normal;
+				font-style: normal;
+				font-size: 15;
+				color: white;
+				position: absolute;
+				top: 33px;
+				right: 0px;
+
+			}
+			p{	
+				display: inline-block;
+				position: absolute;
+				text-align:right;
+				//margin-right:60px;
+				//margin-top:3px;
+			}
+			mbar{
+				display: inline-block;
+				width:600;
+				height:30;
+				background-decorator: image;
+			    background-image: r3d_menu.png 0px 0px 600px 30px;
+				
+			}
+			div#title_bar div#icon
+			{
+				display: none;
+			}
+			
+			div#content
+			{
+				text-align: left;
+			}
+			loadbtn
+			{
+				display: inline-block;
+				width: 38px;
+				height: 30px;
+				background-decorator: image;
+				background-image: r3d_load.png 0px 0px 38px 30px;
+			}
+
+			loadbtn:hover{
+				background-decorator: image;
+				background-image: r3d_loadroll.png 0px 0px 38px 30px;
+			}
+
+			loadbtn:active{
+				background-decorator: image;
+				background-image: r3d_load.png 0px 0px 38px 30px;
+			}
+			addbtn
+			{
+				display: inline-block;
+				width: 33;
+				height: 30px;
+				background-decorator: image;
+				background-image: r3d_add.png 0px 0px 33px 30px;
+			}
+
+			addbtn:hover{
+				background-decorator: image;
+				background-image: r3d_addroll.png 0px 0px 33px 30px;
+			}
+
+			addbtn:active{
+				background-decorator: image;
+				background-image: r3d_add.png 0px 0px 33px 30px;
+			}
+			filebtn
+			{
+				display: inline-block;
+				width: 32;
+				height: 30px;
+				background-decorator: image;
+				background-image: r3d_file.png 0px 0px 32px 30px;
+			}
+
+			filebtn:hover{
+				background-decorator: image;
+				background-image: r3d_fileroll.png 0px 0px 32px 30px;
+			}
+
+			filebtn:active{
+				background-decorator: image;
+				background-image: r3d_file.png 0px 0px 32px 30px;
+			}
+			setbtn
+			{
+				display: inline-block;
+				width: 56;
+				height: 30px;
+				background-decorator: image;
+				background-image: r3d_setting.png 0px 0px 56px 30px;
+			}
+
+			setbtn:hover{
+				background-decorator: image;
+				background-image: r3d_settingroll.png 0px 0px 56px 30px;
+			}
+
+			setbtn:active{
+				background-decorator: image;
+				background-image: r3d_setting.png 0px 0px 56px 30px;
+			}
+			aboutbtn
+			{
+				display: inline-block;
+				width: 47;
+				height: 30px;
+				background-decorator: image;
+				background-image: r3d_about.png 0px 0px 47px 30px;
+			}
+
+			aboutbtn:hover{
+				background-decorator: image;
+				background-image: r3d_aboutroll.png 0px 0px 47px 30px;
+			}
+
+			aboutbtn:active{
+				background-decorator: image;
+				background-image: r3d_about.png 0px 0px 47px 30px;
+			}
+		</style>
+	</head>
+	<body style="">
+	<mbar><p  style="margin-right:60px;"><filebtn/><img src="r3d_seg.png" style="margin-right:5px;margin-left:5px;"/>
+	<loadbtn/><img src="r3d_seg.png" style="margin-right:5px;margin-left:5px;"/>
+	<addbtn/><img src="r3d_seg.png" style="margin-right:5px;margin-left:5px;"/>
+	<setbtn/><img src="r3d_seg.png" style="margin-right:5px;margin-left:5px;"/>
+	<aboutbtn/></P>
+	</mbar>
+	
+	</body>
+</rml>

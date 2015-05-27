@@ -25,25 +25,27 @@ function OnFilesDropIn(filenames)
 	fn=filenames[1]
 end
 
-function OnClick(event)
-	if event.current_element:GetElementById("window").style["display"] == "none" then
-		event.current_element:GetElementById("window").style["display"]="block";
-	else
-		event.current_element:GetElementById("window").style["display"]="none";
-	end
+function updatems(mpx,mpy)
+	mspos:GetElementById("mousepos").inner_rml="mx: "..mpx.." my:"..mpy
 end
 
 function Startup()
 	LoadFont()
 	maincontext = rocket.contexts["main"]
 	debugwindow = maincontext:LoadDocument("assets/debug.rml")
-	debugwindow:GetElementById("title"):AddEventListener("dblclick", OnClick, true)
 	debugwindow:GetElementById("title").inner_rml="Debug"
 	debugwindow:Show()
 	
 
 	loadingwindow=maincontext:LoadDocument("assets/loading.rml")
 	loadingwindow:GetElementById("title").inner_rml="Load"
+	
+	propertymenu=maincontext:LoadDocument("assets/promenu.rml")
+	propertymenu:Show()
+	maincontext:LoadDocument("assets/demo.rml"):Show()
+	maincontext:LoadDocument("assets/menu.rml"):Show()
+	mspos=maincontext:LoadDocument("assets/mspos.rml")
+	mspos:Show()
 end
 
 Startup()
