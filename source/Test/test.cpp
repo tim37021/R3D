@@ -282,6 +282,7 @@ int main(int argc, char *argv[])
 			context->ProcessMouseMove((int)posx, (int)posy, 0);
 		}
 		//Update GBuffer
+		LuaInterface::updatemspos(width,height);
 		gBuffer->beginScene();
 		sMgr->drawAll();
 		gBuffer->endScene();
