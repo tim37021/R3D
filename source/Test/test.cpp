@@ -40,10 +40,12 @@ static const char *fragment_shader=
 	"if(length(norm)<=0.5) { color=vec4(0.0); return; }"
 	"vec3 lightVec=normalize(lightPos-pos);"
 	"float diffuse=dot(norm, lightVec);\n"
-	"if(length(lightPos-pos)<10&&diffuse>=0.0){"
+	"if(diffuse>=0.0){"
+	"float d=length(lightPos-pos);\n"
+	"float att=1.0/(0.9+0.1*d*d);"
 	"float specular = spec*pow(max(dot(reflect(-lightVec, norm), normalize(eyePos-pos)), 0), 30);\n"
-	"color=vec4(vec3(0.1)*fColor+diffuse*fColor*lightColor+specular*lightColor, 1);} else{color=vec4(vec3(0.1)*fColor, 1.0);}\n"
-	"if(any(lessThan(spec, vec3(-0.5)))) color=vec4(fColor, 1.0);"
+	"color=att*vec4(vec3(0.1)*fColor+diffuse*fColor*lightColor+specular*lightColor, 1);} else{color=vec4(0.0);}\n"
+	"if(any(lessThan(spec, vec3(-0.5)))) color=vec4(1.717*normalize(fColor), 1.0);"
 	"}\n";
 
 static R3DRocket::SystemInterface *si;
@@ -77,8 +79,8 @@ public:
 				auto node=sMgr->loadObjScene(sMgr->getRootNode(), "sphere.obj");
 				ps.push_back({});
 				ps.back().pos=global_fps->getPos();
-				ps.back().color=glm::vec3(0.3f)+
-				glm::vec3((float)rand()/RAND_MAX, (float)rand()/RAND_MAX, (float)rand()/RAND_MAX);
+				ps.back().color=(glm::vec3(0.3f)+
+				glm::vec3((float)rand()/RAND_MAX, (float)rand()/RAND_MAX, (float)rand()/RAND_MAX))*5.0f;
 				sMgr->addLight(&ps.back());
 
 				node->getTransformation()->setTranslation(ps.back().pos);
