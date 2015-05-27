@@ -25,26 +25,31 @@ static const char *fragment_shader=
 	"uniform sampler2D posMap;\n"
 	"uniform sampler2D diffuseMap;\n"
 	"uniform sampler2D normMap;\n"
+	"uniform sampler2D specMap;\n"
 	"uniform vec2 viewport;"
 	"uniform vec3 eyePos;"
-	"uniform vec3 lightPos=vec3(0, 30, 0);\n"
-	"uniform vec3 lightColor=vec3(0.8)\n;"
+	"uniform vec3 lightPos;\n"
+	"uniform vec3 lightColor;\n;"
 	"out vec4 color;\n"
 	"void main(){\n"
 	"vec2 vTexCoord=gl_FragCoord.xy/viewport;"
 	"vec3 pos=texture(posMap, vTexCoord).xyz;\n"
 	"vec3 fColor=texture(diffuseMap, vTexCoord).rgb;\n"
-	"vec3 norm=texture(normMap, vTexCoord).xyz;"
+	"vec3 norm=texture(normMap, vTexCoord).xyz;\n"
+	"vec3 spec=texture(specMap, vTexCoord).rgb;\n"
 	"if(length(norm)<=0.5) { color=vec4(0.0); return; }"
 	"vec3 lightVec=normalize(lightPos-pos);"
 	"float diffuse=dot(norm, lightVec);\n"
-	"if(diffuse>=0.0){"
-	"float specular = pow(max(dot(reflect(-lightVec, norm), normalize(eyePos-pos)), 0), 30);\n"
-	"color=vec4(diffuse*fColor*lightColor+lightColor*specular, 1);} else{color=vec4(0.0f);}\n"
+	"if(length(lightPos-pos)<10&&diffuse>=0.0){"
+	"float specular = spec*pow(max(dot(reflect(-lightVec, norm), normalize(eyePos-pos)), 0), 30);\n"
+	"color=vec4(vec3(0.1)*fColor+diffuse*fColor*lightColor+specular*lightColor, 1);} else{color=vec4(vec3(0.1)*fColor, 1.0);}\n"
+	"if(any(lessThan(spec, vec3(-0.5)))) color=vec4(fColor, 1.0);"
 	"}\n";
 
 static R3DRocket::SystemInterface *si;
 static R3DRocket::RenderInterface *ri;
+
+static r3d::Camera *global_fps;
 
 class MyEventListener: public r3d::EventListener
 {
@@ -56,12 +61,30 @@ public:
 	}
 	virtual void OnMouseButtonStateChange(int button, int action, int mods)
 	{
-		switch(action)
+		if(!FPSMode)
 		{
-			case 1:
-			m_context->ProcessMouseButtonDown(button, 0); break;
-			case 0:
-			m_context->ProcessMouseButtonUp(button, 0); break;
+			switch(action)
+			{
+				case 1:
+				m_context->ProcessMouseButtonDown(button, 0); break;
+				case 0:
+				m_context->ProcessMouseButtonUp(button, 0); break;
+			}
+		}else
+		{
+			if(button==1&&action){
+				auto sMgr=cw->getSceneManager();
+				auto node=sMgr->loadObjScene(sMgr->getRootNode(), "sphere.obj");
+				ps.push_back({});
+				ps.back().pos=global_fps->getPos();
+				ps.back().color=glm::vec3(0.3f)+
+				glm::vec3((float)rand()/RAND_MAX, (float)rand()/RAND_MAX, (float)rand()/RAND_MAX);
+				sMgr->addLight(&ps.back());
+
+				node->getTransformation()->setTranslation(ps.back().pos);
+				node->getChildList().front()->getMaterial()->setDiffuse(ps.back().color);
+				node->getChildList().front()->getMaterial()->setEmission({1.0f, 1.0f, 1.0f});
+			}
 		}
 
 	}
@@ -96,6 +119,8 @@ public:
 				keyMap=Rocket::Core::Input::KI_UP; break;
 			case r3d::KC_DOWN:
 				keyMap=Rocket::Core::Input::KI_DOWN; break;
+			case r3d::KC_P:
+				break;
 			case r3d::KC_F1:
 				if(action)
 					FPSMode=!FPSMode;
@@ -112,7 +137,7 @@ public:
 				m_context->ProcessKeyUp(keyMap, 0);
 		}
 	}
-
+	std::list<r3d::PointLight> ps;
 	virtual void OnFilesDropIn(uint32_t count, const char *filenames[])
 	{
 		/*
@@ -191,11 +216,13 @@ static void BeginLightPass(r3d::Renderer *renderer, r3d::ContextWindow *cw, r3d:
 	program->setUniform("diffuseMap", 1);
 	gBuffer->getNormalMap()->bind(2);
 	program->setUniform("normMap", 2);
+	gBuffer->getSpecularMap()->bind(3);
+	program->setUniform("specMap", 3);
 	program->setUniform("viewport", glm::vec2(cw->getWidth(), cw->getHeight()));
 
-	renderer->enableBlending(true, r3d::BP_ONE, r3d::BP_ONE, r3d::BF_ADD);
 	renderer->enableDepthTest(false);
 	renderer->clear();
+	renderer->enableBlending(true, r3d::BP_ONE, r3d::BP_ONE, r3d::BF_ADD);
 }
 
 static Rocket::Core::Context *SetupRocket(r3d::Engine *engine)
@@ -242,6 +269,7 @@ int main(int argc, char *argv[])
 	auto sMgr=engine->getSceneManager();
 	std::shared_ptr<r3d::Camera> fps(new r3d::FPSCamera(cw, 45.0f, glm::vec3(5.0f, 0.0f, 0.0f)));
 	sMgr->setMainCamera(fps);
+	global_fps=fps.get();
 
 	std::shared_ptr<r3d::GBuffer> gBuffer(new r3d::GBuffer(engine, cw->getWidth(), cw->getHeight()));
 	r3d::PostFX::Initialise();
@@ -255,13 +283,10 @@ int main(int argc, char *argv[])
 	// enable backface culling..
 	//engine->getRenderer()->enableBackfaceCulling(true);
 
-	r3d::PointLight p, p2;
-	p2.pos=glm::vec3(10);
-	p2.color=glm::vec3(2.0f, 2.0f, 2.0f);
+	r3d::PointLight p;
 	p.pos=glm::vec3(0, 30, 0);
-	p.color=glm::vec3(1.0f, 1.0f, 1.0f);
+	p.color=glm::vec3(1);
 	sMgr->addLight(&p);
-	sMgr->addLight(&p2);
 
 	Rocket::Core::Context *context=SetupRocket(engine);
 	MyEventListener myel(context, cw);
@@ -285,7 +310,7 @@ int main(int argc, char *argv[])
 		gBuffer->beginScene();
 		sMgr->drawAll();
 		gBuffer->endScene();
-
+		
 		PostFXTest.beginSource(); 
 		BeginLightPass(engine->getRenderer(), cw, program, gBuffer);
 
@@ -300,11 +325,12 @@ int main(int argc, char *argv[])
 			engine->getRenderer()->drawElements(program.get(), vao, r3d::PT_TRIANGLES, 6);
 		}
 		PostFXTest.endSource();
-
+	
 		engine->getRenderer()->clear();
 		PostFXTest.runAll();
 		engine->getRenderer()->enableBlending(true, r3d::BP_SRC_ALPHA, r3d::BP_ONE_MINUS_SRC_ALPHA, r3d::BF_ADD);
 		context->Render();
+		engine->getRenderer()->enableBlending(false);
 		
 		cw->pollInput();
 		cw->swapBuffers();

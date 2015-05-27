@@ -11,8 +11,8 @@ namespace r3d
 	{
 	public:
 		Material(ProgramPtr program): 
-			m_ambient(0.05f), m_diffuse(1.0f), m_specular(1.0f), m_program(program),
-			m_dMap(nullptr)
+			m_ambient(0.05f), m_diffuse(1.0f), m_specular(1.0f),
+			m_emission(0.0f), m_program(program), m_dMap(nullptr)
 		{}
 
 		void setAmbient(const glm::vec3 &v)
@@ -27,6 +27,9 @@ namespace r3d
 		void setSpecular(const glm::vec3 &v)
 		{ m_specular=v; }
 
+		void setEmission(const glm::vec3 &v)
+		{ m_emission=v; }
+
 		glm::vec3 getDiffuse() const { return m_diffuse; }
 
 		void prepareShader() const
@@ -34,6 +37,8 @@ namespace r3d
 			m_program->setUniform("ambient", m_ambient);
 			
 			m_program->setUniform("specular", m_specular);
+
+			m_program->setUniform("emission", m_emission);
 
 			if(m_dMap)
 			{
@@ -49,6 +54,7 @@ namespace r3d
 		glm::vec3 m_ambient;
 		glm::vec3 m_diffuse;
 		glm::vec3 m_specular;
+		glm::vec3 m_emission;
 		glm::vec3 m_texture;
 
 		ColorTexture2D *m_dMap;

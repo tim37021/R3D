@@ -31,15 +31,20 @@ static const char *fragment_shader=
 	"layout(location = 0) out vec3 worldPosMap;"
 	"layout(location = 1) out vec3 diffuseMap;\n"
 	"layout(location = 2) out vec3 normalMap;\n"
-	"uniform vec3 diffuse;"
-	"uniform sampler2D diffuseTexture;"
-	"in vec2 vTexCoord;"
-	"in vec3 worldPos;"
-	"in vec3 vNorm;"
+	"layout(location = 3) out vec3 specularMap;\n"
+	"uniform vec3 diffuse;\n"
+	"uniform vec3 specular;\n"
+	"uniform vec3 emission;"
+	"uniform sampler2D diffuseTexture;\n"
+	"in vec2 vTexCoord;\n"
+	"in vec3 worldPos;\n"
+	"in vec3 vNorm;\n"
 	"void main(){\n"
-	"worldPosMap=clamp(worldPos, 0, 1);\n"
+	"worldPosMap=worldPos;\n"
 	"diffuseMap=vec3(texture(diffuseTexture, vTexCoord))*diffuse;\n"
 	"normalMap=vNorm;\n"
+	"specularMap=specular;\n"
+	"if(length(emission)>0.2){ specularMap=vec3(-1, -1, -1); }"
 	"}\n";
 
 static r3d::ProgramPtr MakeShaderProgram(const r3d::Engine *engine, const char *vsource,
@@ -115,6 +120,7 @@ namespace r3d
 				}
 
 				m_defaultMaterial->setDiffuse(glm::vec3(material.diffuse[0], material.diffuse[1], material.diffuse[2]));
+				m_defaultMaterial->setSpecular(glm::vec3(material.specular[0], material.specular[1], material.specular[2]));
 			}
 			newNode->setMaterial(m_defaultMaterial);
 
