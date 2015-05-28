@@ -17,13 +17,38 @@ static const char *vertex_shader=
 	"uniform mat4 mvp;"
 	"uniform mat4 model;"
 	"out vec3 vNorm;"
-	"out vec3 worldPos;"
+	"out vec3 vWorldPos;"
 	"out vec2 vTexCoord;"
 	"void main(){\n"
-	"worldPos=vec3(model*vec4(pos, 1.0));"
+	"vWorldPos=vec3(model*vec4(pos, 1.0));"
 	"vTexCoord=texCoord;"
 	"vNorm=norm;"
 	"gl_Position=mvp*vec4(pos, 1.0);"
+	"}\n";
+
+static const char *geometry_shader=
+	"#version 330\n"
+	"layout(triangles) in;\n"
+	"layout(triangle_strip, max_vertices=3) out;\n"
+	"in vec3 vNorm[3];\n"
+	"in vec3 vWorldPos[3];\n"
+	"in vec2 vTexCoord[3];\n"
+	"out vec3 gNorm;\n"
+	"out vec3 gWorldPos;\n"
+	"out vec2 gTexCoord;\n"
+	"uniform int enableSmooth=1;"
+	"void main(){\n"
+	"vec3 oa=vWorldPos[1]-vWorldPos[0];\n"
+	"vec3 ob=vWorldPos[2]-vWorldPos[0];\n"
+	"vec3 norm=normalize(cross(oa, ob));\n"
+	"for(int i=0; i<3; i++){\n"
+	"gl_Position=gl_in[i].gl_Position;\n"
+	"gNorm=enableSmooth==1? vNorm[i]: norm;\n"
+	"gWorldPos=vWorldPos[i];\n"
+	"gTexCoord=vTexCoord[i];\n"
+	"EmitVertex();\n"
+	"}"
+	"EndPrimitive();\n"
 	"}\n";
 
 static const char *fragment_shader=
@@ -36,28 +61,32 @@ static const char *fragment_shader=
 	"uniform vec3 specular;\n"
 	"uniform vec3 emission;"
 	"uniform sampler2D diffuseTexture;\n"
-	"in vec2 vTexCoord;\n"
-	"in vec3 worldPos;\n"
-	"in vec3 vNorm;\n"
+	"in vec2 gTexCoord;\n"
+	"in vec3 gWorldPos;\n"
+	"in vec3 gNorm;\n"
 	"void main(){\n"
-	"worldPosMap=worldPos;\n"
-	"diffuseMap=vec3(texture(diffuseTexture, vTexCoord))*diffuse;\n"
-	"normalMap=vNorm;\n"
+	"worldPosMap=gWorldPos;\n"
+	"diffuseMap=vec3(texture(diffuseTexture, gTexCoord))*diffuse;\n"
+	"normalMap=gNorm;\n"
 	"specularMap=specular;\n"
-	"if(length(emission)>0.2){ specularMap=vec3(-1, -1, -1); }"
+	"if(length(emission)>0.2){ specularMap=-emission; }"
 	"}\n";
 
 static r3d::ProgramPtr MakeShaderProgram(const r3d::Engine *engine, const char *vsource,
-	const char *fsource)
+	const char *gsource, const char *fsource)
 {
 	auto program=engine->newProgram();
 	auto vs=engine->newShader(r3d::ST_VERTEX_SHADER);
+	auto gs=engine->newShader(r3d::ST_GEOMETRY_SHADER);
 	auto fs=engine->newShader(r3d::ST_FRAGMENT_SHADER);
 	vs->source(vsource);
+	gs->source(gsource);
 	fs->source(fsource);
 	vs->compile();
+	gs->compile();
 	fs->compile();
 	program->attachShader(vs);
+	program->attachShader(gs);
 	program->attachShader(fs);
 	program->link();
 
@@ -69,7 +98,7 @@ namespace r3d
 	SceneManager::SceneManager(Engine *engine)
 		: m_engine(engine), m_rootNode(SceneNodePtr(new EmptySceneNode(SceneNodePtr(), engine->getCurrentContext())))
 	{
-		m_program=MakeShaderProgram(m_engine, vertex_shader, fragment_shader);
+		m_program=MakeShaderProgram(m_engine, vertex_shader, geometry_shader, fragment_shader);
 	}
 
 	void SceneManager::drawAll()

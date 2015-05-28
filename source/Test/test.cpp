@@ -37,15 +37,15 @@ static const char *fragment_shader=
 	"vec3 fColor=texture(diffuseMap, vTexCoord).rgb;\n"
 	"vec3 norm=texture(normMap, vTexCoord).xyz;\n"
 	"vec3 spec=texture(specMap, vTexCoord).rgb;\n"
-	"if(length(norm)<=0.5) { color=vec4(0.0); return; }"
+	"if(length(norm)<=0.5) discard;"
+	"if(spec.x<0) {color=vec4(1.717*normalize(-spec), 1.0); return;}"
 	"vec3 lightVec=normalize(lightPos-pos);"
 	"float diffuse=dot(norm, lightVec);\n"
 	"if(diffuse>=0.0){"
 	"float d=length(lightPos-pos);\n"
 	"float att=1.0/(0.9+0.1*d*d);"
 	"float specular = pow(max(dot(reflect(-lightVec, norm), normalize(eyePos-pos)), 0), 30);\n"
-	"color=att*vec4(vec3(0.1)*fColor+diffuse*fColor*lightColor+specular*lightColor*spec, 1);} else{color=vec4(0.0);}\n"
-	"if(any(lessThan(spec, vec3(-0.5)))) color=vec4(1.717*normalize(fColor), 1.0);"
+	"color=att*vec4(diffuse*fColor*lightColor+specular*lightColor*spec, 1);} else discard;\n"
 	"}\n";
 
 static R3DRocket::SystemInterface *si;
@@ -84,8 +84,8 @@ public:
 				sMgr->addLight(&ps.back());
 
 				node->getTransformation()->setTranslation(ps.back().pos);
-				node->getChildList().front()->getMaterial()->setDiffuse(ps.back().color);
-				node->getChildList().front()->getMaterial()->setEmission({1.0f, 1.0f, 1.0f});
+				node->getChildList().front()->getMaterial()->setDiffuse(glm::normalize(ps.back().color));
+				node->getChildList().front()->getMaterial()->setEmission(ps.back().color);
 			}
 		}
 
