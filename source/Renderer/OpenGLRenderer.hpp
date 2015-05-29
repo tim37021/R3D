@@ -17,6 +17,7 @@ namespace r3d
 		virtual void setScissorRegion(int32_t, int32_t, uint32_t, uint32_t);
 		virtual void enableBlending(bool value, BlendParameter sf, BlendParameter df, BlendFunction bf);
 		virtual void drawElements(Program *program, VertexArray *vao, PrimitiveType, uint32_t count);
+		virtual void drawArrays(Program *program, VertexArray *vao, PrimitiveType, uint32_t count);
 	private:
 		Engine *m_engine;
 	};

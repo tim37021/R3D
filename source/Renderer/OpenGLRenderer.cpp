@@ -68,4 +68,12 @@ namespace r3d
 		glDrawElements(PrimitiveTypeOpenGLMap[pt], count, GL_UNSIGNED_INT, nullptr);
 		vao->unbind();
 	}
+
+	void OpenGLRenderer::drawArrays(Program *program, VertexArray *vao, PrimitiveType pt, uint32_t count)
+	{
+		vao->bind();
+		program->use();
+		glDrawArrays(PrimitiveTypeOpenGLMap[pt], 0, count);
+		vao->unbind();
+	}
 }
