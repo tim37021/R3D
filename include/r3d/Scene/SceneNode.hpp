@@ -9,6 +9,7 @@
 #include <glm/glm.hpp>
 #include <r3d/Core/Transformation.hpp>
 #include <r3d/Material/Material.hpp>
+// #include <r3d/Core/AABB.hpp>
 
 namespace r3d
 {
@@ -101,7 +102,7 @@ namespace r3d
 
 		MaterialPtr m_material;
 
-		//AABB m_aabb;
+		// AABB m_aabb;
 	};
 }
 

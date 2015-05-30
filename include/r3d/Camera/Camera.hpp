@@ -6,6 +6,7 @@
 namespace r3d
 {
 	class ContextWindow;
+	class Frustum;
 
 	class Camera
 	{
@@ -18,7 +19,10 @@ namespace r3d
 		virtual void update(double elapsedTime){}
 
 		const glm::vec3 &getPos() const { return m_pos; }
-
+		const glm::vec3 &getDir() const { return m_dir; }
+		const glm::vec3 &getUp() const { return m_up; }
+		
+		const Frustum &getFrustum();
 		const glm::mat4 &getVPMatrix() const;
 	protected:
 		Camera(ContextWindow *window);

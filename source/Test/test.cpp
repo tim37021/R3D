@@ -301,7 +301,7 @@ int main(int argc, char *argv[])
 		}
 		engine->getRenderer()->enableBlending(true, r3d::BP_SRC_ALPHA, r3d::BP_ONE_MINUS_SRC_ALPHA, r3d::BF_ADD);
 		context->Render();
-		
+
 		engine->getRenderer()->enableBlending(false);
 		
 		cw->pollInput();
