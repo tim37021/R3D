@@ -38,7 +38,7 @@ namespace r3d
 		m_indicesCount=indices.size();
 
 		m_vertices = vertices;
-
+		m_last=glm::mat4(0);
 	}
 
 	void MeshSceneNode::render(Renderer *renderer, Camera *cam, const glm::mat4 &current)
