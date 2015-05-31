@@ -157,4 +157,13 @@ namespace r3d
 		}
 		return objNode.get();
 	}
+
+	SceneNode *SceneManager::addEmptySceneNode(SceneNodePtr node)
+	{
+		auto cw=m_engine->getCurrentContext();
+		auto objNode=SceneNodePtr(new EmptySceneNode(node, cw));
+		//objNode->setName(filename);
+		node->addChild(objNode);
+		return objNode.get();
+	}
 }

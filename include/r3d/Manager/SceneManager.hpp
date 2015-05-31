@@ -31,8 +31,8 @@ namespace r3d
 		//!> load Obj scene and necessary texture and buffer
 		//   and put it under SceneNode
 		SceneNode *loadObjScene(SceneNodePtr, const char *filename, const char *base=nullptr);
-		SceneNodePtr addMeshSceneNode();
-		SceneNodePtr addEmptySceneNode();
+		SceneNode *addMeshSceneNode(SceneNodePtr);
+		SceneNode *addEmptySceneNode(SceneNodePtr);
 
 		void addLight(Light *light)
 		{ lights.push_back(light); }

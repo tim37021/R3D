@@ -34,7 +34,7 @@ static const char *geometry_shader=
 	"uniform float e=0.1, a=1.0;\n"
 	"void main(){\n"
 	"float rect[4]=float[](-1, -1, 1, 1);\n"
-	"float r=15.0;\n"
+	"float r=5.0;\n"
 	"vec3 l=(view*gl_in[0].gl_Position).xyz; vec3 l2=l*l; float r2=r*r;\n"
 	"float d=r2*l2.x-(l2.x+l2.z)*(r2-l2.z);\n"
 	"if(d>=0){\n"
@@ -117,7 +117,7 @@ static const char *fragment_shader=
 	"float diffuse=dot(norm, lightVec);\n"
 	"if(diffuse>=0.0){"
 	"float d=length(lightPos-pos);\n"
-	"float att=1.0/(0.5+0.15*d+0.35*d*d);"
+	"float att=1.0/(0.5+0.5*d*d);"
 	"float specular = pow(max(dot(reflect(-lightVec, norm), normalize(eyePos-pos)), 0), 30);\n"
 	"color=att*vec4(diffuse*fColor*lightColor+specular*lightColor*spec, 1);} else discard;\n"
 	"}\n";
@@ -151,16 +151,16 @@ public:
 		{
 			if(button==1&&action){
 				auto sMgr=cw->getSceneManager();
-				auto node=sMgr->loadObjScene(sMgr->getRootNode(), "sphere.obj");
+				auto node=sMgr->addEmptySceneNode(sMgr->getRootNode());
 				ps.push_back({});
 				ps.back().pos=global_fps->getPos();
 				ps.back().color=(glm::vec3(0.3f)+
-				glm::vec3((float)rand()/RAND_MAX, (float)rand()/RAND_MAX, (float)rand()/RAND_MAX))*5.0f;
+				glm::vec3((float)rand()/RAND_MAX, (float)rand()/RAND_MAX, (float)rand()/RAND_MAX));
 				sMgr->addLight(&ps.back());
 
 				node->getTransformation()->setTranslation(ps.back().pos);
-				node->getChildList().front()->getMaterial()->setDiffuse(glm::normalize(ps.back().color));
-				node->getChildList().front()->getMaterial()->setEmission(ps.back().color);
+				//node->getChildList().front()->getMaterial()->setDiffuse(glm::normalize(ps.back().color));
+				//node->getChildList().front()->getMaterial()->setEmission(ps.back().color);
 
 				//update 
 				auto vbo=vao->getVertexBuffer();
@@ -282,7 +282,7 @@ static r3d::VertexArray *MakeQuad(r3d::Engine *engine)
  	auto aMgr=engine->getVertexArrayManager();
 
 
-	auto vbo=bMgr->registerVertexBuffer("POINTLIGHTS", nullptr, sizeof(r3d::PointLight)*50, r3d::BU_DYNAMIC_DRAW);
+	auto vbo=bMgr->registerVertexBuffer("POINTLIGHTS", nullptr, sizeof(r3d::PointLight)*200, r3d::BU_DYNAMIC_DRAW);
 	auto vao=aMgr->registerVertexArray("POINTLIGHTS");
 	vao->bindVertexBuffer(vbo);
 
