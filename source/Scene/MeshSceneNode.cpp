@@ -4,9 +4,13 @@
 #include <r3d/Core/VertexArray.hpp>
 #include <r3d/Camera/Camera.hpp>
 #include <r3d/Window/ContextWindow.hpp>
+#include <iostream>
+
+#include "../Core/Frustum.hpp"
 
 namespace r3d
 {
+
 	MeshSceneNode::MeshSceneNode(SceneNodePtr parent, ContextWindow *cw, 
 		const std::vector<Vertex> &vertices, const std::vector<uint32_t> &indices,
 		const char *name, 
@@ -32,13 +36,33 @@ namespace r3d
 		m_vao->enableAttribArray(2, normAtt);
 
 		m_indicesCount=indices.size();
+
+		m_vertices = vertices;
+
 	}
 
 	void MeshSceneNode::render(Renderer *renderer, Camera *cam, const glm::mat4 &current)
 	{
 		auto material=getMaterial();
 		const glm::mat4 tmpMatrix=current*m_relative.getMatrix();
-		if(material)
+		if(m_last != tmpMatrix)
+		{
+			float xmin=0, ymin=0, zmin=0, xmax=0, ymax=0, zmax=0;
+			for(int v=0; v<m_vertices.size(); v++)
+			{	//todo: pos * tmpmatrix
+				glm::vec4 transV = tmpMatrix * glm::vec4(m_vertices[v].pos, 1);
+				xmin = (transV.x < xmin) ? transV.x : xmin;
+				ymin = (transV.y < ymin) ? transV.y : ymin;
+				zmin = (transV.z < zmin) ? transV.z : zmin;
+				xmax = (transV.x > xmax) ? transV.x : xmax;
+				ymax = (transV.y > ymax) ? transV.y : ymax;
+				zmax = (transV.z > zmax) ? transV.z : zmax;
+			}
+			m_aabb.set(glm::vec3(xmax, ymax, zmax), glm::vec3(xmin, ymin, zmin));
+		}
+		m_last = tmpMatrix;
+		Frustum frustum = cam->getFrustum();
+		if((frustum.AABBinFrustum(m_aabb)) && material)
 		{
 			material->prepareShader();
 			material->getProgram()->setUniform("mvp", cam->getVPMatrix()*tmpMatrix);

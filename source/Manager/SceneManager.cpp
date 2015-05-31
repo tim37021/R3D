@@ -121,11 +121,9 @@ namespace r3d
 		node->addChild(objNode);
 		for(auto &shape: shapes)
 		{
-			
 			std::vector<Vertex> vertices;
 			for(int v=0; v<shape.mesh.positions.size()/3; v++)
 			{
-
 				vertices.push_back({glm::vec3(shape.mesh.positions[v*3], shape.mesh.positions[v*3+1], shape.mesh.positions[v*3+2]),
 								shape.mesh.texcoords.size()>0?glm::vec2(shape.mesh.texcoords.at(v*2), 1.0f-shape.mesh.texcoords.at(v*2+1)): glm::vec2(),
 								glm::vec3(shape.mesh.normals.at(v*3), shape.mesh.normals.at(v*3+1), shape.mesh.normals.at(v*3+2))});
