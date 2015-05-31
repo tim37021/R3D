@@ -28,6 +28,7 @@ namespace r3d
 		// must update gpu
 		virtual void resize(uint32_t width, uint32_t height);
 	private:
+		GLenum m_internalFormat;
 		GLenum getGLInternelFormat() const;
 		void resetGLTexture() const;
 	};

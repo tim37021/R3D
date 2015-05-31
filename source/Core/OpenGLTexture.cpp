@@ -16,6 +16,7 @@ namespace r3d
 	OpenGLColorTexture2D::OpenGLColorTexture2D(uint32_t width, uint32_t height, PixelFormat pf)
 		: ColorTexture2D(width, height, pf), OpenGLObject(glGenTextures, glDeleteTextures)
 	{
+		m_internalFormat=getGLInternelFormat();
 		resetGLTexture();
 	}
 
@@ -23,7 +24,7 @@ namespace r3d
 		: ColorTexture2D(image->GetWidth(), image->GetHeight(), PF_RGBA), OpenGLObject(glGenTextures, glDeleteTextures)
 	{
 		memcpy(m_data.get(), image->GetPixels(), image->GetWidth()*image->GetHeight()*4);
-		
+		m_internalFormat=image->HasAlpha()? GL_RGBA: GL_RGB;
 		resetGLTexture();
 	}
 
@@ -115,7 +116,7 @@ namespace r3d
 		else
 			gltype=GL_UNSIGNED_BYTE;
 
-		glTexImage2D(GL_TEXTURE_2D, 0, getGLInternelFormat(), getWidth(), getHeight(), 0, PixelFormatOpenGLMap[pf], gltype, m_data.get());
+		glTexImage2D(GL_TEXTURE_2D, 0, m_internalFormat, getWidth(), getHeight(), 0, PixelFormatOpenGLMap[pf], gltype, m_data.get());
 		
 		glGenerateMipmap( GL_TEXTURE_2D );
 		POPSTATE();
