@@ -6,7 +6,7 @@
 			body
 			{
 				width: 450px;
-				height: 350px;
+				height: 280px;
 				
 				margin: auto;
 			}
@@ -20,35 +20,56 @@
 			{
 				text-align: left;
 			}
-
-			icon
-			{
-			    /* The icons are floated left so they appear left-to-right. */
-			    float: left;
-			    
-			    /* The padding is added to push the text down to the bottom of the element. The inner dimensions plus the
-			       padding come to 100px square. */
-			    width: 80px;
-			    height: 40px;
-			    padding: 60px 10px 0px 10px;
-			    margin: 10px;
-			    
-			    background-decorator: image;
-			    background-image: sphere.png 0px 0px 94px 94px;
-			    
-			    font-size: 24;
-			    text-align: center;
-			    text-shadow: 1px 1px black;
-			    color: #FF0000;
-			}
 		</style>
+		<script>
+			f=""
+			cmdarray={};
+			cmdindex=-1
+			for i=1,10 do
+				cmdarray[i]=""
+			end
+			
+			function keydownevent(event)
+				if event.parameters['key_identifier']==72 then
+					execmd(event.current_element.parent_node)
+				end
+				if event.parameters['key_identifier']==91 then
+					cmdindex=cmdindex+1
+					cmdindex=cmdindex%10
+					event.current_element:SetAttribute("value",cmdarray[cmdindex+1])
+				end
+				if event.parameters['key_identifier']==93 then
+					cmdindex=cmdindex+9
+					cmdindex=cmdindex%10
+					event.current_element:SetAttribute("value",cmdarray[cmdindex+1])
+				end
+			end
+			
+			function execmd(element)
+				for i=10,2,-1 do
+					cmdarray[i]=cmdarray[i-1]
+				end
+				cmdarray[1]=element:GetElementById("cmdin"):GetAttribute("value")
+				cmdindex=-1;
+				fnew=element:GetElementById("cmdin"):GetAttribute("value")
+				for i=math.floor(string.len(fnew)/33),1,-1 do
+					fnew=string.sub(fnew,1,i*33).."\n"..string.sub(fnew,i*33+1,-1)
+				end
+				
+				f=fnew.."\n"..f
+				element:GetElementById("cmdold"):SetAttribute("value",f)
+				fc=loadstring(element:GetElementById("cmdin"):GetAttribute("value"));
+				element:GetElementById("cmdin"):SetAttribute("value","")
+				fc();
+				element:GetElementById("cmdin"):Focus()
+			end
+		</script>
 	</head>
 	<body template="window">
-	<form id="myform">
-		<textarea id="fn"  rows="10" name="MyText" value="blaa"/><br />
-		<input id="zoom" type="text" name="zoom" size="10" maxlength="20" value="1"/><br />
-		<input type="submit">Load Obj</input>
-		</form>
-
+	<form onsubmit="execmd(element)">
+		<input onkeydown="keydownevent(event)" id="cmdin" type="text" value="1" style="display:inline-block;width:75%;vertical-align:middle;"/>
+		<input type="submit" style="width:20%;">excute</input><br/>
+		<textarea id="cmdold" rows="11" cols="34" value="" wrap="" disabled style="background-color:black;color:gray;"/>
+	</form>
 	</body>
 </rml>

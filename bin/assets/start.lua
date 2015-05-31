@@ -36,13 +36,18 @@ function Startup()
 	debugwindow:GetElementById("title").inner_rml="Debug"
 	debugwindow:Show()
 	
-
 	loadingwindow=maincontext:LoadDocument("assets/loading.rml")
 	loadingwindow:GetElementById("title").inner_rml="Load"
 	
 	propertymenu=maincontext:LoadDocument("assets/promenu.rml")
 	propertymenu:Show()
-	maincontext:LoadDocument("assets/demo.rml"):Show()
+	comwin=maincontext:LoadDocument("assets/demo.rml")
+	comwin:GetElementById("title").inner_rml="LUA Command"
+	comwin:Show()
+	comwin:GetElementById("cmdold").wordwrap=true
+	for k,v in pairs(comwin:GetElementById("cmdold").attributes) do
+	print(k..":"..v)
+	end
 	maincontext:LoadDocument("assets/menu.rml"):Show()
 	mspos=maincontext:LoadDocument("assets/mspos.rml")
 	mspos:Show()
