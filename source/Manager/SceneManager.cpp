@@ -61,6 +61,7 @@ static const char *fragment_shader=
 	"uniform vec3 specular;\n"
 	"uniform vec3 emission;"
 	"uniform sampler2D diffuseTexture;\n"
+	"uniform sampler2D specularTexture;\n"
 	"in vec2 gTexCoord;\n"
 	"in vec3 gWorldPos;\n"
 	"in vec3 gNorm;\n"
@@ -68,7 +69,7 @@ static const char *fragment_shader=
 	"worldPosMap=gWorldPos;\n"
 	"diffuseMap=vec3(texture(diffuseTexture, gTexCoord))*diffuse;\n"
 	"normalMap=gNorm;\n"
-	"specularMap=specular;\n"
+	"specularMap=(specular.x<0?vec3(texture(specularTexture, gTexCoord)): specular);\n"
 	"if(length(emission)>0.2){ specularMap=-emission; }"
 	"}\n";
 
@@ -111,7 +112,16 @@ namespace r3d
 	{
 		std::vector<tinyobj::shape_t> shapes;
 		std::vector<tinyobj::material_t> materials;
-		std::string err = tinyobj::LoadObj(shapes, materials, filename, base);
+
+		if(base)
+			tinyobj::LoadObj(shapes, materials, filename, base);
+		else
+		{
+			std::string basePath(filename);
+			std::size_t end=basePath.find_last_of("/\\");
+			end=(end!=std::string::npos? end: basePath.size()-1);
+			tinyobj::LoadObj(shapes, materials, filename, basePath.substr(0, end+1).c_str());
+		}
 
 		//TODO: Context management
 		auto cw=m_engine->getCurrentContext();
@@ -140,14 +150,22 @@ namespace r3d
 			if(mid>=0)
 			{
 				auto material=materials[mid];
+
+				// We use both texture and diffuse for color masking
 				if(material.diffuse_texname!="")
 				{
 					auto tex=tMgr->registerColorTexture2D(material.diffuse_texname);
 					if(tex) m_defaultMaterial->setDiffuse(tex);
 				}
-
 				m_defaultMaterial->setDiffuse(glm::vec3(material.diffuse[0], material.diffuse[1], material.diffuse[2]));
-				m_defaultMaterial->setSpecular(glm::vec3(material.specular[0], material.specular[1], material.specular[2]));
+				
+				// If there exists specular map, don't use specular in mtl
+				if(material.specular_texname!="")
+				{
+					auto tex=tMgr->registerColorTexture2D(material.specular_texname);
+					if(tex) m_defaultMaterial->setSpecular(tex);
+				}else
+					m_defaultMaterial->setSpecular(glm::vec3(material.specular[0], material.specular[1], material.specular[2]));
 			}
 			newNode->setMaterial(m_defaultMaterial);
 

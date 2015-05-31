@@ -24,6 +24,9 @@ namespace r3d
 		void setDiffuse(ColorTexture2D *text) 
 		{m_dMap=text;}
 
+		void setSpecular(ColorTexture2D *text) 
+		{m_sMap=text;}
+
 		void setSpecular(const glm::vec3 &v)
 		{ m_specular=v; }
 
@@ -45,6 +48,14 @@ namespace r3d
 				m_dMap->bind(0);
 				m_program->setUniform("diffuseTexture", 0);
 			}
+
+			if(m_sMap)
+			{
+				m_sMap->bind(1);
+				m_program->setUniform("specularTexture", 1);
+				m_program->setUniform("specular", {-1, -1, -1});
+			}
+
 			m_program->setUniform("diffuse", m_diffuse);
 		}
 
@@ -58,6 +69,7 @@ namespace r3d
 		glm::vec3 m_texture;
 
 		ColorTexture2D *m_dMap;
+		ColorTexture2D *m_sMap;
 
 		float shininess;
 
