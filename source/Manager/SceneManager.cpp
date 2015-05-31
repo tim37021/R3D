@@ -112,16 +112,19 @@ namespace r3d
 	{
 		std::vector<tinyobj::shape_t> shapes;
 		std::vector<tinyobj::material_t> materials;
+		std::string basePath(filename);
 
 		if(base)
 			tinyobj::LoadObj(shapes, materials, filename, base);
 		else
 		{
-			std::string basePath(filename);
 			std::size_t end=basePath.find_last_of("/\\");
 			end=(end!=std::string::npos? end: basePath.size()-1);
-			tinyobj::LoadObj(shapes, materials, filename, basePath.substr(0, end+1).c_str());
+			basePath=basePath.substr(0, end+1);
+			tinyobj::LoadObj(shapes, materials, filename, basePath.c_str());
 		}
+
+		m_engine->log(std::string("Load Obj Scene: (")+std::to_string(shapes.size())+": "+std::to_string(materials.size())+")"+basePath);
 
 		//TODO: Context management
 		auto cw=m_engine->getCurrentContext();
@@ -154,16 +157,16 @@ namespace r3d
 				// We use both texture and diffuse for color masking
 				if(material.diffuse_texname!="")
 				{
-					auto tex=tMgr->registerColorTexture2D(material.diffuse_texname);
-					if(tex) m_defaultMaterial->setDiffuse(tex);
+					auto tex=tMgr->registerColorTexture2D(basePath+material.diffuse_texname);
+					m_defaultMaterial->setDiffuse(tex);
 				}
 				m_defaultMaterial->setDiffuse(glm::vec3(material.diffuse[0], material.diffuse[1], material.diffuse[2]));
 				
 				// If there exists specular map, don't use specular in mtl
 				if(material.specular_texname!="")
 				{
-					auto tex=tMgr->registerColorTexture2D(material.specular_texname);
-					if(tex) m_defaultMaterial->setSpecular(tex);
+					auto tex=tMgr->registerColorTexture2D(basePath+material.specular_texname);
+					m_defaultMaterial->setSpecular(tex);
 				}else
 					m_defaultMaterial->setSpecular(glm::vec3(material.specular[0], material.specular[1], material.specular[2]));
 			}
