@@ -43,9 +43,9 @@ static const char *fragment_shader=
 	"if(diffuse>=0.0){"
 	"float d=length(lightPos-pos);\n"
 	"float att=1.0/(0.9+0.1*d*d);"
-	"float specular = spec*pow(max(dot(reflect(-lightVec, norm), normalize(eyePos-pos)), 0), 30);\n"
-	"color=att*vec4(vec3(0.1)*fColor+diffuse*fColor*lightColor+specular*lightColor, 1);} else{color=vec4(0.0);}\n"
-	"if(any(lessThan(spec, vec3(-0.5)))) color=vec4(1.717*normalize(fColor), 1.0);"
+	"float specular = pow(max(dot(reflect(-lightVec, norm), normalize(eyePos-pos)), 0), 30);\n"
+	"color=att*vec4(vec3(0.1)*fColor+diffuse*fColor*lightColor+specular*lightColor*spec, 1);} else{color=vec4(0.0);}\n"
+	"if(spec.x<-0.5) color=vec4(1.717*normalize(fColor), 1.0);"
 	"}\n";
 
 static R3DRocket::SystemInterface *si;
@@ -309,7 +309,6 @@ int main(int argc, char *argv[])
 			context->ProcessMouseMove((int)posx, (int)posy, 0);
 		}
 		//Update GBuffer
-		LuaInterface::updatemspos(width,height);
 		gBuffer->beginScene();
 		sMgr->drawAll();
 		gBuffer->endScene();
