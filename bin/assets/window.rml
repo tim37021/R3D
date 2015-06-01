@@ -15,7 +15,7 @@
 <body class="window"><handle move_target="#document">
 	<div id="title_bar" ondblclick="OnClick(event)">
 		
-			<span id="title">Property</span>
+			<span id="title" style="position: absolute; top:3px;">Property</span>
 		
 	</div></handle>
 	<div id="window">
