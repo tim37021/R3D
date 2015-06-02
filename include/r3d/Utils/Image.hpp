@@ -82,6 +82,7 @@ namespace r3d
 		void Save( const std::string& filename, ImageFileFormat::image_file_format_t format );
 
 		bool HasAlpha() const { return hasAlpha; }
+		bool IsGrayScale() const { return isGrayscale; }
 
 		uint16_t GetWidth() const;
 		uint16_t GetHeight() const;
@@ -94,6 +95,7 @@ namespace r3d
 		Color* image;
 		uint16_t width, height;
 		bool hasAlpha;
+		bool isGrayscale;
 
 		Image( const Image& );
 		const Image& operator=( const Image& );
