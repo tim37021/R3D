@@ -5,18 +5,29 @@
 
 namespace r3d
 {
-	struct Light
+	enum LightType
 	{
-		glm::vec3 pos;
-		glm::vec3 color;
-		bool castShadow;
-		
-		Light(const glm::vec3 &pos_, const glm::vec3 &color_, bool castShadow_=false): 
-			pos(pos_), color(color_), castShadow(castShadow_){}
-		Light(): pos(), color(1.0f), castShadow(false){}
+		LT_POINT_LIGHT,
+		LT_SPOT_LIGHT,
+		LT_DIRECTIONAL_LIGHT
 	};
 
-	typedef Light PointLight;
+	struct Light
+	{
+		glm::vec3 color;
+		LightType type;
+		
+		Light(LightType type_): type(type_){}
+		Light()=delete;
+		virtual ~Light()=default;
+	};
+
+	struct PointLight: public Light
+	{
+		glm::vec3 pos;
+		PointLight(): Light(LT_POINT_LIGHT) {}
+		virtual ~PointLight()=default;
+	};
 }
 
 #endif

@@ -15,27 +15,19 @@
 
 static const char *vertex_shader=
 	"#version 330\n"
-	"layout(location=0) in vec3 pos;\n"
-	"layout(location=1) in vec3 color;\n"
-	"out vec3 vColor;\n"
-	"void main(){\n"
-	"vColor=color;\n"
-	"gl_Position=vec4(pos, 1.0);"
-	"}\n";
+	"void main(){}";
 
 static const char *geometry_shader=
 	"#version 330\n"
 	"layout(points) in;\n"
 	"layout(triangle_strip, max_vertices=6) out;\n"
-	"in vec3 vColor[1];\n"
-	"out vec3 lightPos\n;"
-	"out vec3 lightColor;\n"
+	"uniform vec3 lightPos\n;"
 	"uniform mat4 view;\n"
 	"uniform float e=0.1, a=1.0;\n"
 	"void main(){\n"
 	"float rect[4]=float[](-1, -1, 1, 1);\n"
 	"float r=8.0;\n"
-	"vec3 l=(view*gl_in[0].gl_Position).xyz; vec3 l2=l*l; float r2=r*r;\n"
+	"vec3 l=(view*vec4(lightPos, 1.0)).xyz; vec3 l2=l*l; float r2=r*r;\n"
 	"float d=r2*l2.x-(l2.x+l2.z)*(r2-l2.z);\n"
 	"if(d>=0){\n"
 	"d=sqrt(d);\n"
@@ -76,8 +68,6 @@ static const char *geometry_shader=
 	"else rect[3]=min(rect[3],fy)\n;"
 	"}\n"
 	"}\n"
-	"lightPos=vec3(gl_in[0].gl_Position);\n"
-	"lightColor=vColor[0];\n"
 	"gl_Position=vec4(rect[0], rect[1], 0, 1);\n"
 	"EmitVertex();\n"
 	"gl_Position=vec4(rect[2], rect[1], 0, 1);\n"
@@ -93,7 +83,7 @@ static const char *geometry_shader=
 	"EmitVertex();\n"
 	"EndPrimitive();\n}"
 	"\n";
- 
+
 static const char *fragment_shader=
 	"#version 330\n"
 	"uniform sampler2D posMap;\n"
@@ -102,8 +92,8 @@ static const char *fragment_shader=
 	"uniform sampler2D specMap;\n"
 	"uniform vec2 viewport;"
 	"uniform vec3 eyePos;"
-	"in vec3 lightPos;\n"
-	"in vec3 lightColor;\n;"
+	"uniform vec3 lightPos;\n"
+	"uniform vec3 lightColor;\n;"
 	"out vec4 color;\n"
 	"void main(){\n"
 	"vec2 vTexCoord=gl_FragCoord.xy/viewport;"
@@ -152,23 +142,12 @@ public:
 		{
 			if(button==1&&action){
 				auto sMgr=cw->getSceneManager();
-				auto node=sMgr->addEmptySceneNode(sMgr->getRootNode());
-				ps.push_back({});
-				ps.back().pos=global_fps->getPos();
-				ps.back().color=(glm::vec3(0.3f)+
+				
+				r3d::PointLight *light=new r3d::PointLight();
+				light->pos=global_fps->getPos();
+				light->color=(glm::vec3(0.3f)+
 				glm::vec3((float)rand()/RAND_MAX, (float)rand()/RAND_MAX, (float)rand()/RAND_MAX));
-				sMgr->addLight(&ps.back());
-
-				node->getTransformation()->setTranslation(ps.back().pos);
-				//node->getChildList().front()->getMaterial()->setDiffuse(glm::normalize(ps.back().color));
-				//node->getChildList().front()->getMaterial()->setEmission(ps.back().color);
-
-				//update 
-				auto vbo=vao->getVertexBuffer();
-				r3d::PointLight *plights=(r3d::PointLight *)vbo->lock(r3d::BA_WRITE_ONLY);
-				for(auto light: sMgr->getLights())
-					*(plights++)=*light;
-				vbo->unlock();
+				sMgr->addLight(light);
 			}
 		}
 
@@ -269,29 +248,11 @@ static r3d::ProgramPtr MakeShaderProgram(const r3d::Engine *engine, const char *
 	gs->compile();
 	fs->compile();
 	program->attachShader(vs);
-	program->attachShader(gs);
 	program->attachShader(fs);
+	program->attachShader(gs);
 	program->link();
 
 	return program;
-}
-
-
-static r3d::VertexArray *MakeQuad(r3d::Engine *engine)
-{
- 	auto bMgr=engine->getBufferManager();
- 	auto aMgr=engine->getVertexArrayManager();
-
-
-	auto vbo=bMgr->registerVertexBuffer("POINTLIGHTS", nullptr, sizeof(r3d::PointLight)*200, r3d::BU_DYNAMIC_DRAW);
-	auto vao=aMgr->registerVertexArray("POINTLIGHTS");
-	vao->bindVertexBuffer(vbo);
-
-	r3d::AttribPointer posAtt(r3d::RT_FLOAT, 3, sizeof(r3d::PointLight), 0);
-	r3d::AttribPointer colorAtt(r3d::RT_FLOAT, 3, sizeof(r3d::PointLight), 12);
-	vao->enableAttribArray(0, posAtt);
-	vao->enableAttribArray(1, colorAtt);
-	return vao;
 }
 
 static void BeginLightPass(r3d::Renderer *renderer, r3d::ContextWindow *cw, r3d::ProgramPtr &program, std::shared_ptr<r3d::GBuffer> &gBuffer)
@@ -340,6 +301,13 @@ static Rocket::Core::Context *SetupRocket(r3d::Engine *engine)
 	return context;
 }
 
+void litPointLight(r3d::Renderer *renderer, r3d::ProgramPtr program, r3d::PointLight *light)
+{
+	program->setUniform("lightPos", light->pos);
+	program->setUniform("lightColor", light->color);
+	renderer->drawArrays(program.get(), vao, r3d::PT_POINTS, 1);
+}
+
 int main(int argc, char *argv[])
 {
 	r3d::Engine *engine = new r3d::Engine(r3d::RA_OPENGL_3_3);
@@ -363,12 +331,9 @@ int main(int argc, char *argv[])
 	r3d::PostFX PostFXTest(engine, cw); 
 	PostFXTest.pushEffect("bloom");
 
-	// render to texture
+	// For lighting
 	auto program = MakeShaderProgram(engine, vertex_shader, geometry_shader, fragment_shader);
-	vao=MakeQuad(engine);	
-
-	// enable backface culling..
-	//engine->getRenderer()->enableBackfaceCulling(true);
+	vao = cw->getVertexArrayManager()->registerVertexArray("ATTRIBUTELESS");
 
 	Rocket::Core::Context *context=SetupRocket(engine);
 	MyEventListener myel(context, cw);
@@ -399,11 +364,19 @@ int main(int argc, char *argv[])
 		// setup post-processing lighting shader parameter
 		program->setUniform("eyePos", fps->getPos());
 		program->setUniform("view", fps->getVMatrix());
-		program->setUniform("e", 0.1f);
 		program->setUniform("a", (float)cw->getHeight()/cw->getWidth());
+		program->setUniform("e", 0.1f);
 
-		engine->getRenderer()->drawArrays(program.get(), vao, r3d::PT_POINTS, sMgr->getLights().size());
-
+		for(auto light: sMgr->getLights())
+		{
+			switch(light->type)
+			{
+				case r3d::LT_POINT_LIGHT:
+					litPointLight(engine->getRenderer(), program, (r3d::PointLight *)light);
+					break;
+				default:;
+			}
+		}
 		PostFXTest.endSource();
 	
 		engine->getRenderer()->clear();
