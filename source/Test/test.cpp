@@ -17,6 +17,27 @@ static const char *vertex_shader=
 	"#version 330\n"
 	"void main(){}";
 
+static const char *geometry_shader_ambient=
+	"#version 330\n"
+	"layout(points) in;\n"
+	"layout(triangle_strip, max_vertices=6) out;\n"
+	"void main(){"
+	"gl_Position=vec4(-1, -1, 0, 1);\n"
+	"EmitVertex();\n"
+	"gl_Position=vec4(1, -1, 0, 1);\n"
+	"EmitVertex();\n"
+	"gl_Position=vec4(1, 1, 0, 1);\n"
+	"EmitVertex();\n"
+	"EndPrimitive();\n"
+	"gl_Position=vec4(-1, -1, 0, 1);\n"
+	"EmitVertex();\n"
+	"gl_Position=vec4(1, 1, 0, 1);\n"
+	"EmitVertex();\n"
+	"gl_Position=vec4(-1, 1, 0, 1);\n"
+	"EmitVertex();\n"
+	"EndPrimitive();\n}"
+	"\n";
+
 static const char *geometry_shader=
 	"#version 330\n"
 	"layout(points) in;\n"
@@ -83,6 +104,17 @@ static const char *geometry_shader=
 	"EmitVertex();\n"
 	"EndPrimitive();\n}"
 	"\n";
+static const char *fragment_shader_ambient=
+	"#version 330\n"
+	"uniform sampler2D diffuseMap;"
+	"uniform vec2 viewport;"
+	"uniform vec3 lightColor;"
+	"out vec4 color;"
+	"void main(){"
+	"vec2 vTexCoord=gl_FragCoord.xy/viewport;"
+	"vec3 fColor=texture(diffuseMap, vTexCoord).rgb;"
+	"color=vec4(fColor*vec3(0.1), 1.0);"
+	"}\n";
 
 static const char *fragment_shader=
 	"#version 330\n"
@@ -268,6 +300,7 @@ static void BeginLightPass(r3d::Renderer *renderer, r3d::ContextWindow *cw, r3d:
 	program->setUniform("specMap", 3);
 	program->setUniform("viewport", glm::vec2(cw->getWidth(), cw->getHeight()));
 
+
 	renderer->enableDepthTest(false);
 	renderer->clear();
 	renderer->enableBlending(true, r3d::BP_ONE, r3d::BP_ONE, r3d::BF_ADD);
@@ -308,6 +341,11 @@ void litPointLight(r3d::Renderer *renderer, r3d::ProgramPtr program, r3d::PointL
 	renderer->drawArrays(program.get(), vao, r3d::PT_POINTS, 1);
 }
 
+void litAmbientLight(r3d::Renderer *renderer, r3d::ProgramPtr program)
+{
+	renderer->drawArrays(program.get(), vao, r3d::PT_POINTS, 1);
+}
+
 int main(int argc, char *argv[])
 {
 	r3d::Engine *engine = new r3d::Engine(r3d::RA_OPENGL_3_3);
@@ -333,6 +371,7 @@ int main(int argc, char *argv[])
 
 	// For lighting
 	auto program = MakeShaderProgram(engine, vertex_shader, geometry_shader, fragment_shader);
+	auto program_ambient = MakeShaderProgram(engine, vertex_shader, geometry_shader_ambient, fragment_shader_ambient);
 	vao = cw->getVertexArrayManager()->registerVertexArray("ATTRIBUTELESS");
 
 	Rocket::Core::Context *context=SetupRocket(engine);
@@ -377,6 +416,13 @@ int main(int argc, char *argv[])
 				default:;
 			}
 		}
+
+		program_ambient->use();
+		gBuffer->getDiffuseMap()->bind(0);
+		program_ambient->setUniform("diffuseMap", 0);
+		program_ambient->setUniform("viewport", glm::vec2(cw->getWidth(), cw->getHeight()));
+
+		litAmbientLight(engine->getRenderer(), program_ambient);
 		PostFXTest.endSource();
 	
 		engine->getRenderer()->clear();
