@@ -63,7 +63,7 @@ static ProgramPtr MakeShaderProgram(const Engine *engine, const char *vsource,
 int main(int argc, char *argv[])
 {
 	if(argc!=2) return 1;
-	Engine *engine = new r3d::Engine(r3d::RA_OPENGL_3_3);
+	Engine *engine = new r3d::Engine(r3d::RA_OPENGL_4_3);
 	ContextWindow *cw=engine->newContextWindow(800, 600, "R3D Example");
 	Renderer *renderer=engine->getRenderer();
 
