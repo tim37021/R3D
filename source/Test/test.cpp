@@ -348,7 +348,7 @@ void litAmbientLight(r3d::Renderer *renderer, r3d::ProgramPtr program)
 
 int main(int argc, char *argv[])
 {
-	r3d::Engine *engine = new r3d::Engine(r3d::RA_OPENGL_3_3);
+	r3d::Engine *engine = new r3d::Engine(r3d::RA_OPENGL_4_3);
 
 
 	int width=1440, height=900;
