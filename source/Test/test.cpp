@@ -39,6 +39,18 @@ static const char *fragment_shader=
 	"color=texture(text, vTexCoord);"
 	"}";
 
+static const char *compute_shader=
+	"#version 430\n"
+	"uniform float roll;"
+	"writeonly uniform image2D destTex;"
+	"layout (local_size_x = 16, local_size_y = 16) in;"
+	"void main() {"
+	"ivec2 storePos = ivec2(gl_GlobalInvocationID.xy);"
+	"float localCoef = length(vec2(ivec2(gl_LocalInvocationID.xy)-8)/8.0);"
+	"float globalCoef = sin(float(gl_WorkGroupID.x+gl_WorkGroupID.y)*0.1 + roll)*0.5;"
+	"imageStore(destTex, storePos, vec4(1.0-globalCoef*localCoef, 0.0, 0.0, 0.0));"
+	"}";
+
 static ProgramPtr MakeShaderProgram(const Engine *engine, const char *vsource,
 	const char *gsource, const char *fsource)
 {
@@ -60,6 +72,18 @@ static ProgramPtr MakeShaderProgram(const Engine *engine, const char *vsource,
 	return program;
 }
 
+static ProgramPtr MakeShaderProgram(const Engine *engine, const char *csource)
+{
+	auto program=engine->newProgram();
+	auto cs=engine->newShader(ST_COMPUTE_SHADER);
+	cs->source(csource);
+	cs->compile();
+	program->attachShader(cs);
+	program->link();
+
+	return program;
+}
+
 int main(int argc, char *argv[])
 {
 	if(argc!=2) return 1;
@@ -76,6 +100,13 @@ int main(int argc, char *argv[])
 	VertexArray *vao=cw->getVertexArrayManager()->registerVertexArray("DUMMY");
 
 	ProgramPtr program=MakeShaderProgram(engine, vertex_shader, geometry_shader, fragment_shader);
+	ProgramPtr program_cs=MakeShaderProgram(engine, compute_shader);
+
+	program_cs->use();
+	program_cs->setUniform("roll", 110.255f);
+	program_cs->setUniform("destTex", 0);
+	text->bindImage(0, 0, AL_WRITE_ONLY);
+	glDispatchCompute(512/16, 512/16, 1);
 
 	while(!cw->isCloseButtonClicked())
 	{
