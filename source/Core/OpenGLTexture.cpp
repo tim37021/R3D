@@ -25,7 +25,7 @@ namespace r3d
 		: ColorTexture2D(image->GetWidth(), image->GetHeight(), PF_RGBA), OpenGLObject(glGenTextures, glDeleteTextures)
 	{
 		memcpy(m_data.get(), image->GetPixels(), image->GetWidth()*image->GetHeight()*4);
-		m_internalFormat=image->HasAlpha()? GL_RGBA: GL_RGB;
+		m_internalFormat=image->HasAlpha()? GL_RGBA8: GL_RGB8;
 		resetGLTexture();
 	}
 
@@ -85,10 +85,10 @@ namespace r3d
 		{
 			case PF_RGB:
 			case PF_BGR:
-				return GL_RGB;
+				return GL_RGB8;
 			case PF_RGBA:
 			case PF_BGRA:
-				return GL_RGBA;
+				return GL_RGBA8;
 			case PF_RGBF:
 			case PF_BGRF:
 				return GL_RGB32F;
@@ -96,7 +96,7 @@ namespace r3d
 			case PF_BGRAF:
 				return GL_RGBA32F;
 			default:
-				return GL_RGB;
+				return GL_RGB8;
 		}
 	}
 

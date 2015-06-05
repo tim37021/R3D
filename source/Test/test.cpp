@@ -48,7 +48,7 @@ static const char *compute_shader=
 	"ivec2 storePos = ivec2(gl_GlobalInvocationID.xy);"
 	"float localCoef = length(vec2(ivec2(gl_LocalInvocationID.xy)-8)/8.0);"
 	"float globalCoef = sin(float(gl_WorkGroupID.x+gl_WorkGroupID.y)*0.1 + roll)*0.5;"
-	"imageStore(destTex, storePos, vec4(1.0-globalCoef*localCoef, 0.0, 0.0, 0.0));"
+	"imageStore(destTex, storePos, vec4(1.0-globalCoef*localCoef));"
 	"}";
 
 static ProgramPtr MakeShaderProgram(const Engine *engine, const char *vsource,
@@ -102,18 +102,20 @@ int main(int argc, char *argv[])
 	ProgramPtr program=MakeShaderProgram(engine, vertex_shader, geometry_shader, fragment_shader);
 	ProgramPtr program_cs=MakeShaderProgram(engine, compute_shader);
 
-	program_cs->use();
-	program_cs->setUniform("roll", 110.255f);
-	program_cs->setUniform("destTex", 0);
-	text->bindImage(0, 0, AL_WRITE_ONLY);
-	glDispatchCompute(512/16, 512/16, 1);
-
 	while(!cw->isCloseButtonClicked())
 	{
 		renderer->clear();
 
+		program_cs->use();
+		program_cs->setUniform("roll", (float)engine->getTime() * 0.01f);
+		program_cs->setUniform("destTex", 0);
+		text->bindImage(0, 0, AL_WRITE_ONLY);
+		glDispatchCompute(512/16, 512/16, 1);
+
+
 		// Because we render without attribute, and generate quad with geometry shader
 		// take care of parameter here, make sure geometry shader runs only one time
+		program->use();
 		text->bind(0);
 		program->setUniform("text", 0);
 		program->setUniform("viewport", {cw->getWidth(), cw->getHeight()});
