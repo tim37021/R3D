@@ -200,6 +200,7 @@ namespace r3d
 				return new OpenGLVertexBuffer(data, n, bu);
 				break;
 		}
+		return nullptr;
 	}
 
 	std::shared_ptr<Shader> Engine::newShader(ShaderType st) const
@@ -212,6 +213,7 @@ namespace r3d
 				return std::shared_ptr<Shader>(new OpenGLShader(st));
 				break;
 		}
+		return {nullptr};
 	}
 
 	std::shared_ptr<Program> Engine::newProgram() const
@@ -224,6 +226,7 @@ namespace r3d
 				return std::shared_ptr<Program>(new OpenGLProgram());
 				break;
 		}
+		return {nullptr};
 	}
 
 	SceneManager *Engine::getSceneManager(ContextWindow *window)
