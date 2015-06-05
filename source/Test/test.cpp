@@ -106,11 +106,10 @@ int main(int argc, char *argv[])
 	{
 		renderer->clear();
 
-		program_cs->use();
 		program_cs->setUniform("roll", (float)engine->getTime());
 		program_cs->setUniform("destTex", 0);
 		text->bindImage(0, 0, AL_WRITE_ONLY);
-		glDispatchCompute(512/16, 512/16, 1);
+		program_cs->dispatchCompute(512/16, 512/16, 1);
 
 
 		// Because we render without attribute, and generate quad with geometry shader

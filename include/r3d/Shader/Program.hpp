@@ -33,6 +33,8 @@ namespace r3d
 		virtual void setUniform(const std::string &name, const glm::vec2 &v)=0;
 		virtual void setUniform(const std::string &name, const glm::vec3 &v)=0;
 		virtual void setUniform(const std::string &name, const glm::mat4 &mat)=0;
+
+		virtual void dispatchCompute(uint32_t x, uint32_t y, uint32_t z)=0;
 	};
 
 	typedef std::shared_ptr<Program> ProgramPtr; 
