@@ -24,6 +24,8 @@ namespace r3d
 		virtual void setUniform(const std::string &name, const glm::vec3 &v);
 		virtual void setUniform(const std::string &name, const glm::mat4 &mat);
 
+		virtual void dispatchCompute(uint32_t x, uint32_t y, uint32_t z);
+
 		GLuint getID() const { return m_id; }
 	private:
 		GLuint m_id;
