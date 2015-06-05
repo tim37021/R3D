@@ -7,5 +7,6 @@ install_manifest.txt
 *.a
 *.dll
 bin/*
+lib/lua*
 !bin/assets/
 !bin/shaders/
