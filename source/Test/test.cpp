@@ -87,7 +87,7 @@ static ProgramPtr MakeShaderProgram(const Engine *engine, const char *csource)
 int main(int argc, char *argv[])
 {
 	if(argc!=2) return 1;
-	Engine *engine = new r3d::Engine(r3d::RA_OPENGL_4_3);
+	Engine *engine = new r3d::Engine(RA_OPENGL_4_3);
 	ContextWindow *cw=engine->newContextWindow(800, 600, "R3D Example");
 	Renderer *renderer=engine->getRenderer();
 
@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
 		renderer->clear();
 
 		program_cs->use();
-		program_cs->setUniform("roll", (float)engine->getTime() * 0.01f);
+		program_cs->setUniform("roll", (float)engine->getTime());
 		program_cs->setUniform("destTex", 0);
 		text->bindImage(0, 0, AL_WRITE_ONLY);
 		glDispatchCompute(512/16, 512/16, 1);
