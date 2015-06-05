@@ -135,7 +135,7 @@ namespace r3d
 		for(auto &shape: shapes)
 		{
 			std::vector<Vertex> vertices;
-			for(int v=0; v<shape.mesh.positions.size()/3; v++)
+			for(uint32_t v=0; v<shape.mesh.positions.size()/3; v++)
 			{
 				vertices.push_back({glm::vec3(shape.mesh.positions[v*3], shape.mesh.positions[v*3+1], shape.mesh.positions[v*3+2]),
 								shape.mesh.texcoords.size()>0?glm::vec2(shape.mesh.texcoords.at(v*2), 1.0f-shape.mesh.texcoords.at(v*2+1)): glm::vec2(),
@@ -146,7 +146,7 @@ namespace r3d
 			auto m_defaultMaterial = std::make_shared<Material>(m_program);
 
 			int32_t mid=-1;
-			for(int i=0; mid==-1&&i<shape.mesh.material_ids.size(); i++)
+			for(uint32_t i=0; mid==-1&&i<shape.mesh.material_ids.size(); i++)
 				mid=shape.mesh.material_ids[i]>=0? shape.mesh.material_ids[i]: mid;
 
 			m_defaultMaterial->setDiffuse(tMgr->registerColorTexture2D("white.png"));

@@ -45,10 +45,18 @@ namespace r3d
 		F_LINEAR_MIPMAP_LINEAR
 	};
 
+	enum AccessLevel
+	{
+		AL_READ_ONLY,
+		AL_WRITE_ONLY,
+		AL_READ_WRITE
+	};
+
 	class ITexture
 	{
 	public:
 		virtual void bind(uint32_t channel)=0;
+		virtual void bindImage(uint32_t channel, int level, AccessLevel)=0;
 		virtual void unbind()=0;
 		virtual void *lock()=0;
 		virtual void unlock()=0;
