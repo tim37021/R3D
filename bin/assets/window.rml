@@ -6,8 +6,10 @@
 		function OnClick(event)
 			if event.current_element:GetElementById("window").style["display"] == "none" then
 				event.current_element:GetElementById("window").style["display"]="block";
+				event.current_element.parent_node.parent_node.style["height"]=event.current_element.parent_node.parent_node.style["orih"];
 			else
 				event.current_element:GetElementById("window").style["display"]="none";
+				event.current_element.parent_node.parent_node.style["height"]="0px";
 			end
 		end
 	</script>

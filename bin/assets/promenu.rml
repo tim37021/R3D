@@ -7,7 +7,7 @@
 			{
 				width: 250x;
 				height: 240px;
-				
+				orih: 240px;
 				margin: auto;
 			}
 			

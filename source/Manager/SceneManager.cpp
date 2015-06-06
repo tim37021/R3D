@@ -17,13 +17,38 @@ static const char *vertex_shader=
 	"uniform mat4 mvp;"
 	"uniform mat4 model;"
 	"out vec3 vNorm;"
-	"out vec3 worldPos;"
+	"out vec3 vWorldPos;"
 	"out vec2 vTexCoord;"
 	"void main(){\n"
-	"worldPos=vec3(model*vec4(pos, 1.0));"
+	"vWorldPos=vec3(model*vec4(pos, 1.0));"
 	"vTexCoord=texCoord;"
 	"vNorm=norm;"
 	"gl_Position=mvp*vec4(pos, 1.0);"
+	"}\n";
+
+static const char *geometry_shader=
+	"#version 330\n"
+	"layout(triangles) in;\n"
+	"layout(triangle_strip, max_vertices=3) out;\n"
+	"in vec3 vNorm[3];\n"
+	"in vec3 vWorldPos[3];\n"
+	"in vec2 vTexCoord[3];\n"
+	"out vec3 gNorm;\n"
+	"out vec3 gWorldPos;\n"
+	"out vec2 gTexCoord;\n"
+	"uniform int enableSmooth=1;"
+	"void main(){\n"
+	"vec3 oa=vWorldPos[1]-vWorldPos[0];\n"
+	"vec3 ob=vWorldPos[2]-vWorldPos[0];\n"
+	"vec3 norm=normalize(cross(oa, ob));\n"
+	"for(int i=0; i<3; i++){\n"
+	"gl_Position=gl_in[i].gl_Position;\n"
+	"gNorm=enableSmooth==1? vNorm[i]: norm;\n"
+	"gWorldPos=vWorldPos[i];\n"
+	"gTexCoord=vTexCoord[i];\n"
+	"EmitVertex();\n"
+	"}"
+	"EndPrimitive();\n"
 	"}\n";
 
 static const char *fragment_shader=
@@ -36,28 +61,33 @@ static const char *fragment_shader=
 	"uniform vec3 specular;\n"
 	"uniform vec3 emission;"
 	"uniform sampler2D diffuseTexture;\n"
-	"in vec2 vTexCoord;\n"
-	"in vec3 worldPos;\n"
-	"in vec3 vNorm;\n"
+	"uniform sampler2D specularTexture;\n"
+	"in vec2 gTexCoord;\n"
+	"in vec3 gWorldPos;\n"
+	"in vec3 gNorm;\n"
 	"void main(){\n"
-	"worldPosMap=worldPos;\n"
-	"diffuseMap=vec3(texture(diffuseTexture, vTexCoord))*diffuse;\n"
-	"normalMap=vNorm;\n"
-	"specularMap=specular;\n"
-	"if(length(emission)>0.2){ specularMap=vec3(-1, -1, -1); }"
+	"worldPosMap=gWorldPos;\n"
+	"diffuseMap=vec3(texture(diffuseTexture, gTexCoord))*diffuse;\n"
+	"normalMap=gNorm;\n"
+	"specularMap=(specular.x<0?vec3(texture(specularTexture, gTexCoord)): specular);\n"
+	"if(length(emission)>0.2){ specularMap=-emission; }"
 	"}\n";
 
 static r3d::ProgramPtr MakeShaderProgram(const r3d::Engine *engine, const char *vsource,
-	const char *fsource)
+	const char *gsource, const char *fsource)
 {
 	auto program=engine->newProgram();
 	auto vs=engine->newShader(r3d::ST_VERTEX_SHADER);
+	auto gs=engine->newShader(r3d::ST_GEOMETRY_SHADER);
 	auto fs=engine->newShader(r3d::ST_FRAGMENT_SHADER);
 	vs->source(vsource);
+	gs->source(gsource);
 	fs->source(fsource);
 	vs->compile();
+	gs->compile();
 	fs->compile();
 	program->attachShader(vs);
+	program->attachShader(gs);
 	program->attachShader(fs);
 	program->link();
 
@@ -69,7 +99,7 @@ namespace r3d
 	SceneManager::SceneManager(Engine *engine)
 		: m_engine(engine), m_rootNode(SceneNodePtr(new EmptySceneNode(SceneNodePtr(), engine->getCurrentContext())))
 	{
-		m_program=MakeShaderProgram(m_engine, vertex_shader, fragment_shader);
+		m_program=MakeShaderProgram(m_engine, vertex_shader, geometry_shader, fragment_shader);
 	}
 
 	void SceneManager::drawAll()
@@ -82,7 +112,19 @@ namespace r3d
 	{
 		std::vector<tinyobj::shape_t> shapes;
 		std::vector<tinyobj::material_t> materials;
-		std::string err = tinyobj::LoadObj(shapes, materials, filename, base);
+		std::string basePath(filename);
+
+		if(base)
+			tinyobj::LoadObj(shapes, materials, filename, base);
+		else
+		{
+			std::size_t end=basePath.find_last_of("/\\");
+			end=(end!=std::string::npos? end: basePath.size()-1);
+			basePath=basePath.substr(0, end+1);
+			tinyobj::LoadObj(shapes, materials, filename, basePath.c_str());
+		}
+
+		m_engine->log(std::string("Load Obj Scene: (")+std::to_string(shapes.size())+": "+std::to_string(materials.size())+")"+basePath);
 
 		//TODO: Context management
 		auto cw=m_engine->getCurrentContext();
@@ -92,11 +134,9 @@ namespace r3d
 		node->addChild(objNode);
 		for(auto &shape: shapes)
 		{
-			
 			std::vector<Vertex> vertices;
 			for(int v=0; v<shape.mesh.positions.size()/3; v++)
 			{
-
 				vertices.push_back({glm::vec3(shape.mesh.positions[v*3], shape.mesh.positions[v*3+1], shape.mesh.positions[v*3+2]),
 								shape.mesh.texcoords.size()>0?glm::vec2(shape.mesh.texcoords.at(v*2), 1.0f-shape.mesh.texcoords.at(v*2+1)): glm::vec2(),
 								glm::vec3(shape.mesh.normals.at(v*3), shape.mesh.normals.at(v*3+1), shape.mesh.normals.at(v*3+2))});
@@ -113,19 +153,36 @@ namespace r3d
 			if(mid>=0)
 			{
 				auto material=materials[mid];
+
+				// We use both texture and diffuse for color masking
 				if(material.diffuse_texname!="")
 				{
-					auto tex=tMgr->registerColorTexture2D(material.diffuse_texname);
-					if(tex) m_defaultMaterial->setDiffuse(tex);
+					auto tex=tMgr->registerColorTexture2D(basePath+material.diffuse_texname);
+					m_defaultMaterial->setDiffuse(tex);
 				}
-
 				m_defaultMaterial->setDiffuse(glm::vec3(material.diffuse[0], material.diffuse[1], material.diffuse[2]));
-				m_defaultMaterial->setSpecular(glm::vec3(material.specular[0], material.specular[1], material.specular[2]));
+				
+				// If there exists specular map, don't use specular in mtl
+				if(material.specular_texname!="")
+				{
+					auto tex=tMgr->registerColorTexture2D(basePath+material.specular_texname);
+					m_defaultMaterial->setSpecular(tex);
+				}else
+					m_defaultMaterial->setSpecular(glm::vec3(material.specular[0], material.specular[1], material.specular[2]));
 			}
 			newNode->setMaterial(m_defaultMaterial);
 
 			objNode->addChild(SceneNodePtr(newNode));
 		}
+		return objNode.get();
+	}
+
+	SceneNode *SceneManager::addEmptySceneNode(SceneNodePtr node)
+	{
+		auto cw=m_engine->getCurrentContext();
+		auto objNode=SceneNodePtr(new EmptySceneNode(node, cw));
+		//objNode->setName(filename);
+		node->addChild(objNode);
 		return objNode.get();
 	}
 }

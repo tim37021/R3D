@@ -3,7 +3,9 @@ set(SOURCE_DIR_BASE ${PROJECT_DIR}/source)
 set(SOURCE
 	${SOURCE}
 	${SOURCE_DIR_BASE}/Camera/Camera.cpp
+	${SOURCE_DIR_BASE}/Core/AABB.cpp
 	${SOURCE_DIR_BASE}/Core/Core.cpp
+	${SOURCE_DIR_BASE}/Core/Frustum.cpp
 	${SOURCE_DIR_BASE}/Core/OpenGLBuffer.cpp
 	${SOURCE_DIR_BASE}/Core/OpenGLRenderTarget.cpp
 	${SOURCE_DIR_BASE}/Core/OpenGLTexture.cpp

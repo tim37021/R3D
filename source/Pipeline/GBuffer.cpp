@@ -14,9 +14,9 @@ namespace r3d
 		auto tMgr = engine->getTextureManager();
 
 		m_posMap = tMgr->registerColorTexture2D("PositionMap", width, height, PF_BGRF);
-		m_diffuseMap = tMgr->registerColorTexture2D("DiffuseMap", width, height, PF_BGRF);
+		m_diffuseMap = tMgr->registerColorTexture2D("DiffuseMap", width, height, PF_BGR);
 		m_normMap = tMgr->registerColorTexture2D("NormalMap", width, height, PF_BGRF);
-		m_specMap = tMgr->registerColorTexture2D("SpecularMap", width, height, PF_BGRF);
+		m_specMap = tMgr->registerColorTexture2D("SpecularMap", width, height, PF_BGR);
 
 		m_posMap->setFilter(F_LINEAR, F_LINEAR);
 		m_diffuseMap->setFilter(F_LINEAR, F_LINEAR);
@@ -29,7 +29,7 @@ namespace r3d
 		m_specMap->setWrapping(W_CLAMP_TO_BORDER, W_CLAMP_TO_BORDER);
 
 
-		m_depthMap = tMgr->registerDepthTexture2D("DepthMap", width, height, DF_32);
+		m_depthMap = tMgr->registerDepthTexture2D("DepthMap", width, height, DF_24);
 		m_depthMap->setFilter(F_LINEAR, F_LINEAR);		
 		m_depthMap->setWrapping(W_CLAMP_TO_BORDER, W_CLAMP_TO_BORDER);
 

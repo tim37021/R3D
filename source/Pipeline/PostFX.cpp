@@ -53,7 +53,7 @@ namespace r3d
 		m_vao->enableAttribArray(0, vertAtt);
 
 		m_fbosource=engine->newRenderTarget2D();
-		auto colorText=cw->getTextureManager()->registerColorTexture2D("LightedMap", cw->getWidth(), cw->getHeight(), PF_BGRF);
+		auto colorText=cw->getTextureManager()->registerColorTexture2D("LightedMap", cw->getWidth(), cw->getHeight(), PF_BGR);
 		colorText->setFilter(F_LINEAR, F_LINEAR);
 		ColorTexture2D *texts[]={colorText};
 		m_fbosource->attachColorTextures(1, texts);

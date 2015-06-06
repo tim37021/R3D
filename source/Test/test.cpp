@@ -16,9 +16,83 @@
 static const char *vertex_shader=
 	"#version 330\n"
 	"layout(location=0) in vec3 pos;\n"
+	"layout(location=1) in vec3 color;\n"
+	"out vec3 vColor;\n"
 	"void main(){\n"
+	"vColor=color;\n"
 	"gl_Position=vec4(pos, 1.0);"
 	"}\n";
+
+static const char *geometry_shader=
+	"#version 330\n"
+	"layout(points) in;\n"
+	"layout(triangle_strip, max_vertices=6) out;\n"
+	"in vec3 vColor[1];\n"
+	"out vec3 lightPos\n;"
+	"out vec3 lightColor;\n"
+	"uniform mat4 view;\n"
+	"uniform float e=0.1, a=1.0;\n"
+	"void main(){\n"
+	"float rect[4]=float[](-1, -1, 1, 1);\n"
+	"float r=8.0;\n"
+	"vec3 l=(view*gl_in[0].gl_Position).xyz; vec3 l2=l*l; float r2=r*r;\n"
+	"float d=r2*l2.x-(l2.x+l2.z)*(r2-l2.z);\n"
+	"if(d>=0){\n"
+	"d=sqrt(d);\n"
+	"float nx1=(r*l.x+d)/(l2.x+l2.z), nx2=(r*l.x-d)/(l2.x+l2.z);\n"
+	"float nz1=(r-nx1*l.x)/l.z, nz2=(r-nx2*l.x)/l.z;\n"
+	"float pz1=(l2.x+l2.z-r2)/(l.z-(nz1/nx1)*l.x), pz2=(l2.x+l2.z-r2)/(l.z-(nz2/nx2)*l.x);\n"
+	"if(pz1>=0&&pz2>=0) return;\n"
+	"if(pz1<0){\n"
+	"float fx=nz1/nx1/(tan(22.5)/a);\n"
+	"float px=-pz1*nz1/nx1;\n"
+	"if(px<l.x) rect[0]=max(rect[0],fx);\n"
+	"else rect[2]=min(rect[2],fx);\n"
+	"}\n"
+	"if(pz2<0){\n"
+	"float fx=nz2/nx2/(tan(22.5)/a);\n"
+	"float px=-pz2*nz2/nx2;\n"
+	"if(px<l.x) rect[0]=max(rect[0],fx);\n"
+	"else rect[2]=min(rect[2],fx);\n"
+	"}\n"
+	"}\n"
+	"d=r2*l2.y-(l2.y+l2.z)*(r2-l2.z);\n"
+	"if(d>=0){\n"
+	"d=sqrt(d);\n"
+	"float ny1=(r*l.y+d)/(l2.y+l2.z), ny2=(r*l.y-d)/(l2.y+l2.z);\n"
+	"float nz1=(r-ny1*l.y)/l.z, nz2=(r-ny2*l.y)/l.z;\n"
+	"float pz1=(l2.y+l2.z-r2)/(l.z-(nz1/ny1)*l.y), pz2=(l2.y+l2.z-r2)/(l.z-(nz2/ny2)*l.y);\n"
+	"if(pz1>=0&&pz2>=0) return;\n"
+	"if(pz1<0){\n"
+	"float fy=nz1/ny1/tan(22.5);\n"
+	"float py=-pz1*nz1/ny1;\n"
+	"if(py<l.y) rect[1]=max(rect[1],fy);\n"
+	"else rect[3]=min(rect[3],fy)\n;"
+	"}\n"
+	"if(pz2<0){\n"
+	"float fy=nz2/ny2/tan(22.5);\n"
+	"float py=-pz2*nz2/ny2;\n"
+	"if(py<l.y) rect[1]=max(rect[1],fy);\n"
+	"else rect[3]=min(rect[3],fy)\n;"
+	"}\n"
+	"}\n"
+	"lightPos=vec3(gl_in[0].gl_Position);\n"
+	"lightColor=vColor[0];\n"
+	"gl_Position=vec4(rect[0], rect[1], 0, 1);\n"
+	"EmitVertex();\n"
+	"gl_Position=vec4(rect[2], rect[1], 0, 1);\n"
+	"EmitVertex();\n"
+	"gl_Position=vec4(rect[2], rect[3], 0, 1);\n"
+	"EmitVertex();\n"
+	"EndPrimitive();\n"
+	"gl_Position=vec4(rect[0], rect[1], 0, 1);\n"
+	"EmitVertex();\n"
+	"gl_Position=vec4(rect[2], rect[3], 0, 1);\n"
+	"EmitVertex();\n"
+	"gl_Position=vec4(rect[0], rect[3], 0, 1);\n"
+	"EmitVertex();\n"
+	"EndPrimitive();\n}"
+	"\n";
  
 static const char *fragment_shader=
 	"#version 330\n"
@@ -28,8 +102,8 @@ static const char *fragment_shader=
 	"uniform sampler2D specMap;\n"
 	"uniform vec2 viewport;"
 	"uniform vec3 eyePos;"
-	"uniform vec3 lightPos;\n"
-	"uniform vec3 lightColor;\n;"
+	"in vec3 lightPos;\n"
+	"in vec3 lightColor;\n;"
 	"out vec4 color;\n"
 	"void main(){\n"
 	"vec2 vTexCoord=gl_FragCoord.xy/viewport;"
@@ -37,21 +111,23 @@ static const char *fragment_shader=
 	"vec3 fColor=texture(diffuseMap, vTexCoord).rgb;\n"
 	"vec3 norm=texture(normMap, vTexCoord).xyz;\n"
 	"vec3 spec=texture(specMap, vTexCoord).rgb;\n"
-	"if(length(norm)<=0.5) { color=vec4(0.0); return; }"
+	"float d=length(pos-lightPos);\n"
+	"if(length(norm)<=0.5||d>=8) discard;"
 	"vec3 lightVec=normalize(lightPos-pos);"
 	"float diffuse=dot(norm, lightVec);\n"
 	"if(diffuse>=0.0){"
+	"float falloff = 1.0-clamp((d-6.0)/2.0, 0.0, 1.0);\n"
 	"float d=length(lightPos-pos);\n"
-	"float att=1.0/(0.9+0.1*d*d);"
+	"float att=falloff*1.0/(0.9+0.1*d*d);"
 	"float specular = pow(max(dot(reflect(-lightVec, norm), normalize(eyePos-pos)), 0), 30);\n"
-	"color=att*vec4(vec3(0.1)*fColor+diffuse*fColor*lightColor+specular*lightColor*spec, 1);} else{color=vec4(0.0);}\n"
-	"if(spec.x<-0.5) color=vec4(1.717*normalize(fColor), 1.0);"
+	"color=att*vec4(diffuse*fColor*lightColor+specular*lightColor*spec, 1);} else discard;\n"
 	"}\n";
 
 static R3DRocket::SystemInterface *si;
 static R3DRocket::RenderInterface *ri;
 
 static r3d::Camera *global_fps;
+static r3d::VertexArray *vao;
 
 class MyEventListener: public r3d::EventListener
 {
@@ -76,16 +152,23 @@ public:
 		{
 			if(button==1&&action){
 				auto sMgr=cw->getSceneManager();
-				auto node=sMgr->loadObjScene(sMgr->getRootNode(), "sphere.obj");
+				auto node=sMgr->addEmptySceneNode(sMgr->getRootNode());
 				ps.push_back({});
 				ps.back().pos=global_fps->getPos();
 				ps.back().color=(glm::vec3(0.3f)+
-				glm::vec3((float)rand()/RAND_MAX, (float)rand()/RAND_MAX, (float)rand()/RAND_MAX))*5.0f;
+				glm::vec3((float)rand()/RAND_MAX, (float)rand()/RAND_MAX, (float)rand()/RAND_MAX));
 				sMgr->addLight(&ps.back());
 
 				node->getTransformation()->setTranslation(ps.back().pos);
-				node->getChildList().front()->getMaterial()->setDiffuse(ps.back().color);
-				node->getChildList().front()->getMaterial()->setEmission({1.0f, 1.0f, 1.0f});
+				//node->getChildList().front()->getMaterial()->setDiffuse(glm::normalize(ps.back().color));
+				//node->getChildList().front()->getMaterial()->setEmission(ps.back().color);
+
+				//update 
+				auto vbo=vao->getVertexBuffer();
+				r3d::PointLight *plights=(r3d::PointLight *)vbo->lock(r3d::BA_WRITE_ONLY);
+				for(auto light: sMgr->getLights())
+					*(plights++)=*light;
+				vbo->unlock();
 			}
 		}
 
@@ -173,39 +256,41 @@ private:
 };
 
 static r3d::ProgramPtr MakeShaderProgram(const r3d::Engine *engine, const char *vsource,
-	const char *fsource)
+	const char *gsource, const char *fsource)
 {
 	auto program=engine->newProgram();
 	auto vs=engine->newShader(r3d::ST_VERTEX_SHADER);
+	auto gs=engine->newShader(r3d::ST_GEOMETRY_SHADER);
 	auto fs=engine->newShader(r3d::ST_FRAGMENT_SHADER);
 	vs->source(vsource);
+	gs->source(gsource);
 	fs->source(fsource);
 	vs->compile();
+	gs->compile();
 	fs->compile();
 	program->attachShader(vs);
+	program->attachShader(gs);
 	program->attachShader(fs);
 	program->link();
- 
+
 	return program;
 }
 
+
 static r3d::VertexArray *MakeQuad(r3d::Engine *engine)
 {
-	std::vector<glm::vec3> vertices=
-	{glm::vec3(-1, -1, 0),glm::vec3(1, -1, 0),glm::vec3(1, 1, 0),glm::vec3(-1, 1, 0)};
- 
  	auto bMgr=engine->getBufferManager();
  	auto aMgr=engine->getVertexArrayManager();
 
-	auto vbo=bMgr->registerVertexBuffer("QUAD", &vertices[0], vertices.size()*3*sizeof(float), r3d::BU_STATIC_DRAW);
-	auto ibo=bMgr->registerIndexBuffer("QUAD", {0, 1, 2, 0, 2, 3}, r3d::BU_STATIC_DRAW);
 
-	auto vao=aMgr->registerVertexArray("QUAD");
+	auto vbo=bMgr->registerVertexBuffer("POINTLIGHTS", nullptr, sizeof(r3d::PointLight)*200, r3d::BU_DYNAMIC_DRAW);
+	auto vao=aMgr->registerVertexArray("POINTLIGHTS");
 	vao->bindVertexBuffer(vbo);
-	vao->bindIndexBuffer(ibo);
 
-	r3d::AttribPointer vertAtt(r3d::RT_FLOAT, 3, 0, 0);
-	vao->enableAttribArray(0, vertAtt);
+	r3d::AttribPointer posAtt(r3d::RT_FLOAT, 3, sizeof(r3d::PointLight), 0);
+	r3d::AttribPointer colorAtt(r3d::RT_FLOAT, 3, sizeof(r3d::PointLight), 12);
+	vao->enableAttribArray(0, posAtt);
+	vao->enableAttribArray(1, colorAtt);
 	return vao;
 }
 
@@ -279,16 +364,11 @@ int main(int argc, char *argv[])
 	PostFXTest.pushEffect("bloom");
 
 	// render to texture
-	auto program = MakeShaderProgram(engine, vertex_shader, fragment_shader);
-	auto vao=MakeQuad(engine);	
+	auto program = MakeShaderProgram(engine, vertex_shader, geometry_shader, fragment_shader);
+	vao=MakeQuad(engine);	
 
 	// enable backface culling..
 	//engine->getRenderer()->enableBackfaceCulling(true);
-
-	r3d::PointLight p;
-	p.pos=glm::vec3(0, 30, 0);
-	p.color=glm::vec3(1);
-	sMgr->addLight(&p);
 
 	Rocket::Core::Context *context=SetupRocket(engine);
 	MyEventListener myel(context, cw);
@@ -318,22 +398,19 @@ int main(int argc, char *argv[])
 
 		// setup post-processing lighting shader parameter
 		program->setUniform("eyePos", fps->getPos());
+		program->setUniform("view", fps->getVMatrix());
+		program->setUniform("e", 0.1f);
+		program->setUniform("a", (float)cw->getHeight()/cw->getWidth());
 
-		for(auto light: sMgr->getLights())
-		{
-			// First light
-			program->setUniform("lightPos", light->pos);
-			program->setUniform("lightColor", light->color);
-			engine->getRenderer()->drawElements(program.get(), vao, r3d::PT_TRIANGLES, 6);
-		}
+		engine->getRenderer()->drawArrays(program.get(), vao, r3d::PT_POINTS, sMgr->getLights().size());
+
 		PostFXTest.endSource();
 	
 		engine->getRenderer()->clear();
 		PostFXTest.runAll();
 		engine->getRenderer()->enableBlending(true, r3d::BP_SRC_ALPHA, r3d::BP_ONE_MINUS_SRC_ALPHA, r3d::BF_ADD);
 		context->Render();
-		engine->getRenderer()->enableBlending(false);
-		
+
 		cw->pollInput();
 		cw->swapBuffers();
 	}

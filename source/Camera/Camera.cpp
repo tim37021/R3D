@@ -1,8 +1,10 @@
 #include <r3d/Camera/Camera.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "../Core/Frustum.hpp"
 #include <r3d/Window/ContextWindow.hpp>
 #include <cmath>
 #include <cstdio>
+#include <iostream>
 
 namespace r3d
 {
@@ -18,16 +20,35 @@ namespace r3d
 
 	}
 
+	const glm::mat4 &Camera::getVMatrix() const
+	{
+		if(m_dirty)
+		{
+			const glm::mat4 &proj=glm::perspective(m_fov, (float)m_window->getWidth()/m_window->getHeight(), 0.1f, 999999.0f);
+			m_viewcache=glm::lookAt(m_pos, m_pos+m_dir, m_up);
+			m_cache=proj*m_viewcache;
+			m_dirty=false;
+		}
+		return m_viewcache;
+	}
+
 	const glm::mat4 &Camera::getVPMatrix() const
 	{
 		if(m_dirty)
 		{
 			const glm::mat4 &proj=glm::perspective(m_fov, (float)m_window->getWidth()/m_window->getHeight(), 0.1f, 999999.0f);
-			m_cache=proj*glm::lookAt(m_pos, m_pos+m_dir, m_up);
-			//m_cache=proj*glm::lookAt(glm::vec3(4.0f), glm::vec3(), glm::vec3(0, 1, 0));
+			m_viewcache=glm::lookAt(m_pos, m_pos+m_dir, m_up);
+			m_cache=proj*m_viewcache;
 			m_dirty=false;
 		}
 		return m_cache;
+	}
+
+	const Frustum Camera::getFrustum(){
+		Frustum frustum;
+		frustum.setFrustum(m_pos, m_dir, m_up, m_fov, (float)m_window->getWidth()/m_window->getHeight(), 0.1f, 999999.0f);
+		// std::cout<<frustum.p[0].x<<" "<<frustum.p[0].y<<" "<<frustum.p[0].z<<" "<<frustum.p[0].w<<std::endl;
+		return frustum;
 	}
 
 	FPSCamera::FPSCamera(ContextWindow *window, float fov, const glm::vec3 &pos)
