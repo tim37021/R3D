@@ -24,6 +24,7 @@ namespace r3d
 		ColorTexture2D *getDiffuseMap() { return m_diffuseMap; }
 		ColorTexture2D *getNormalMap() { return m_normMap; }
 		ColorTexture2D *getSpecularMap() { return m_specMap; }
+		DepthTexture2D *getDepthMap() { return m_depthMap; }
 	private:
 		Engine *m_engine;
 
