@@ -22,6 +22,7 @@ namespace r3d
 		virtual void setUniform(const std::string &name, GLfloat value);
 		virtual void setUniform(const std::string &name, const glm::vec2 &v);
 		virtual void setUniform(const std::string &name, const glm::vec3 &v);
+		virtual void setUniform(const std::string &name, const glm::mat3 &mat);
 		virtual void setUniform(const std::string &name, const glm::mat4 &mat);
 
 		virtual void dispatchCompute(uint32_t x, uint32_t y, uint32_t z);
