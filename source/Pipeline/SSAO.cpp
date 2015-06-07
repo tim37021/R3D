@@ -4,6 +4,7 @@
 #include <r3d/Core/Texture.hpp>
 #include <r3d/Core/RenderTarget.hpp>
 #include <r3d/Renderer/Renderer.hpp>
+#include <r3d/Camera/Camera.hpp>
 
 static const char *vertex_shader=
 	"#version 330\n"
@@ -32,14 +33,15 @@ static const char *geometry_shader=
 
 static const char *fragment_shader=
 	"#version 330\n"
-	"uniform sampler2D normMap;"
 	"uniform sampler2D depthMap;"
+	"uniform sampler2D normMap;"
 	"uniform vec2 viewport;"
+	"uniform mat4 view;"
 	"out vec4 color;"
 	"void main(){"
 	"vec2 vTexCoord=gl_FragCoord.xy/viewport;"
-	"float d=texture(depthMap, vTexCoord).r;"
-	"color=vec4(d, d, d, 1.0);"
+	"vec4 normView=view*texture(normMap, vTexCoord);"
+	"color=normView;"
 	"}\n";
 
 namespace r3d
@@ -48,7 +50,6 @@ namespace r3d
 		m_engine(engine), m_cw(cw), m_depthMap(depthMap), m_normMap(normMap)
 	{
 		m_programSSAO=MakeShaderProgram(engine, vertex_shader, geometry_shader, fragment_shader);
-		m_programSSAO->setUniform("depthMap", 0);
 
 		auto tMgr = cw->getTextureManager();
 		// Load needed noise texture
@@ -65,12 +66,20 @@ namespace r3d
 		m_vao = cw->getVertexArrayManager()->registerVertexArray("ATTRIBUTELESS");
 	}
 
-	void SSAO::update()
+	void SSAO::update(Camera *cam)
 	{
+		glm::mat4 pureLookAt=cam->getVMatrix();
+		pureLookAt[3][0]=0;
+		pureLookAt[3][1]=0;
+		pureLookAt[3][2]=0;
 		m_fbo->bind();
 		m_programSSAO->use();
 		m_programSSAO->setUniform("viewport", {m_cw->getWidth(), m_cw->getHeight()});
+		m_programSSAO->setUniform("view", pureLookAt);
 		m_depthMap->bind(0);
+		m_normMap->bind(1);
+		m_programSSAO->setUniform("depthMap", 0);
+		m_programSSAO->setUniform("normMap", 1);
 		m_engine->getRenderer()->clear();
 		m_engine->getRenderer()->drawArrays(m_programSSAO.get(), m_vao, PT_POINTS, 1);
 		m_fbo->unbind();

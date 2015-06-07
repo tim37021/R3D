@@ -12,6 +12,7 @@ namespace r3d
 	class RenderTarget2D;
 	class Program;
 	class VertexArray;
+	class Camera;
 
 	typedef std::shared_ptr<RenderTarget2D> RenderTarget2DPtr;
 	typedef std::shared_ptr<Program> ProgramPtr;
@@ -20,7 +21,7 @@ namespace r3d
 	{
 	public:
 		SSAO(Engine *engine, ContextWindow *cw, Texture2D *depthMap, Texture2D *normMap);
-		void update();
+		void update(Camera *cam);
 	private:
 		Engine *m_engine;
 		ContextWindow *m_cw;

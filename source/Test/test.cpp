@@ -381,7 +381,7 @@ int main(int argc, char *argv[])
 		sMgr->drawAll();
 		gBuffer->endScene();
 		
-		ssao.update();
+		ssao.update(fps.get());
 
 		PostFXTest.beginSource(); 
 		BeginLightPass(engine->getRenderer(), cw, program, gBuffer);
