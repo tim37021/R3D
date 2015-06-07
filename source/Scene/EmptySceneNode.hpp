@@ -16,10 +16,10 @@ namespace r3d
 			):
 			SceneNode(parent, cw, name, relative){}
 		virtual void render(Renderer *renderer, Camera *cam, 
-			const glm::mat4 &current=glm::mat4(1.0f))
+			const glm::mat4 &current=glm::mat4(1.0f), const glm::mat4 &currentRotation=glm::mat4(1.0f))
 		{
 			for(SceneNodePtr &child: m_children)
-				child->render(renderer, cam, current*m_relative.getMatrix());
+				child->render(renderer, cam, current*m_relative.getMatrix(), currentRotation*m_relative.getRotationMatrix());
 		}
 	};
 }

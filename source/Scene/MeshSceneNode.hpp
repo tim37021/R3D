@@ -24,7 +24,7 @@ namespace r3d
 
 		//!> Render whole scene
 		virtual void render(Renderer *, Camera *, 
-			const glm::mat4 &current=glm::mat4(1.0f));
+			const glm::mat4 &current=glm::mat4(1.0f), const glm::mat4 &currentRotation=glm::mat4(1.0f));
 
 	private:
 		glm::mat4 m_last;

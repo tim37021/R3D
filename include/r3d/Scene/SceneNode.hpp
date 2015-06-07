@@ -37,7 +37,7 @@ namespace r3d
 
 		//!< render this node
 		virtual void render(Renderer *renderer, Camera *cam, 
-			const glm::mat4 &current=glm::mat4(1.0f))=0;
+			const glm::mat4 &current=glm::mat4(1.0f), const glm::mat4 &currentRotation=glm::mat4(1.0f))=0;
 
 		//!< get the name of the node.
 		virtual const char *getName() const
