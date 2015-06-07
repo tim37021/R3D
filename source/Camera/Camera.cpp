@@ -24,7 +24,7 @@ namespace r3d
 	{
 		if(m_dirty)
 		{
-			const glm::mat4 &proj=glm::perspective(m_fov, (float)m_window->getWidth()/m_window->getHeight(), 0.1f, 999999.0f);
+			const glm::mat4 &proj=glm::perspective(m_fov, (float)m_window->getWidth()/m_window->getHeight(), 0.1f, 1000.0f);
 			m_viewcache=glm::lookAt(m_pos, m_pos+m_dir, m_up);
 			m_cache=proj*m_viewcache;
 			m_dirty=false;
@@ -36,7 +36,7 @@ namespace r3d
 	{
 		if(m_dirty)
 		{
-			const glm::mat4 &proj=glm::perspective(m_fov, (float)m_window->getWidth()/m_window->getHeight(), 0.1f, 999999.0f);
+			const glm::mat4 &proj=glm::perspective(m_fov, (float)m_window->getWidth()/m_window->getHeight(), 0.1f, 1000.0f);
 			m_viewcache=glm::lookAt(m_pos, m_pos+m_dir, m_up);
 			m_cache=proj*m_viewcache;
 			m_dirty=false;
@@ -46,7 +46,7 @@ namespace r3d
 
 	const Frustum Camera::getFrustum(){
 		Frustum frustum;
-		frustum.setFrustum(m_pos, m_dir, m_up, m_fov, (float)m_window->getWidth()/m_window->getHeight(), 0.1f, 999999.0f);
+		frustum.setFrustum(m_pos, m_dir, m_up, m_fov, (float)m_window->getWidth()/m_window->getHeight(), 0.1f, 1000.0f);
 		// std::cout<<frustum.p[0].x<<" "<<frustum.p[0].y<<" "<<frustum.p[0].z<<" "<<frustum.p[0].w<<std::endl;
 		return frustum;
 	}
