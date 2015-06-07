@@ -21,6 +21,7 @@
 #include "Manager/VertexArrayManager.hpp" 
 #include "Pipeline/GBuffer.hpp" 
 #include "Pipeline/PostFX.hpp"
+#include "Pipeline/SSAO.hpp"
 #include "Renderer/Renderer.hpp" 
 #include "Scene/Light.hpp" 
 #include "Scene/SceneNode.hpp" 

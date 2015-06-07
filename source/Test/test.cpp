@@ -113,7 +113,7 @@ static const char *fragment_shader_ambient=
 	"void main(){"
 	"vec2 vTexCoord=gl_FragCoord.xy/viewport;"
 	"vec3 fColor=texture(diffuseMap, vTexCoord).rgb;"
-	"color=vec4(fColor*vec3(0.1), 1.0);"
+	"color=vec4(fColor*lightColor, 1.0);"
 	"}\n";
 
 static const char *fragment_shader=
@@ -144,6 +144,7 @@ static const char *fragment_shader=
 	"float specular = pow(max(dot(reflect(-lightVec, norm), normalize(eyePos-pos)), 0), 30);\n"
 	"color=att*vec4(diffuse*fColor*lightColor+specular*lightColor*spec, 1);} else discard;\n"
 	"}\n";
+
 
 static R3DRocket::SystemInterface *si;
 static R3DRocket::RenderInterface *ri;
@@ -266,27 +267,6 @@ private:
 	r3d::Engine *engine;
 };
 
-static r3d::ProgramPtr MakeShaderProgram(const r3d::Engine *engine, const char *vsource,
-	const char *gsource, const char *fsource)
-{
-	auto program=engine->newProgram();
-	auto vs=engine->newShader(r3d::ST_VERTEX_SHADER);
-	auto gs=engine->newShader(r3d::ST_GEOMETRY_SHADER);
-	auto fs=engine->newShader(r3d::ST_FRAGMENT_SHADER);
-	vs->source(vsource);
-	gs->source(gsource);
-	fs->source(fsource);
-	vs->compile();
-	gs->compile();
-	fs->compile();
-	program->attachShader(vs);
-	program->attachShader(fs);
-	program->attachShader(gs);
-	program->link();
-
-	return program;
-}
-
 static void BeginLightPass(r3d::Renderer *renderer, r3d::ContextWindow *cw, r3d::ProgramPtr &program, std::shared_ptr<r3d::GBuffer> &gBuffer)
 {
 	program->use();
@@ -334,15 +314,16 @@ static Rocket::Core::Context *SetupRocket(r3d::Engine *engine)
 	return context;
 }
 
-void litPointLight(r3d::Renderer *renderer, r3d::ProgramPtr program, r3d::PointLight *light)
+static void litPointLight(r3d::Renderer *renderer, r3d::ProgramPtr program, r3d::PointLight *light)
 {
 	program->setUniform("lightPos", light->pos);
 	program->setUniform("lightColor", light->color);
 	renderer->drawArrays(program.get(), vao, r3d::PT_POINTS, 1);
 }
 
-void litAmbientLight(r3d::Renderer *renderer, r3d::ProgramPtr program)
+static void litAmbientLight(r3d::Renderer *renderer, r3d::ProgramPtr program)
 {
+	program->setUniform("lightColor", {0.8f, 0.8f, 0.8f});
 	renderer->drawArrays(program.get(), vao, r3d::PT_POINTS, 1);
 }
 
@@ -370,8 +351,8 @@ int main(int argc, char *argv[])
 	PostFXTest.pushEffect("bloom");
 
 	// For lighting
-	auto program = MakeShaderProgram(engine, vertex_shader, geometry_shader, fragment_shader);
-	auto program_ambient = MakeShaderProgram(engine, vertex_shader, geometry_shader_ambient, fragment_shader_ambient);
+	auto program = r3d::MakeShaderProgram(engine, vertex_shader, geometry_shader, fragment_shader);
+	auto program_ambient = r3d::MakeShaderProgram(engine, vertex_shader, geometry_shader_ambient, fragment_shader_ambient);
 	vao = cw->getVertexArrayManager()->registerVertexArray("ATTRIBUTELESS");
 
 	Rocket::Core::Context *context=SetupRocket(engine);
@@ -380,8 +361,11 @@ int main(int argc, char *argv[])
 	RocketEventListener myrel(engine);
 	LuaInterface::Initialise(engine);
 
+	r3d::SSAO ssao(engine, cw, gBuffer->getDepthMap(), gBuffer->getNormalMap());
+
 	cw->getMouse()->setPos(cw->getWidth()/2, cw->getHeight()/2);
 	fps->update(engine->getTime());
+
 	while(!cw->isCloseButtonClicked())
 	{
 		if(myel.FPSMode)
@@ -397,6 +381,8 @@ int main(int argc, char *argv[])
 		sMgr->drawAll();
 		gBuffer->endScene();
 		
+		ssao.update();
+
 		PostFXTest.beginSource(); 
 		BeginLightPass(engine->getRenderer(), cw, program, gBuffer);
 

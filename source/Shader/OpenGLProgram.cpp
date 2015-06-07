@@ -72,6 +72,14 @@ namespace r3d
 		CHECKNAME(name);
 		glUniform3fv(id, 1, glm::value_ptr(v));
 	}
+
+	void OpenGLProgram::setUniform(const std::string &name, const glm::mat3 &mat)
+	{
+		glUseProgram(m_id);
+		CHECKNAME(name);
+		glUniformMatrix3fv(id, 1, GL_FALSE, glm::value_ptr(mat));
+	}
+
 	void OpenGLProgram::setUniform(const std::string &name, const glm::mat4 &mat)
 	{
 		glUseProgram(m_id);
