@@ -51,6 +51,7 @@ namespace r3d
 	#define CHECKNAME(n) GLint id; if((id=glGetUniformLocation(m_id, n.c_str()))==-1) return;
 	void OpenGLProgram::setUniform(const std::string &name, GLint value)
 	{
+		glUseProgram(m_id);
 		CHECKNAME(name);
 		glUniform1i(id, value);
 	}

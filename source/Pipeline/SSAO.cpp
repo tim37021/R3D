@@ -6,6 +6,8 @@
 #include <r3d/Renderer/Renderer.hpp>
 #include <r3d/Camera/Camera.hpp>
 
+#include <cstdio>
+
 static const char *vertex_shader=
 	"#version 330\n"
 	"void main(){}";
@@ -50,6 +52,8 @@ namespace r3d
 		m_engine(engine), m_cw(cw), m_depthMap(depthMap), m_normMap(normMap)
 	{
 		m_programSSAO=MakeShaderProgram(engine, vertex_shader, geometry_shader, fragment_shader);
+		m_programSSAO->setUniform("depthMap", 0);
+		m_programSSAO->setUniform("normMap", 1);
 
 		auto tMgr = cw->getTextureManager();
 		// Load needed noise texture
@@ -78,8 +82,6 @@ namespace r3d
 		m_programSSAO->setUniform("view", pureLookAt);
 		m_depthMap->bind(0);
 		m_normMap->bind(1);
-		m_programSSAO->setUniform("depthMap", 0);
-		m_programSSAO->setUniform("normMap", 1);
 		m_engine->getRenderer()->clear();
 		m_engine->getRenderer()->drawArrays(m_programSSAO.get(), m_vao, PT_POINTS, 1);
 		m_fbo->unbind();
