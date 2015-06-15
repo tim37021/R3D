@@ -82,12 +82,6 @@ namespace r3d
 		m_program=MakeShaderProgram(m_engine, vertex_shader, geometry_shader, fragment_shader);
 	}
 
-	void SceneManager::drawAll()
-	{
-		if(m_camera)
-			m_rootNode->render(m_engine->getRenderer(), m_camera.get());
-	}
-
 	SceneNode *SceneManager::loadObjScene(SceneNodePtr node, const char *filename, const char *base)
 	{
 		std::vector<tinyobj::shape_t> shapes;

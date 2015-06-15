@@ -218,12 +218,18 @@ namespace r3d
 		while(!stk.empty())
 		{
 			StackElement top=stk.top(); stk.pop();
-			top.node->render(m_renderer, cam, top.parentTransform, top.parentRotation);
+			auto mtl=top.node->getMaterial();
+			if(mtl)
+			{
+				auto mtl_shader=mtl->getProgram().get();
+				mtl->prepareShader();
+				top.node->render(m_renderer, mtl_shader, cam, top.parentTransform, top.parentRotation);
+			}
 
 			const glm::mat4 &tmpMatrix=top.parentTransform*top.node->getTransformation()->getMatrix();
 			const glm::mat4 &tmpRotation=top.parentRotation*top.node->getTransformation()->getRotationMatrix();
 
-			auto clist=top.node->getChildren();
+			auto &clist=top.node->getChildren();
 			for(auto &child: clist)
 				stk.push({child.get(), tmpMatrix, tmpRotation});
 		}

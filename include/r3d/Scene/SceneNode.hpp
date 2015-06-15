@@ -18,6 +18,7 @@ namespace r3d
 	class SceneNode;
 	class Program;
 	class Camera;
+	class Program;
 
 	typedef std::shared_ptr<SceneNode> SceneNodePtr;
 
@@ -36,7 +37,7 @@ namespace r3d
 		virtual ~SceneNode(){}
 
 		//!< render this node
-		virtual void render(Renderer *renderer, Camera *cam, 
+		virtual void render(Renderer *renderer, Program *program, Camera *cam, 
 			const glm::mat4 &current=glm::mat4(1.0f), const glm::mat4 &currentRotation=glm::mat4(1.0f))=0;
 
 		//!< get the name of the node.

@@ -27,7 +27,7 @@ namespace r3d
 	{
 	public:
 		SceneManager(Engine *engine);
-		void drawAll();
+
 		//!> load Obj scene and necessary texture and buffer
 		//   and put it under SceneNode
 		SceneNode *loadObjScene(SceneNodePtr, const char *filename, const char *base=nullptr);

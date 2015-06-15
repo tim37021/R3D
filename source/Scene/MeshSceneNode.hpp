@@ -23,7 +23,7 @@ namespace r3d
 			const char *name="Untitled", const Transformation &relative=Transformation());
 
 		//!> Render whole scene
-		virtual void render(Renderer *, Camera *, 
+		virtual void render(Renderer *, Program *program, Camera *, 
 			const glm::mat4 &current=glm::mat4(1.0f), const glm::mat4 &currentRotation=glm::mat4(1.0f));
 
 	private:
