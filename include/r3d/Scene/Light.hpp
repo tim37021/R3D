@@ -28,6 +28,18 @@ namespace r3d
 		PointLight(): Light(LT_POINT_LIGHT) {}
 		virtual ~PointLight()=default;
 	};
+
+	struct SpotLight: public Light 
+	{
+		glm::vec3 pos;
+		DepthTexture2D *dMap;
+		SpotLight(ContextWindow *cw, int width = 1024, int height = 1024): Light(LT_SPOT_LIGHT)
+		{
+			dMap=cw->getTextureManager()->registerDepthTexture2D(
+				"ShadowMap["+std::to_string(width)+"x"+std::to_string(height)+"]", width, height, DF_24);
+		}
+
+	};
 }
 
 #endif

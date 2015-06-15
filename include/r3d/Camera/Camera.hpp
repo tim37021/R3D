@@ -18,6 +18,8 @@ namespace r3d
 
 		virtual void update(double elapsedTime){}
 
+		void setFov(float fov) {m_fov = fov;}
+		float getFov() const {return m_fov;}
 		const glm::vec3 &getPos() const { return m_pos; }
 		const glm::vec3 &getDir() const { return m_dir; }
 		const glm::vec3 &getUp() const { return m_up; }
