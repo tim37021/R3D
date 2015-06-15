@@ -74,8 +74,5 @@ namespace r3d
 			material->getProgram()->setUniform("nmat", tmpRotation);
 			renderer->drawElements(material->getProgram().get(), m_vao, r3d::PT_TRIANGLES, m_indicesCount);
 		}
-
-		for(SceneNodePtr &child: m_children)
-			child->render(renderer, cam, tmpMatrix, tmpRotation);
 	}
 }

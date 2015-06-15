@@ -43,7 +43,7 @@ namespace r3d
 		void beginLightPass();
 		void endLightPass();
 
-		void renderMaterial();
+		void renderMaterial(Camera *cam);
 
 		void prepareProgramInput();
 		void prepareViewRelativeUniform(ProgramPtr program, Camera *cam);

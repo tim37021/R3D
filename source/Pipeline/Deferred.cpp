@@ -153,6 +153,9 @@ namespace r3d
 		SceneNode *node;
 		glm::mat4 parentTransform;
 		glm::mat4 parentRotation;
+
+		StackElement(SceneNode *node_, const glm::mat4 &trans=glm::mat4(1.0f), const glm::mat4 &rot=glm::mat4(1.0f)):
+			node(node_), parentTransform(trans), parentRotation(rot){}
 	};
 
 	Deferred::Deferred(Engine *engine, ContextWindow *cw):
@@ -178,7 +181,7 @@ namespace r3d
 	void Deferred::run()
 	{
 		m_gBuffer->beginScene();
-		m_cw->getSceneManager()->drawAll();
+		renderMaterial(m_cw->getSceneManager()->getMainCamera());
 		m_gBuffer->endScene();
 
 		m_ssao->update(m_cw->getSceneManager()->getMainCamera());
@@ -205,10 +208,25 @@ namespace r3d
 		endLightPass();
 	}
 
-	void Deferred::renderMaterial()
+	void Deferred::renderMaterial(Camera *cam)
 	{
 		std::stack<StackElement> stk;
-		//stk.push(stk.getRootNode);
+		
+		SceneNode *root=m_cw->getSceneManager()->getRootNode().get();
+		stk.push({root});
+
+		while(!stk.empty())
+		{
+			StackElement top=stk.top(); stk.pop();
+			top.node->render(m_renderer, cam, top.parentTransform, top.parentRotation);
+
+			const glm::mat4 &tmpMatrix=top.parentTransform*top.node->getTransformation()->getMatrix();
+			const glm::mat4 &tmpRotation=top.parentRotation*top.node->getTransformation()->getRotationMatrix();
+
+			auto clist=top.node->getChildren();
+			for(auto &child: clist)
+				stk.push({child.get(), tmpMatrix, tmpRotation});
+		}
 	}
 
 	void Deferred::beginLightPass()

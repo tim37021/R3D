@@ -76,7 +76,7 @@ namespace r3d
 		Transformation *getTransformation()
 		{ return &m_relative; }
 
-		std::list<SceneNodePtr> getChildList() const { return m_children; }
+		const std::list<SceneNodePtr> &getChildren() const { return m_children; }
 	protected:
 		//!< pointer to its parent node.
 		SceneNode *m_parent;
