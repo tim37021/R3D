@@ -19,6 +19,7 @@ set(SOURCE
 	${SOURCE_DIR_BASE}/Manager/TextureManager.cpp
 	${SOURCE_DIR_BASE}/Manager/SceneManager.cpp
 	${SOURCE_DIR_BASE}/Pipeline/GBuffer.cpp
+	${SOURCE_DIR_BASE}/Pipeline/Deferred.cpp
 	${SOURCE_DIR_BASE}/Pipeline/PostFX.cpp
 	${SOURCE_DIR_BASE}/Pipeline/DefaultPostFX.cpp
 	${SOURCE_DIR_BASE}/Pipeline/SSAO.cpp

@@ -27,6 +27,7 @@ namespace r3d
 		const Frustum getFrustum();
 
 		const glm::mat4 &getVMatrix() const;
+		const glm::mat4 &getPMatrix() const;
 		const glm::mat4 &getVPMatrix() const;
 	protected:
 		Camera(ContextWindow *window);
@@ -41,6 +42,7 @@ namespace r3d
 
 		mutable bool m_dirty;
 		mutable glm::mat4 m_cache;
+		mutable glm::mat4 m_proj;
 		mutable glm::mat4 m_viewcache;
 	};
 

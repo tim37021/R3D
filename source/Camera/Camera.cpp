@@ -12,33 +12,45 @@ namespace r3d
 		const glm::vec3 &pos, const glm::vec3 &dir, const glm::vec3 &up):
 		m_window(window), m_pos(pos), m_dir(dir), m_up(up), m_dirty(true)
 	{
-
+		
 	}
 
 	Camera::Camera(ContextWindow *window): m_window(window)
 	{
-
+		
 	}
 
 	const glm::mat4 &Camera::getVMatrix() const
 	{
 		if(m_dirty)
 		{
-			const glm::mat4 &proj=glm::perspective(m_fov, (float)m_window->getWidth()/m_window->getHeight(), 0.1f, 1000.0f);
+			m_proj=glm::perspective(m_fov, (float)m_window->getWidth()/m_window->getHeight(), 0.1f, 1000.0f);
 			m_viewcache=glm::lookAt(m_pos, m_pos+m_dir, m_up);
-			m_cache=proj*m_viewcache;
+			m_cache=m_proj*m_viewcache;
 			m_dirty=false;
 		}
 		return m_viewcache;
+	}
+
+	const glm::mat4 &Camera::getPMatrix() const
+	{
+		if(m_dirty)
+		{
+			m_proj=glm::perspective(m_fov, (float)m_window->getWidth()/m_window->getHeight(), 0.1f, 1000.0f);
+			m_viewcache=glm::lookAt(m_pos, m_pos+m_dir, m_up);
+			m_cache=m_proj*m_viewcache;
+			m_dirty=false;
+		}
+		return m_proj;
 	}
 
 	const glm::mat4 &Camera::getVPMatrix() const
 	{
 		if(m_dirty)
 		{
-			const glm::mat4 &proj=glm::perspective(m_fov, (float)m_window->getWidth()/m_window->getHeight(), 0.1f, 1000.0f);
+			m_proj=glm::perspective(m_fov, (float)m_window->getWidth()/m_window->getHeight(), 0.1f, 1000.0f);
 			m_viewcache=glm::lookAt(m_pos, m_pos+m_dir, m_up);
-			m_cache=proj*m_viewcache;
+			m_cache=m_proj*m_viewcache;
 			m_dirty=false;
 		}
 		return m_cache;

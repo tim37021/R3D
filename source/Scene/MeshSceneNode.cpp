@@ -42,7 +42,7 @@ namespace r3d
 		m_last=glm::mat4(0);
 	}
 
-	void MeshSceneNode::render(Renderer *renderer, Camera *cam, 
+	void MeshSceneNode::render(Renderer *renderer, Program *program, Camera *cam, 
 		const glm::mat4 &current, const glm::mat4 &currentRotation)
 	{
 		auto material=getMaterial();
@@ -67,15 +67,10 @@ namespace r3d
 		Frustum frustum = cam->getFrustum();
 		if((frustum.AABBinFrustum(m_aabb)) && material)
 		{
-			material->prepareShader();
-
-			material->getProgram()->setUniform("mvp", cam->getVPMatrix()*tmpMatrix);
-			material->getProgram()->setUniform("model", tmpMatrix);
-			material->getProgram()->setUniform("nmat", tmpRotation);
-			renderer->drawElements(material->getProgram().get(), m_vao, r3d::PT_TRIANGLES, m_indicesCount);
+			program->setUniform("mvp", cam->getVPMatrix()*tmpMatrix);
+			program->setUniform("model", tmpMatrix);
+			program->setUniform("nmat", tmpRotation);
+			renderer->drawElements(program, m_vao, PT_TRIANGLES, m_indicesCount);
 		}
-
-		for(SceneNodePtr &child: m_children)
-			child->render(renderer, cam, tmpMatrix, tmpRotation);
 	}
 }
