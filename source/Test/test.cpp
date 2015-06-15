@@ -107,13 +107,15 @@ static const char *geometry_shader=
 static const char *fragment_shader_ambient=
 	"#version 330\n"
 	"uniform sampler2D diffuseMap;"
+	"uniform sampler2D AOMap;"
 	"uniform vec2 viewport;"
 	"uniform vec3 lightColor;"
 	"out vec4 color;"
 	"void main(){"
 	"vec2 vTexCoord=gl_FragCoord.xy/viewport;"
 	"vec3 fColor=texture(diffuseMap, vTexCoord).rgb;"
-	"color=vec4(fColor*lightColor, 1.0);"
+	"vec3 AO=texture(AOMap, vTexCoord).rgb;"
+	"color=vec4(fColor*lightColor*AO, 1.0);"
 	"}\n";
 
 static const char *fragment_shader=
@@ -321,9 +323,11 @@ static void litPointLight(r3d::Renderer *renderer, r3d::ProgramPtr program, r3d:
 	renderer->drawArrays(program.get(), vao, r3d::PT_POINTS, 1);
 }
 
-static void litAmbientLight(r3d::Renderer *renderer, r3d::ProgramPtr program)
+static void litAmbientLight(r3d::Renderer *renderer, r3d::ProgramPtr program, r3d::SSAO *ssao)
 {
+	ssao->getBlurredAmbientMap()->bind(1);
 	program->setUniform("lightColor", {0.8f, 0.8f, 0.8f});
+	program->setUniform("AOMap", 1);
 	renderer->drawArrays(program.get(), vao, r3d::PT_POINTS, 1);
 }
 
@@ -361,7 +365,7 @@ int main(int argc, char *argv[])
 	RocketEventListener myrel(engine);
 	LuaInterface::Initialise(engine);
 
-	r3d::SSAO ssao(engine, cw, gBuffer->getDepthMap(), gBuffer->getNormalMap());
+	r3d::SSAO ssao(engine, cw, gBuffer->getPositionMap(), gBuffer->getDepthMap(), gBuffer->getNormalMap());
 
 	cw->getMouse()->setPos(cw->getWidth()/2, cw->getHeight()/2);
 	fps->update(engine->getTime());
@@ -408,7 +412,7 @@ int main(int argc, char *argv[])
 		program_ambient->setUniform("diffuseMap", 0);
 		program_ambient->setUniform("viewport", glm::vec2(cw->getWidth(), cw->getHeight()));
 
-		litAmbientLight(engine->getRenderer(), program_ambient);
+		litAmbientLight(engine->getRenderer(), program_ambient, &ssao);
 		PostFXTest.endSource();
 	
 		engine->getRenderer()->clear();
