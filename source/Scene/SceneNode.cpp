@@ -3,7 +3,7 @@
 namespace r3d
 {
 	SceneNode::SceneNode(SceneNodePtr parent, ContextWindow *cw, const char *name, Transformation relative):
-		m_parent(parent.get()), m_cw(cw), m_name(name), m_relative(relative)
+		m_parent(parent.get()), m_cw(cw), m_relative(relative), m_name(name)
 	{
 
 	}

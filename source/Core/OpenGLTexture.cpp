@@ -10,6 +10,7 @@ static GLenum PixelFormatOpenGLMap[]={GL_RGB, GL_BGR, GL_RGBA, GL_BGRA, GL_RGB, 
 static GLenum WrappingOpenGLMap[]={GL_CLAMP_TO_EDGE, GL_CLAMP_TO_BORDER, GL_REPEAT, GL_MIRRORED_REPEAT};
 static GLenum FilterOpenGLMap[]={GL_NEAREST, GL_LINEAR, GL_NEAREST_MIPMAP_NEAREST,
 			GL_LINEAR_MIPMAP_NEAREST, GL_NEAREST_MIPMAP_LINEAR, GL_LINEAR_MIPMAP_LINEAR};
+static GLenum AccessLevelOpenGLMap[]={GL_READ_ONLY, GL_WRITE_ONLY, GL_READ_WRITE};
 
 namespace r3d
 {
@@ -24,7 +25,7 @@ namespace r3d
 		: ColorTexture2D(image->GetWidth(), image->GetHeight(), PF_RGBA), OpenGLObject(glGenTextures, glDeleteTextures)
 	{
 		memcpy(m_data.get(), image->GetPixels(), image->GetWidth()*image->GetHeight()*4);
-		m_internalFormat=image->HasAlpha()? GL_RGBA: GL_RGB;
+		m_internalFormat=image->HasAlpha()? GL_RGBA8: GL_RGB8;
 		resetGLTexture();
 	}
 
@@ -32,6 +33,11 @@ namespace r3d
 	{
 		glActiveTexture(GL_TEXTURE0+channel);
 		glBindTexture(GL_TEXTURE_2D, getID());
+	}
+
+	void OpenGLColorTexture2D::bindImage(uint32_t channel, int level, AccessLevel al)
+	{
+		glBindImageTexture(channel, getID(), level, GL_FALSE, 0, AccessLevelOpenGLMap[al], m_internalFormat);
 	}
 
 	void OpenGLColorTexture2D::unbind()
@@ -79,10 +85,10 @@ namespace r3d
 		{
 			case PF_RGB:
 			case PF_BGR:
-				return GL_RGB;
+				return GL_RGB8;
 			case PF_RGBA:
 			case PF_BGRA:
-				return GL_RGBA;
+				return GL_RGBA8;
 			case PF_RGBF:
 			case PF_BGRF:
 				return GL_RGB32F;
@@ -90,7 +96,7 @@ namespace r3d
 			case PF_BGRAF:
 				return GL_RGBA32F;
 			default:
-				return GL_RGB;
+				return GL_RGB8;
 		}
 	}
 
@@ -154,6 +160,12 @@ namespace r3d
 	{
 		glActiveTexture(GL_TEXTURE0+channel);
 		glBindTexture(GL_TEXTURE_2D, getID());
+	}
+
+	void OpenGLDepthTexture2D::bindImage(uint32_t channel, int level, AccessLevel al)
+	{
+		if(getDepthFormat()==DF_32)
+			glBindImageTexture(channel, getID(), level, GL_FALSE, 0, AccessLevelOpenGLMap[al], GL_R32F);
 	}
 
 	void OpenGLDepthTexture2D::unbind()

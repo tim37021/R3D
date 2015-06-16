@@ -15,6 +15,7 @@ namespace r3d
 
 		// ITexture
 		virtual void bind(uint32_t channel);
+		virtual void bindImage(uint32_t channel, int level, AccessLevel);
 		virtual void unbind();
 		virtual void *lock();
 		virtual void unlock();
@@ -40,6 +41,7 @@ namespace r3d
 
 		// ITexture
 		virtual void bind(uint32_t channel);
+		virtual void bindImage(uint32_t channel, int level, AccessLevel);
 		virtual void unbind();
 		virtual void *lock();
 		virtual void unlock();

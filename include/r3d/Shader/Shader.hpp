@@ -11,7 +11,8 @@ namespace r3d
 	{
 		ST_VERTEX_SHADER,
 		ST_FRAGMENT_SHADER,
-		ST_GEOMETRY_SHADER
+		ST_GEOMETRY_SHADER,
+		ST_COMPUTE_SHADER
 	};
 
 	class CompileError: public std::runtime_error

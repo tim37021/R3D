@@ -12,7 +12,7 @@ namespace r3d
 	public:
 		Material(ProgramPtr program): 
 			m_ambient(0.05f), m_diffuse(1.0f), m_specular(1.0f),
-			m_emission(0.0f), m_program(program), m_dMap(nullptr)
+			m_emission(0.0f), m_dMap(nullptr), m_sMap(nullptr), m_program(program)
 		{}
 
 		void setAmbient(const glm::vec3 &v)

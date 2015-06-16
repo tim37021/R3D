@@ -49,6 +49,7 @@ namespace r3d
 		this->width = width;
 		this->height = height;
 		hasAlpha=true;
+		isGrayscale=false;
 	}
 
 	Image::Image( uint16_t width, uint16_t height, uint8_t* pixels )
@@ -68,12 +69,14 @@ namespace r3d
 		this->width = width;
 		this->height = height;
 		hasAlpha=true;
+		isGrayscale=false;
 	}
 
 	Image::Image( const std::string& filename )
 	{
 		image = 0;
 		hasAlpha=true;
+		isGrayscale=false;
 		Load( filename );
 	}
 
@@ -265,6 +268,11 @@ namespace r3d
 		uint8_t descriptor = data.ReadUbyte();
 		if ( depth == 24 && descriptor != 0 ) throw FormatException(); // Check for alpha channel if bit depth is 32
 		if ( depth == 32 ) hasAlpha = true; else hasAlpha=false; // check alpha channel?
+		if ( depth == 8 ) 
+			if ( bytesPerPixel == 1 )
+				isGrayscale=true;
+			else
+				throw FormatException(); // only support 8 bit grayscale
 
 		// If pixels are RLE encoded, they need to be unpacked first
 		if ( type == 10 )

@@ -22,11 +22,10 @@ namespace r3d
 
 		switch(ra)
 		{
+			case RA_OPENGL_4_3:
 			case RA_OPENGL_3_3:
 			case RA_OPENGL_2_1:
 				m_renderer=new OpenGLRenderer(this); break;
-			case RA_SOFTWARE:
-				log("Software renderer is not yet implemented.");
 		}
 	}
 
@@ -56,10 +55,16 @@ namespace r3d
 	ContextWindow *Engine::newContextWindow(uint32_t width, uint32_t height, const std::string &title)
 	{
 		int major=2, minor=1;
-		if(m_ra==RA_OPENGL_3_3)
+	
+		switch(m_ra)
 		{
-			major=3;
-			minor=3;
+			case RA_OPENGL_4_3:
+				major=4; minor=3; break;
+			case RA_OPENGL_3_3:
+				major=3; minor=3; break;
+			case RA_OPENGL_2_1:
+				major=2; minor=1; break;
+			default:;
 		}
 		ContextWindow::SetHint(CO_GL_VERSION_MAJOR, major);
 		ContextWindow::SetHint(CO_GL_VERSION_MINOR, minor);
@@ -82,12 +87,11 @@ namespace r3d
 	{
 		switch(m_ra)
 		{
+			case RA_OPENGL_4_3:
 			case RA_OPENGL_3_3:
 			case RA_OPENGL_2_1:
 				return new OpenGLColorTexture2D(width, height, pf);
 				break;
-			case RA_SOFTWARE:
-				log("TODO: 2D Texture for software renderer");
 		}
 		return {nullptr};
 	}
@@ -98,12 +102,11 @@ namespace r3d
 			Image image(filename);
 			switch(m_ra)
 			{
+				case RA_OPENGL_4_3:
 				case RA_OPENGL_3_3:
 				case RA_OPENGL_2_1:
 					return new OpenGLColorTexture2D(&image);
 					break;
-				case RA_SOFTWARE:
-					log("TODO: 2D Texture for software renderer");
 			}
 		}catch(...)
 		{
@@ -121,12 +124,11 @@ namespace r3d
 			Image image(width, height, pixels);
 			switch(m_ra)
 			{
+				case RA_OPENGL_4_3:
 				case RA_OPENGL_3_3:
 				case RA_OPENGL_2_1:
 					return new OpenGLColorTexture2D(&image);
 					break;
-				case RA_SOFTWARE:
-					log("TODO: 2D Texture for software renderer");
 			}
 		}catch(...)
 		{
@@ -141,12 +143,11 @@ namespace r3d
 	{
 		switch(m_ra)
 		{
+			case RA_OPENGL_4_3:
 			case RA_OPENGL_3_3:
 			case RA_OPENGL_2_1:
 				return new OpenGLDepthTexture2D(width, height, df);
 				break;
-			case RA_SOFTWARE:
-				log("TODO: 2D Texture for software renderer");
 		}
 		return {nullptr};
 	}
@@ -155,12 +156,11 @@ namespace r3d
 	{
 		switch(m_ra)
 		{
+			case RA_OPENGL_4_3:
 			case RA_OPENGL_3_3:
 			case RA_OPENGL_2_1:
 				return std::shared_ptr<RenderTarget2D>(new OpenGLRenderTarget2D());
 				break;
-			case RA_SOFTWARE:
-				log("TODO: render target for software renderer");
 		}
 		return {nullptr};
 	}
@@ -169,53 +169,49 @@ namespace r3d
 	{
 		switch(m_ra)
 		{
+			case RA_OPENGL_4_3:
 			case RA_OPENGL_3_3:
 			case RA_OPENGL_2_1:
 				return new OpenGLVertexArray();
 				break;
-			case RA_SOFTWARE:
-				log("TODO: vertex array for software renderer");
 		}
-		return {nullptr};
+		return nullptr;
 	}
 
 	Buffer *Engine::newIndexBuffer(const std::vector<uint32_t> &indices, BufferUsage bu) const
 	{
 		switch(m_ra)
 		{
+			case RA_OPENGL_4_3:
 			case RA_OPENGL_3_3:
 			case RA_OPENGL_2_1:
 				return new OpenGLIndexBuffer(indices, bu);
 				break;
-			case RA_SOFTWARE:
-				log("TODO: index array for software renderer");
 		}
-		return {nullptr};
+		return nullptr;
 	}
 	Buffer *Engine::newVertexBuffer(const void *data, uint32_t n, BufferUsage bu) const
 	{
 		switch(m_ra)
 		{
+			case RA_OPENGL_4_3:
 			case RA_OPENGL_3_3:
 			case RA_OPENGL_2_1:
 				return new OpenGLVertexBuffer(data, n, bu);
 				break;
-			case RA_SOFTWARE:
-				log("TODO: vertex buffer for software renderer");
 		}
-		return {nullptr};
+		return nullptr;
 	}
 
 	std::shared_ptr<Shader> Engine::newShader(ShaderType st) const
 	{
 		switch(m_ra)
 		{
+			case RA_OPENGL_4_3:
 			case RA_OPENGL_3_3:
 			case RA_OPENGL_2_1:
 				return std::shared_ptr<Shader>(new OpenGLShader(st));
 				break;
-			case RA_SOFTWARE:
-				log("Software renderer cannot use shader yet");
 		}
 		return {nullptr};
 	}
@@ -224,12 +220,11 @@ namespace r3d
 	{
 		switch(m_ra)
 		{
+			case RA_OPENGL_4_3:
 			case RA_OPENGL_3_3:
 			case RA_OPENGL_2_1:
 				return std::shared_ptr<Program>(new OpenGLProgram());
 				break;
-			case RA_SOFTWARE:
-				log("Software renderer cannot use program yet");
 		}
 		return {nullptr};
 	}

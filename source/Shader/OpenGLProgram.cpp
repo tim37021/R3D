@@ -78,4 +78,10 @@ namespace r3d
 		CHECKNAME(name);
 		glUniformMatrix4fv(id, 1, GL_FALSE, glm::value_ptr(mat));
 	}
+
+	void OpenGLProgram::dispatchCompute(uint32_t x, uint32_t y, uint32_t z)
+	{
+		glUseProgram(m_id);
+		glDispatchCompute(x, y, z);
+	}
 }
