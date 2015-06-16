@@ -11,6 +11,9 @@ namespace r3d
 
 	enum PixelFormat
 	{
+		PF_R,
+		PF_R16,
+		PF_R32,
 		PF_RGB,
 		PF_BGR,
 		PF_RGBA,
