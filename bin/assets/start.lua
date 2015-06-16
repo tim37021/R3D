@@ -1,5 +1,7 @@
 fonts={"Delicious-Roman.otf", "Delicious-Italic.otf", "Delicious-Bold.otf", "Delicious-BoldItalic.otf"}
 
+obj_sel=nil
+
 function LoadFont()
 	for k, v in pairs(fonts) do
 		rocket:LoadFontFace("assets/"..v);
@@ -17,7 +19,17 @@ function LoadFile(element)
 
 	local zoom=tonumber(element:GetElementById("zoom").attributes.value)
 
-	LoadObjScene(fn, t_x, t_y, t_z, r_x, r_y, r_z, zoom);
+	obj_sel=LoadObjScene(fn);
+	obj_sel:SetRotation(r_x,r_y,r_z);
+	obj_sel:SetTranslation(t_x,t_y,t_z);
+	obj_sel:SetScale(zoom);
+	propertymenu:GetElementById("xpos"):SetAttribute("value",obj_sel:GetTranslation("x"));
+	propertymenu:GetElementById("ypos"):SetAttribute("value",obj_sel:GetTranslation("y"));
+	propertymenu:GetElementById("zpos"):SetAttribute("value",obj_sel:GetTranslation("z"));
+	propertymenu:GetElementById("xrot"):SetAttribute("value",obj_sel:GetRotation("x"));
+	propertymenu:GetElementById("yrot"):SetAttribute("value",obj_sel:GetRotation("y"));
+	propertymenu:GetElementById("zrot"):SetAttribute("value",obj_sel:GetRotation("z"));
+	propertymenu:GetElementById("zoom"):SetAttribute("value",obj_sel:GetScale());
 end
 
 function OnFilesDropIn(filenames)
@@ -44,10 +56,10 @@ function Startup()
 	comwin=maincontext:LoadDocument("assets/demo.rml")
 	comwin:GetElementById("title").inner_rml="LUA Command"
 	comwin:Show()
-	comwin:GetElementById("cmdold").wordwrap=true
 	for k,v in pairs(comwin:GetElementById("cmdold").attributes) do
 	print(k..":"..v)
 	end
+	print(maincontext)
 	maincontext:LoadDocument("assets/menu.rml"):Show()
 	mspos=maincontext:LoadDocument("assets/mspos.rml")
 	mspos:Show()
