@@ -5,6 +5,8 @@
 
 namespace r3d
 {
+	class DepthTexture2D;
+	class ContextWindow;
 	enum LightType
 	{
 		LT_POINT_LIGHT,
@@ -27,6 +29,16 @@ namespace r3d
 		glm::vec3 pos;
 		PointLight(): Light(LT_POINT_LIGHT) {}
 		virtual ~PointLight()=default;
+	};
+
+	struct SpotLight: public Light 
+	{
+		glm::vec3 pos;
+		glm::vec3 dir;
+		float angle;
+		DepthTexture2D *dMap;
+		SpotLight(ContextWindow *cw, int width = 1024, int height = 1024);
+
 	};
 }
 
