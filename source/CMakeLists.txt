@@ -31,6 +31,7 @@ set(SOURCE
 	${SOURCE_DIR_BASE}/Shader/ProgramUtils.cpp
 	${SOURCE_DIR_BASE}/Scene/SceneNode.cpp
 	${SOURCE_DIR_BASE}/Scene/MeshSceneNode.cpp
+	${SOURCE_DIR_BASE}/Scene/Light.cpp
 	${SOURCE_DIR_BASE}/Window/ContextWindow.cpp
 	${SOURCE_DIR_BASE}/Window/GLFW3ContextWindow.cpp
 	PARENT_SCOPE
