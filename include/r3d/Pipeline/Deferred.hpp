@@ -12,6 +12,7 @@ namespace r3d
 	class Program;
 	class VertexArray;
 	class PointLight;
+	class SpotLight;
 	class Camera;
 	class SSAO;
 
@@ -33,17 +34,19 @@ namespace r3d
 		SSAO *m_ssao;
 
 		// point light program
-		ProgramPtr m_programPL, m_programA;
+		ProgramPtr m_programPL, m_programSL, m_programA, m_programDepth;
 
 		// attributeless vao
 		VertexArray *m_vao;
 
 		void litPointLight(PointLight *light);
+		void litSpotLight(SpotLight *);
 		void litAmbientLight();
 		void beginLightPass();
 		void endLightPass();
 
 		void renderMaterial(Camera *cam);
+		void renderDepth(Camera *cam);
 
 		void prepareProgramInput();
 		void prepareViewRelativeUniform(ProgramPtr program, Camera *cam);
