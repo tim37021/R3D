@@ -112,7 +112,7 @@ static const char *fragment_shader_ambient=
 	"void main(){"
 	"vec2 vTexCoord=gl_FragCoord.xy/viewport;"
 	"vec3 fColor=texture(diffuseMap, vTexCoord).rgb;"
-	"vec3 AO=texture(AOMap, vTexCoord).rgb;"
+	"float AO=texture(AOMap, vTexCoord).r;"
 	"color=vec4(fColor*lightColor*AO, 1.0);"
 	"}\n";
 
