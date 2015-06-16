@@ -6,7 +6,7 @@
 #define PUSHSTATE() GLint restoreId; glGetIntegerv( GL_TEXTURE_BINDING_2D, &restoreId );
 #define POPSTATE() glBindTexture( GL_TEXTURE_2D, restoreId );
 
-static GLenum PixelFormatOpenGLMap[]={GL_R, GL_R, GL_R, GL_RGB, GL_BGR, GL_RGBA, GL_BGRA, GL_RGB, GL_BGR, GL_RGBA, GL_BGRA};
+static GLenum PixelFormatOpenGLMap[]={GL_RED, GL_RED_INTEGER, GL_RGB, GL_BGR, GL_RGBA, GL_BGRA, GL_RGB, GL_BGR, GL_RGBA, GL_BGRA};
 static GLenum WrappingOpenGLMap[]={GL_CLAMP_TO_EDGE, GL_CLAMP_TO_BORDER, GL_REPEAT, GL_MIRRORED_REPEAT};
 static GLenum FilterOpenGLMap[]={GL_NEAREST, GL_LINEAR, GL_NEAREST_MIPMAP_NEAREST,
 			GL_LINEAR_MIPMAP_NEAREST, GL_NEAREST_MIPMAP_LINEAR, GL_LINEAR_MIPMAP_LINEAR};
@@ -82,10 +82,8 @@ namespace r3d
 		switch(getPixelFormat())
 		{
 			case PF_R:
-				return GL_R8UI;
-			case PF_R16:
-				return GL_R16UI;
-			case PF_R32:
+				return GL_R8;
+			case PF_OBJECT_R:
 				return GL_R32UI;
 			case PF_RGB:
 			case PF_BGR:

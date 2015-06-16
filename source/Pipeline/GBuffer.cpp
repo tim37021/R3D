@@ -17,18 +17,20 @@ namespace r3d
 		m_diffuseMap = tMgr->registerColorTexture2D("DiffuseMap", width, height, PF_BGR);
 		m_normMap = tMgr->registerColorTexture2D("NormalMap", width, height, PF_BGRF);
 		m_specMap = tMgr->registerColorTexture2D("SpecularMap", width, height, PF_BGR);
+		m_objMap = tMgr->registerColorTexture2D("ObjectMap", width, height, PF_OBJECT_R);
 
 		m_posMap->setWrapping(W_CLAMP_TO_BORDER, W_CLAMP_TO_BORDER);
 		m_diffuseMap->setWrapping(W_CLAMP_TO_BORDER, W_CLAMP_TO_BORDER);
 		m_normMap->setWrapping(W_CLAMP_TO_BORDER, W_CLAMP_TO_BORDER);
 		m_specMap->setWrapping(W_CLAMP_TO_BORDER, W_CLAMP_TO_BORDER);
+		m_objMap->setWrapping(W_CLAMP_TO_BORDER, W_CLAMP_TO_BORDER);
 
 
 		m_depthMap = tMgr->registerDepthTexture2D("DepthMap", width, height, DF_32);	
 		m_depthMap->setWrapping(W_CLAMP_TO_BORDER, W_CLAMP_TO_BORDER);
 
-		r3d::ColorTexture2D *texts[]={m_posMap, m_diffuseMap, m_normMap, m_specMap};
-		m_fbo->attachColorTextures(4, texts);
+		ColorTexture2D *texts[]={m_posMap, m_diffuseMap, m_normMap, m_specMap, m_objMap};
+		m_fbo->attachColorTextures(5, texts);
 		m_fbo->attachDepthTexture(m_depthMap);
 	}
 

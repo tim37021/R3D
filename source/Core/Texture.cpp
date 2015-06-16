@@ -24,9 +24,7 @@ namespace r3d
 		{
 			case PF_R:
 				element_size=1; break;
-			case PF_R16:
-				element_size=2; break;
-			case PF_R32:
+			case PF_OBJECT_R:
 				element_size=4; break;
 			case PF_RGB:
 			case PF_BGR:
