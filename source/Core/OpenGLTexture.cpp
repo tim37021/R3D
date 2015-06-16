@@ -64,8 +64,6 @@ namespace r3d
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, getWidth(), getHeight(),
 			PixelFormatOpenGLMap[getPixelFormat()], gltype, m_data.get());
 
-		glGenerateMipmap(GL_TEXTURE_2D);
-
 		POPSTATE();
 	}
 
@@ -116,7 +114,7 @@ namespace r3d
 	{
 		PUSHSTATE();
 		glBindTexture(GL_TEXTURE_2D, getID());
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -130,7 +128,6 @@ namespace r3d
 
 		glTexImage2D(GL_TEXTURE_2D, 0, m_internalFormat, getWidth(), getHeight(), 0, PixelFormatOpenGLMap[pf], gltype, m_data.get());
 		
-		glGenerateMipmap( GL_TEXTURE_2D );
 		POPSTATE();
 	}
 
@@ -237,6 +234,16 @@ namespace r3d
 		glBindTexture( GL_TEXTURE_2D, getID() );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, FilterOpenGLMap[min]);
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, FilterOpenGLMap[mag]);
+
+		POPSTATE();
+	}
+
+	void OpenGLDepthTexture2D::generateMipmap()
+	{
+		PUSHSTATE();
+
+		glBindTexture(GL_TEXTURE_2D, getID());
+		glGenerateMipmap(GL_TEXTURE_2D);
 
 		POPSTATE();
 	}
