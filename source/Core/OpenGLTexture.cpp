@@ -114,6 +114,8 @@ namespace r3d
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		float border[]={1.0f, 1.0f, 1.0f, 1.0f};
+		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border);
 
 		GLenum gltype;
 		PixelFormat pf=getPixelFormat();
@@ -124,6 +126,8 @@ namespace r3d
 
 		glTexImage2D(GL_TEXTURE_2D, 0, m_internalFormat, getWidth(), getHeight(), 0, PixelFormatOpenGLMap[pf], gltype, m_data.get());
 		
+
+
 		glGenerateMipmap( GL_TEXTURE_2D );
 		POPSTATE();
 	}

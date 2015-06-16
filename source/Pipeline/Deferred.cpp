@@ -151,6 +151,7 @@ static const char *fragment_shader_spotlight=
 	"uniform sampler2D diffuseMap;\n"
 	"uniform sampler2D normMap;\n"
 	"uniform sampler2D specMap;\n"
+	"uniform sampler2D shadowMap;"
 	"uniform vec2 viewport;"
 	"uniform vec3 eyePos;"
 	"uniform vec3 lightPos;\n"
@@ -220,17 +221,22 @@ namespace r3d
 		m_ssao = new SSAO(engine, cw, m_gBuffer->getDepthMap(), m_gBuffer->getPositionMap(), m_gBuffer->getNormalMap());
 
 		SpotLight *light=new SpotLight(cw);
-		light->color=glm::vec3(1.0f);
+		light->color=glm::vec3(0.8f, 0.8f, 0.0f);
 		light->pos=glm::vec3(0, 5, 0);
 		light->dir=glm::vec3(0, -1, 0);
 		light->angle=10.0f;
 		cw->getSceneManager()->addLight(light);
+		m_lightCamera = new Camera(m_cw, glm::vec3 (0.0f), glm::vec3 (0.0f), glm::vec3 (0.0f));
+	
+		m_renderTarget = engine->newRenderTarget2D();
+		m_renderTarget->attachDepthTexture(cw->getTextureManager()->registerDepthTexture2D("ShadowMap[1024x1024]", 1024, 1024, DF_24));
 	}
 
 	Deferred::~Deferred()
 	{
 		delete m_gBuffer;
 		delete m_ssao;
+		delete m_lightCamera;
 	}
 
 	void Deferred::run()
@@ -343,12 +349,33 @@ namespace r3d
 
 	void Deferred::litSpotLight(SpotLight *light )
 	{
+		m_lightCamera->setPos(light->pos);
+		m_lightCamera->setDir(light->dir);
+		m_lightCamera->setUp(light->up);
+		m_lightCamera->setNear(1.0f);
+		m_lightCamera->setFar(10.0f);
+		m_lightCamera->setAspect(1.0f);
+		m_lightCamera->setFov(light->angle*2.0f);
 
+		m_renderer->enableDepthTest(true);
+		m_renderTarget->bind();
+		m_renderer->setViewport(0, 0, 1024, 1024);
+		m_renderer->clear();
+		renderDepth(m_lightCamera);
+		m_renderer->enableDepthTest(false);
+		m_renderTarget->unbind();
+		m_renderer->setViewport(0, 0, m_cw->getWidth(), m_cw->getHeight());
+		light->dMap->bind(4);
 		m_programSL->setUniform("lightPos", light->pos);
 		m_programSL->setUniform("lightColor", light->color);
 		m_programSL->setUniform("lightDir", glm::normalize(light->dir));
-		m_programSL->setUniform("angle", light->angle);
+		m_programSL->setUniform("angle", light->angle*3.1415f/180);
 		m_renderer->drawArrays(m_programSL.get(), m_vao, PT_POINTS, 1);	
+		
+
+		
+
+
 
 	}
 
@@ -368,6 +395,7 @@ namespace r3d
 		m_programPL->setUniform("normMap", 2);
 		m_programPL->setUniform("specMap", 3);
 
+		m_programSL->setUniform("shadowMap", 4);
 		m_programSL->setUniform("posMap", 0);
 		m_programSL->setUniform("diffuseMap", 1);
 		m_programSL->setUniform("normMap", 2);

@@ -18,6 +18,7 @@ namespace r3d
 		virtual void enableBlending(bool value, BlendParameter sf, BlendParameter df, BlendFunction bf);
 		virtual void drawElements(Program *program, VertexArray *vao, PrimitiveType, uint32_t count);
 		virtual void drawArrays(Program *program, VertexArray *vao, PrimitiveType, uint32_t count);
+		virtual void setViewport(int32_t, int32_t, uint32_t width, uint32_t height);
 	private:
 		Engine *m_engine;
 	};

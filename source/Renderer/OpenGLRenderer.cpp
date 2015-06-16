@@ -76,4 +76,9 @@ namespace r3d
 		glDrawArrays(PrimitiveTypeOpenGLMap[pt], 0, count);
 		vao->unbind();
 	}
+
+	void OpenGLRenderer::setViewport(int32_t x, int32_t y, uint32_t width, uint32_t height)
+	{
+		glViewport(x, y, width, height);
+	}
 }

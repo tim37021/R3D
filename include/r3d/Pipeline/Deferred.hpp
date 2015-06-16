@@ -15,7 +15,9 @@ namespace r3d
 	class SpotLight;
 	class Camera;
 	class SSAO;
+	class RenderTarget2D;
 
+	typedef std::shared_ptr<RenderTarget2D> RenderTarget2DPtr;
 	typedef std::shared_ptr<Program> ProgramPtr;
 
 	class Deferred
@@ -28,6 +30,8 @@ namespace r3d
 		Engine *m_engine;
 		ContextWindow *m_cw;
 		Renderer *m_renderer;
+		Camera *m_lightCamera;
+		RenderTarget2DPtr m_renderTarget;
 
 		GBuffer *m_gBuffer;
 

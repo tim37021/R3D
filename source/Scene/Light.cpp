@@ -8,5 +8,8 @@ namespace r3d
 	{
 		dMap=cw->getTextureManager()->registerDepthTexture2D(
 			"ShadowMap["+std::to_string(width)+"x"+std::to_string(height)+"]", width, height, DF_24);
+		up = glm::vec3(1.0f, 0.0f, 0.0f);// Just set a up vector 
+		
+		dMap->setWrapping(W_CLAMP_TO_BORDER, W_CLAMP_TO_BORDER);
 	}
-}
+} 

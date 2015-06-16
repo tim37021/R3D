@@ -35,10 +35,12 @@ namespace r3d
 	{
 		glm::vec3 pos;
 		glm::vec3 dir;
+		glm::vec3 up;
 		float angle;
 		DepthTexture2D *dMap;
 		SpotLight(ContextWindow *cw, int width = 1024, int height = 1024);
 
+		
 	};
 }
 
