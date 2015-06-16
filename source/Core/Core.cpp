@@ -105,7 +105,10 @@ namespace r3d
 				case RA_OPENGL_4_3:
 				case RA_OPENGL_3_3:
 				case RA_OPENGL_2_1:
-					return new OpenGLColorTexture2D(&image);
+					ColorTexture2D *text=new OpenGLColorTexture2D(&image);
+					text->generateMipmap();
+					text->setFilter(F_LINEAR_MIPMAP_LINEAR, F_LINEAR);
+					return text;
 					break;
 			}
 		}catch(...)
