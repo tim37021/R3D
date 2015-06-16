@@ -145,6 +145,52 @@ static const char *fragment_shader=
 	"color=att*vec4(diffuse*fColor*lightColor+specular*lightColor*spec, 1);} else discard;\n"
 	"}\n";
 
+static const char *fragment_shader_spotlight=
+	"#version 330\n"
+	"uniform sampler2D posMap;\n"
+	"uniform sampler2D diffuseMap;\n"
+	"uniform sampler2D normMap;\n"
+	"uniform sampler2D specMap;\n"
+	"uniform vec2 viewport;"
+	"uniform vec3 eyePos;"
+	"uniform vec3 lightPos;\n"
+	"uniform vec3 lightColor;\n;"
+	"uniform vec3 lightDir;\n"
+	"uniform float angle;\n"
+	"out vec4 color;\n"
+	"void main(){\n"
+	"vec2 vTexCoord=gl_FragCoord.xy/viewport;"
+	"vec3 pos=texture(posMap, vTexCoord).xyz;\n"
+	"vec3 fColor=texture(diffuseMap, vTexCoord).rgb;\n"
+	"vec3 norm=texture(normMap, vTexCoord).xyz;\n"
+	"vec3 spec=texture(specMap, vTexCoord).rgb;\n"
+	"float d=length(pos-lightPos);\n"
+	"if(length(norm)<=0.5||d>=8) discard;"
+	"vec3 lightVec=normalize(lightPos-pos);"
+	"float diffuse=dot(norm, lightVec);\n"
+	"if(diffuse>=0.0){"
+	"if(dot(-lightVec, lightDir) < cos(angle)) discard;\n"
+	"float falloff = 1.0-clamp((d-6.0)/2.0, 0.0, 1.0);\n"
+	"float d=length(lightPos-pos);\n"
+	"float att=falloff*1.0/(0.9+0.1*d*d);"
+	"float specular = pow(max(dot(reflect(-lightVec, norm), normalize(eyePos-pos)), 0), 30);\n"
+	"color=att*vec4(diffuse*fColor*lightColor+specular*lightColor*spec, 1);} else discard;\n"
+	"}\n";
+////////////////////////////////////
+static const char *vertex_shader_depth=
+	"#version 330\n"
+	"layout(location=0) in vec3 pos;\n"
+	"layout(location=1) in vec2 texCoord;\n"
+	"layout(location=2) in vec3 norm;\n"
+	"uniform mat4 mvp;"
+	"void main(){\n"
+	"gl_Position=mvp*vec4(pos, 1.0);"
+	"}\n";
+static const char *fragment_shader_depth = 
+	"#version 330\n"
+	"void main(){}";
+
+///////////////////////////////////
 namespace r3d
 {
 	// private struct for rendering
@@ -165,11 +211,20 @@ namespace r3d
 		m_vao=m_cw->getVertexArrayManager()->registerVertexArray("ATTRIBUTELESS");
 
 		m_programPL = r3d::MakeShaderProgram(engine, vertex_shader, geometry_shader, fragment_shader);
+		m_programSL = r3d::MakeShaderProgram(engine, vertex_shader, geometry_shader, fragment_shader_spotlight);
 		m_programA = r3d::MakeShaderProgram(engine, vertex_shader, geometry_shader_ambient, fragment_shader_ambient);
+		m_programDepth = r3d::MakeShaderProgram(engine, vertex_shader_depth, fragment_shader_depth);
 		prepareProgramInput();
 
 		m_gBuffer = new GBuffer(engine, cw->getWidth(), cw->getHeight());
 		m_ssao = new SSAO(engine, cw, m_gBuffer->getDepthMap(), m_gBuffer->getPositionMap(), m_gBuffer->getNormalMap());
+
+		SpotLight *light=new SpotLight(cw);
+		light->color=glm::vec3(1.0f);
+		light->pos=glm::vec3(0, 5, 0);
+		light->dir=glm::vec3(0, -1, 0);
+		light->angle=10.0f;
+		cw->getSceneManager()->addLight(light);
 	}
 
 	Deferred::~Deferred()
@@ -190,6 +245,7 @@ namespace r3d
 
 		prepareViewRelativeUniform(m_programPL, m_cw->getSceneManager()->getMainCamera());
 		prepareViewRelativeUniform(m_programA, m_cw->getSceneManager()->getMainCamera());
+		prepareViewRelativeUniform(m_programSL, m_cw->getSceneManager()->getMainCamera());
 
 		// lit the light one by one
 		for(auto light: m_cw->getSceneManager()->getLights())
@@ -199,6 +255,8 @@ namespace r3d
 				case LT_POINT_LIGHT:
 					litPointLight((PointLight *)light);
 					break;
+				case LT_SPOT_LIGHT:
+					litSpotLight((SpotLight *)light);
 				default:;
 			}
 		}
@@ -225,6 +283,26 @@ namespace r3d
 				mtl->prepareShader();
 				top.node->render(m_renderer, mtl_shader, cam, top.parentTransform, top.parentRotation);
 			}
+
+			const glm::mat4 &tmpMatrix=top.parentTransform*top.node->getTransformation()->getMatrix();
+			const glm::mat4 &tmpRotation=top.parentRotation*top.node->getTransformation()->getRotationMatrix();
+
+			auto &clist=top.node->getChildren();
+			for(auto &child: clist)
+				stk.push({child.get(), tmpMatrix, tmpRotation});
+		}
+	}
+	void Deferred::renderDepth(Camera *cam)
+	{
+		std::stack<StackElement> stk;
+		
+		SceneNode *root=m_cw->getSceneManager()->getRootNode().get();
+		stk.push({root});
+
+		while(!stk.empty())
+		{
+			StackElement top=stk.top(); stk.pop();
+			top.node->render(m_renderer, m_programDepth.get(), cam, top.parentTransform, top.parentRotation);
 
 			const glm::mat4 &tmpMatrix=top.parentTransform*top.node->getTransformation()->getMatrix();
 			const glm::mat4 &tmpRotation=top.parentRotation*top.node->getTransformation()->getRotationMatrix();
@@ -263,11 +341,22 @@ namespace r3d
 		m_renderer->drawArrays(m_programPL.get(), m_vao, PT_POINTS, 1);
 	}
 
+	void Deferred::litSpotLight(SpotLight *light )
+	{
+
+		m_programSL->setUniform("lightPos", light->pos);
+		m_programSL->setUniform("lightColor", light->color);
+		m_programSL->setUniform("lightDir", glm::normalize(light->dir));
+		m_programSL->setUniform("angle", light->angle);
+		m_renderer->drawArrays(m_programSL.get(), m_vao, PT_POINTS, 1);	
+
+	}
+
 	void Deferred::litAmbientLight()
 	{
 		m_gBuffer->getDiffuseMap()->bind(0);
 		m_ssao->getBlurredAmbientMap()->bind(1);
-		m_programA->setUniform("lightColor", {0.8f, 0.8f, 0.8f});
+		m_programA->setUniform("lightColor", {0.1f, 0.1f, 0.1f});
 		m_renderer->drawArrays(m_programA.get(), m_vao, PT_POINTS, 1);
 	}
 	
@@ -278,6 +367,11 @@ namespace r3d
 		m_programPL->setUniform("diffuseMap", 1);
 		m_programPL->setUniform("normMap", 2);
 		m_programPL->setUniform("specMap", 3);
+
+		m_programSL->setUniform("posMap", 0);
+		m_programSL->setUniform("diffuseMap", 1);
+		m_programSL->setUniform("normMap", 2);
+		m_programSL->setUniform("specMap", 3);
 
 		m_programA->setUniform("diffuseMap", 0);
 		m_programA->setUniform("AOMap", 1);
