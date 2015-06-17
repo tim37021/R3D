@@ -41,7 +41,17 @@ public:
 			}
 		}else
 		{
-			if(button==1&&action){
+			if(button==1&&action){//Mouse click right 
+				auto sMgr=cw->getSceneManager();
+				
+				r3d::PointLight *light=new r3d::PointLight();
+				light->pos=global_fps->getPos();
+				light->color=(glm::vec3(0.3f)+
+				glm::vec3((float)rand()/RAND_MAX, (float)rand()/RAND_MAX, (float)rand()/RAND_MAX));
+				sMgr->addLight(light);
+			}
+
+			if(button==2&&action){//Mouse click middle
 				auto sMgr=cw->getSceneManager();
 				
 				r3d::SpotLight *light=new r3d::SpotLight(cw);
