@@ -64,6 +64,7 @@ static const char *fragment_shader=
 	"uniform vec3 emission;"
 	"uniform sampler2D diffuseTexture;\n"
 	"uniform sampler2D specularTexture;\n"
+	"uniform uint id;"
 	"in vec2 gTexCoord;\n"
 	"in vec3 gWorldPos;\n"
 	"in vec3 gNorm;\n"
@@ -72,7 +73,7 @@ static const char *fragment_shader=
 	"diffuseMap=vec3(texture(diffuseTexture, gTexCoord))*diffuse;\n"
 	"normalMap=gNorm;\n"
 	"specularMap=(specular.x<0?vec3(texture(specularTexture, gTexCoord)): specular);\n"
-	"objectMap=uint(0);\n"
+	"objectMap=id;\n"
 	"if(length(emission)>0.2){ specularMap=-emission; }"
 	"}\n";
 

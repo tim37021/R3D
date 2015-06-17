@@ -30,6 +30,7 @@ namespace r3d
 		virtual void use()=0;
 
 		virtual void setUniform(const std::string &name, int32_t value)=0;
+		virtual void setUniform(const std::string &name, uint32_t value)=0;
 		virtual void setUniform(const std::string &name, float value)=0;
 		virtual void setUniform(const std::string &name, const glm::vec2 &v)=0;
 		virtual void setUniform(const std::string &name, const glm::vec3 &v)=0;

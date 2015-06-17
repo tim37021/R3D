@@ -55,18 +55,28 @@ namespace r3d
 		CHECKNAME(name);
 		glUniform1i(id, value);
 	}
+
+	void OpenGLProgram::setUniform(const std::string &name, GLuint value)
+	{
+		glUseProgram(m_id);
+		CHECKNAME(name);
+		glUniform1ui(id, value);
+	}
+
 	void OpenGLProgram::setUniform(const std::string &name, GLfloat value)
 	{
 		glUseProgram(m_id);
 		CHECKNAME(name);
 		glUniform1f(id, value);
 	}
+
 	void OpenGLProgram::setUniform(const std::string &name, const glm::vec2 &v)
 	{
 		glUseProgram(m_id);
 		CHECKNAME(name);
 		glUniform2fv(id, 1, glm::value_ptr(v));
 	}
+
 	void OpenGLProgram::setUniform(const std::string &name, const glm::vec3 &v)
 	{
 		glUseProgram(m_id);

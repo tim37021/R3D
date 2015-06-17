@@ -19,6 +19,7 @@ static R3DRocket::RenderInterface *ri;
 
 static r3d::Camera *global_fps;
 static r3d::VertexArray *vao;
+r3d::Deferred *deferred_pipeline;
 
 class MyEventListener: public r3d::EventListener
 {
@@ -30,12 +31,19 @@ public:
 	}
 	virtual void OnMouseButtonStateChange(int button, int action, int mods)
 	{
+		double posx, posy;
+		cw->getMouse()->getPos(&posx, &posy);
+		r3d::SceneNode *node;
 		if(!FPSMode)
 		{
 			switch(action)
 			{
 				case 1:
-				m_context->ProcessMouseButtonDown(button, 0); break;
+				m_context->ProcessMouseButtonDown(button, 0);
+				node=deferred_pipeline->getObject(posx, posy);
+				if(node)
+					fprintf(stderr, "%s\n", node->getName());
+				break;
 				case 0:
 				m_context->ProcessMouseButtonUp(button, 0); break;
 			}
@@ -166,7 +174,7 @@ int main(int argc, char *argv[])
 	cw->getSceneManager()->setMainCamera(fps);
 	global_fps=fps.get();
 
-	r3d::Deferred deferred_pipeline(engine, cw);
+	deferred_pipeline = new r3d::Deferred(engine, cw);
 
 	Rocket::Core::Context *context=SetupRocket(engine);
 	MyEventListener myel(context, cw);
@@ -188,7 +196,7 @@ int main(int argc, char *argv[])
 
 		engine->getRenderer()->clear();
 
-		deferred_pipeline.run();
+		deferred_pipeline->run();
 
 		engine->getRenderer()->enableBlending(true, r3d::BP_SRC_ALPHA, r3d::BP_ONE_MINUS_SRC_ALPHA, r3d::BF_ADD);
 		context->Render();

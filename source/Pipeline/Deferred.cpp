@@ -9,7 +9,8 @@
 #include <r3d/Renderer/Renderer.hpp>
 #include <glm/glm.hpp>
 #include <stack>
-
+#include <cstdio>
+#include <r3d/Utils/Image.hpp>
 
 static const char *vertex_shader=
 	"#version 330\n"
@@ -236,7 +237,10 @@ namespace r3d
 	void Deferred::run()
 	{
 		m_gBuffer->beginScene();
-		renderMaterial(m_cw->getSceneManager()->getMainCamera());
+		foreachSceneNode(m_cw->getSceneManager()->getRootNode().get(), 
+			std::bind(&Deferred::renderMaterial, this, 
+				m_cw->getSceneManager()->getMainCamera(), 
+				std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 		m_gBuffer->endScene();
 
 		m_ssao->update(m_cw->getSceneManager()->getMainCamera());
@@ -266,51 +270,50 @@ namespace r3d
 		endLightPass();
 	}
 
-	void Deferred::renderMaterial(Camera *cam)
+	void Deferred::foreachSceneNode(SceneNode *root, std::function<bool(SceneNode *, const glm::mat4&, const glm::mat4&)> callback)
 	{
 		std::stack<StackElement> stk;
-		
-		SceneNode *root=m_cw->getSceneManager()->getRootNode().get();
 		stk.push({root});
-
 		while(!stk.empty())
 		{
 			StackElement top=stk.top(); stk.pop();
-			auto mtl=top.node->getMaterial();
-			if(mtl)
-			{
-				auto mtl_shader=mtl->getProgram().get();
-				mtl->prepareShader();
-				top.node->render(m_renderer, mtl_shader, cam, top.parentTransform, top.parentRotation);
-			}
+
+			if(!callback(top.node, top.parentTransform, top.parentRotation))
+				break;
 
 			const glm::mat4 &tmpMatrix=top.parentTransform*top.node->getTransformation()->getMatrix();
 			const glm::mat4 &tmpRotation=top.parentRotation*top.node->getTransformation()->getRotationMatrix();
-
 			auto &clist=top.node->getChildren();
 			for(auto &child: clist)
 				stk.push({child.get(), tmpMatrix, tmpRotation});
 		}
 	}
-	void Deferred::renderDepth(Camera *cam)
+
+	bool Deferred::renderMaterial(Camera *cam, SceneNode *node, const glm::mat4 &trans, const glm::mat4 &rot)
 	{
-		std::stack<StackElement> stk;
-		
-		SceneNode *root=m_cw->getSceneManager()->getRootNode().get();
-		stk.push({root});
-
-		while(!stk.empty())
+		auto mtl=node->getMaterial();
+		if(mtl)
 		{
-			StackElement top=stk.top(); stk.pop();
-			top.node->render(m_renderer, m_programDepth.get(), cam, top.parentTransform, top.parentRotation);
-
-			const glm::mat4 &tmpMatrix=top.parentTransform*top.node->getTransformation()->getMatrix();
-			const glm::mat4 &tmpRotation=top.parentRotation*top.node->getTransformation()->getRotationMatrix();
-
-			auto &clist=top.node->getChildren();
-			for(auto &child: clist)
-				stk.push({child.get(), tmpMatrix, tmpRotation});
+			auto mtl_shader=mtl->getProgram().get();
+			mtl->prepareShader();
+			mtl_shader->setUniform("id", node->getID());
+			node->render(m_renderer, mtl_shader, cam, trans, rot);
 		}
+		return true;
+	}
+	bool Deferred::renderDepth(Camera *cam, SceneNode *node, const glm::mat4 &trans, const glm::mat4 &rot)
+	{
+		node->render(m_renderer, m_programDepth.get(), cam, trans, rot);
+		return true;
+	}
+
+	bool Deferred::findObjectByID(uint32_t id, SceneNode *&searchResult, SceneNode *node, const glm::mat4 &trans, const glm::mat4 &rot)
+	{
+		if(node->getID()!=id)
+			return true;
+		
+		searchResult=node;
+		return false;
 	}
 
 	void Deferred::beginLightPass()
@@ -384,5 +387,20 @@ namespace r3d
 		program->setUniform("a", (float)m_cw->getHeight()/m_cw->getWidth());
 		program->setUniform("e", 0.1f);
 		program->setUniform("viewport", {m_cw->getWidth(), m_cw->getHeight()});
+	}
+
+	SceneNode *Deferred::getObject(uint32_t x, uint32_t y)
+	{
+		uint32_t id;
+		uint32_t *ptr=(uint32_t *)m_gBuffer->getObjectMap()->lock();
+		id=ptr[(m_cw->getHeight()-y)*m_cw->getWidth()+x];
+		m_gBuffer->getObjectMap()->unlock();
+
+		SceneNode *searchResult=nullptr;
+
+		foreachSceneNode(m_cw->getSceneManager()->getRootNode().get(), std::bind(&Deferred::findObjectByID, this, id, std::ref(searchResult), 
+			std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+
+		return searchResult;
 	}
 }

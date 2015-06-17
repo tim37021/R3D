@@ -2,6 +2,8 @@
 #define __R3D_PIPELINE_DEFERRED_HPP_
 
 #include <memory>
+#include <functional>
+#include <glm/glm.hpp>
 
 namespace r3d
 {
@@ -15,6 +17,7 @@ namespace r3d
 	class SpotLight;
 	class Camera;
 	class SSAO;
+	class SceneNode;
 
 	typedef std::shared_ptr<Program> ProgramPtr;
 
@@ -24,6 +27,8 @@ namespace r3d
 		Deferred(Engine *, ContextWindow *);
 		~Deferred();
 		void run();
+
+		SceneNode *getObject(uint32_t x, uint32_t y);
 	private:
 		Engine *m_engine;
 		ContextWindow *m_cw;
@@ -45,8 +50,10 @@ namespace r3d
 		void beginLightPass();
 		void endLightPass();
 
-		void renderMaterial(Camera *cam);
-		void renderDepth(Camera *cam);
+		bool renderMaterial(Camera *cam, SceneNode *node, const glm::mat4 &trans, const glm::mat4 &rot);
+		bool renderDepth(Camera *cam, SceneNode *node, const glm::mat4 &trans, const glm::mat4 &rot);
+		bool findObjectByID(uint32_t id, SceneNode *&searchResult, SceneNode *node, const glm::mat4 &trans, const glm::mat4 &rot);
+		void foreachSceneNode(SceneNode *root, std::function<bool(SceneNode *, const glm::mat4&, const glm::mat4&)> callback);
 
 		void prepareProgramInput();
 		void prepareViewRelativeUniform(ProgramPtr program, Camera *cam);

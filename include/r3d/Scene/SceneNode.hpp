@@ -78,6 +78,9 @@ namespace r3d
 		{ return &m_relative; }
 
 		const std::list<SceneNodePtr> &getChildren() const { return m_children; }
+
+		const uint32_t getID() const { return m_id; }
+
 	protected:
 		//!< pointer to its parent node.
 		SceneNode *m_parent;
@@ -89,6 +92,9 @@ namespace r3d
 
 		//!< Relative transformation to its parent
 		Transformation m_relative;
+
+		//!< it of the node
+		uint32_t m_id;
 
 	private:
 		//!< name of the node.
@@ -103,7 +109,7 @@ namespace r3d
 
 		MaterialPtr m_material;
 
-		// AABB m_aabb;
+		static uint32_t IDCounter;
 	};
 }
 
