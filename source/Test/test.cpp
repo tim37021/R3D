@@ -44,7 +44,11 @@ public:
 			if(button==1&&action){
 				auto sMgr=cw->getSceneManager();
 				
-				r3d::PointLight *light=new r3d::PointLight();
+				r3d::SpotLight *light=new r3d::SpotLight(cw);
+				light->dir = global_fps->getDir();
+				light->up = global_fps->getUp();
+				light->angle = 30.0 ; 
+
 				light->pos=global_fps->getPos();
 				light->color=(glm::vec3(0.3f)+
 				glm::vec3((float)rand()/RAND_MAX, (float)rand()/RAND_MAX, (float)rand()/RAND_MAX));
