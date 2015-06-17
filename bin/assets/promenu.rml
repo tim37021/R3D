@@ -1,0 +1,123 @@
+<rml>
+	<head>
+		<title>Demo</title>
+		<link type="text/template" href="window.rml" />
+		<style>
+			body{width: 250x; height: 240px; orih: 240px; margin: auto;
+			}
+		</style>
+		<script>
+			function ktevent(event,type)
+			if obj_sel~=nil then
+				element=event.current_element
+				if event.parameters['key_identifier']==72 then				
+				if type=='x' then
+					setTrans(element.parent_node,element:GetAttribute('value')-obj_sel:GetTranslation('x'),0,0)
+				end
+				if type=='y' then
+					setTrans(element.parent_node,0,element:GetAttribute('value')-obj_sel:GetTranslation('y'),0)
+				end
+				if type=='z' then
+					setTrans(element.parent_node,0,0,element:GetAttribute('value')-obj_sel:GetTranslation('z'))
+				end
+				end
+			end
+			end
+			function setTrans(element,x,y,z)
+			if obj_sel~=nil then
+				x=obj_sel:GetTranslation('x')+x
+				y=obj_sel:GetTranslation('y')+y
+				z=obj_sel:GetTranslation('z')+z
+				obj_sel:SetTranslation(x,y,z)
+				element:GetElementById("xpos"):SetAttribute("value",x)
+				element:GetElementById("ypos"):SetAttribute("value",y)
+				element:GetElementById("zpos"):SetAttribute("value",z)
+			end
+			end
+			
+			function krevent(event,type)
+			if obj_sel~=nil then
+				element=event.current_element
+				if event.parameters['key_identifier']==72 then				
+				if type=='x' then
+					setRot(element.parent_node,element:GetAttribute('value')-obj_sel:GetRotation('x'),0,0)
+				end
+				if type=='y' then
+					setRot(element.parent_node,0,element:GetAttribute('value')-obj_sel:GetRotation('y'),0)
+				end
+				if type=='z' then
+					setRot(element.parent_node,0,0,element:GetAttribute('value')-obj_sel:GetRotation('z'))
+				end
+				end
+			end
+			end
+			function setRot(element,x,y,z)
+			if obj_sel~=nil then
+				x=obj_sel:GetRotation('x')+x
+				y=obj_sel:GetRotation('y')+y
+				z=obj_sel:GetRotation('z')+z
+				obj_sel:SetRotation(x,y,z)
+				element:GetElementById("xrot"):SetAttribute("value",x)
+				element:GetElementById("yrot"):SetAttribute("value",y)
+				element:GetElementById("zrot"):SetAttribute("value",z)
+			end
+			end
+			
+			function kzevent(event)
+			if obj_sel~=nil then
+				element=event.current_element
+				if event.parameters['key_identifier']==72 then				
+					setzoom(element.parent_node,element:GetAttribute('value')/obj_sel:GetScale('x'))
+					
+				end
+			end
+			end
+			function setzoom(element,x)
+			if obj_sel~=nil then
+				x=obj_sel:GetScale('x')*x
+				obj_sel:SetScale(x,x,x)
+				element:GetElementById("zoom"):SetAttribute("value",x)
+			end
+			end
+		</script>
+	</head>
+	<body template="window" style="left: 7px; top: 35px;">
+	<h1 style="text-align: left; color: white; font-size: 18;">
+	Position<br/>
+	x:<bl/><bl/><minusbut onClick="setTrans(element.parent_node,-1,0,0)"/>
+	<input type="text" id="xpos" size="5" maxlength="20" value="0"  onkeydown="ktevent(event,'x')"/>
+	<bl/><plusbut onClick="setTrans(element.parent_node,1,0,0)"/><br/>
+	
+	y:<bl/><bl/><minusbut onClick="setTrans(element.parent_node,0,-1,0)"/>
+	<input type="text" id="ypos" size="5" maxlength="20" value="0" onkeydown="ktevent(event,'y')"/>
+	<bl/><plusbut onClick="setTrans(element.parent_node,0,1,0)"/><br/>
+	
+	z:<bl/><bl/><minusbut onClick="setTrans(element.parent_node,0,0,-1)"/>
+	<input type="text" id="zpos" size="5" maxlength="20" value="0" onkeydown="ktevent(event,'z')"/>
+	<bl/><plusbut onClick="setTrans(element.parent_node,0,0,1)"/><br/>
+	</h1>
+	<hr/>
+	
+	<h1 style="text-align: left; color: white; font-size: 18;">
+	Zoom<br/><minusbut onClick="setzoom(element.parent_node,0.875)"/>
+	<input type="text" id="zoom" size="5" maxlength="20" value="1" onkeydown="kzevent(event)"/>
+	<bl/><plusbut onClick="setzoom(element.parent_node,1.125)"/><br/>
+	</h1>
+	<hr/>
+	
+	<h1 style="text-align: left; color: white; font-size: 18;">
+	Rotation<br/>
+	x:<bl/><bl/><minusbut onClick="setRot(element.parent_node,-0.125,0,0)"/>
+	<input type="text" id="xrot" size="5" maxlength="20" value="0"  onkeydown="krevent(event,'x')"/>
+	<bl/><plusbut onClick="setRot(element.parent_node,0.125,0,0)"/><br/>
+	
+	y:<bl/><bl/><minusbut onClick="setRot(element.parent_node,0,-0.125,0)"/>
+	<input type="text" id="yrot" size="5" maxlength="20" value="0"  onkeydown="krevent(event,'y')"/>
+	<bl/><plusbut onClick="setRot(element.parent_node,0,0.125,0)"/><br/>
+	
+	z:<bl/><bl/><minusbut onClick="setRot(element.parent_node,0,0,-0.125)"/>
+	<input type="text" id="zrot" size="5" maxlength="20" value="0"  onkeydown="krevent(event,'z')"/>
+	<bl/><plusbut onClick="setRot(element.parent_node,0,0,0.125)"/><br/>
+	</h1>
+	</body>
+</rml>

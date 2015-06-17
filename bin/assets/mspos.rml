@@ -1,0 +1,48 @@
+<rml>
+	<head>
+		<title>Demo</title>
+		<style>
+			body
+			{	
+				height: 40;
+				width:400;
+				font-family: Delicious;
+				font-weight: normal;
+				font-style: normal;
+				font-size: 23;
+				color: white;
+				position: absolute;
+				bottom: 0px;
+				right: 0px;
+
+			}
+			p{	
+				display: inline-block;
+				position: absolute;
+				text-align:right;
+				margin-right:60px;
+				margin-top:3px;
+			}
+			mbar{
+				display: inline-block;
+				width:400;
+				height:40;
+				background-decorator: image;
+			    background-image: r3d_bar.png 0px 0px 400px 40px;
+				
+			}
+			div#title_bar div#icon
+			{
+				display: none;
+			}
+			
+			div#content
+			{
+				text-align: left;
+			}
+		</style>
+	</head>
+	<body style="">
+	<mbar><p id="mousepos">mx:1920 my:1080</p></mbar>
+	</body>
+</rml>
