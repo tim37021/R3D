@@ -58,6 +58,7 @@ static const char *fragment_shader=
 	"layout(location = 1) out vec3 diffuseMap;\n"
 	"layout(location = 2) out vec3 normalMap;\n"
 	"layout(location = 3) out vec3 specularMap;\n"
+	"layout(location = 4) out uint objectMap;\n"
 	"uniform vec3 diffuse;\n"
 	"uniform vec3 specular;\n"
 	"uniform vec3 emission;"
@@ -71,6 +72,7 @@ static const char *fragment_shader=
 	"diffuseMap=vec3(texture(diffuseTexture, gTexCoord))*diffuse;\n"
 	"normalMap=gNorm;\n"
 	"specularMap=(specular.x<0?vec3(texture(specularTexture, gTexCoord)): specular);\n"
+	"objectMap=uint(0);\n"
 	"if(length(emission)>0.2){ specularMap=-emission; }"
 	"}\n";
 

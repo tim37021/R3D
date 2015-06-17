@@ -112,7 +112,7 @@ static const char *fragment_shader_ambient=
 	"void main(){"
 	"vec2 vTexCoord=gl_FragCoord.xy/viewport;"
 	"vec3 fColor=texture(diffuseMap, vTexCoord).rgb;"
-	"vec3 AO=texture(AOMap, vTexCoord).rgb;"
+	"float AO=texture(AOMap, vTexCoord).r;"
 	"color=vec4(fColor*lightColor*AO, 1.0);"
 	"}\n";
 
@@ -157,9 +157,22 @@ static const char *fragment_shader_spotlight=
 	"uniform vec3 lightPos;\n"
 	"uniform vec3 lightColor;\n;"
 	"uniform vec3 lightDir;\n"
+	"uniform vec3 converter\n;"
 	"uniform mat4 lightCamVp;\n"
 	"uniform float angle;\n"
 	"out vec4 color;\n"
+
+	"float shadowIntensity(vec3 shadowCoord){"
+	"	float sampleDepth=texture(shadowMap, shadowCoord.xy ).x*2.0-1.0;"
+	"	float sampleLinearDepth = converter.x / (converter.y-sampleDepth*converter.z);"
+	" 	float objectLinearDepth = converter.x / (converter.y-shadowCoord.z*converter.z);"
+	"	if( sampleLinearDepth +0.1  < objectLinearDepth ) {"
+	"		return exp(-3*(objectLinearDepth - sampleLinearDepth )/converter.z); "
+	"	}"
+	"	else return 0.0; "	
+	"}"
+
+
 	"void main(){\n"
 	"vec2 vTexCoord=gl_FragCoord.xy/viewport;"
 	"vec3 pos=texture(posMap, vTexCoord).xyz;\n"
@@ -174,14 +187,13 @@ static const char *fragment_shader_spotlight=
 	"	if(dot(-lightVec, lightDir) < cos(angle)) discard;\n"
 	"	vec4 shadowCoord=lightCamVp* vec4(pos, 1.0);"
 	"	shadowCoord.xyz/=shadowCoord.w;"
-	"	shadowCoord.xyz=(shadowCoord.xyz+vec3 (1.0))/2.0;"
-	"	if(texture(shadowMap, shadowCoord.xy ).x + 0.01 >=  shadowCoord.z ) {" // Decide if pixel should be litted
-	"		float falloff = 1.0-clamp((d-6.0)/2.0, 0.0, 1.0);\n"
-	"		float d=length(lightPos-pos);\n"
-	"		float att=falloff*1.0/(0.9+0.1*d*d);"
-	"		float specular = pow(max(dot(reflect(-lightVec, norm), normalize(eyePos-pos)), 0), 30);\n"
-	"		color=att*vec4(diffuse*fColor*lightColor+specular*lightColor*spec, 1); "
-	"	}else discard;"
+	"	shadowCoord.xy=(shadowCoord.xy+vec2 (1.0))/2.0;"
+	"	float shadow_inten=shadowIntensity(shadowCoord.xyz); " // Decide if pixel should be litted
+	"	float falloff = 1.0-clamp((d-6.0)/2.0, 0.0, 1.0);\n"
+	"	float d=length(lightPos-pos);\n"
+	"	float att=falloff*1.0/(0.9+0.1*d*d);"
+	"	float specular = pow(max(dot(reflect(-lightVec, norm), normalize(eyePos-pos)), 0), 30);\n"
+	"	color=(1.0-shadow_inten)*att*vec4(diffuse*fColor*lightColor+specular*lightColor*spec, 1); "
 	"}"
 	"else discard;\n"
 
@@ -233,7 +245,7 @@ namespace r3d
 		light->color=glm::vec3(0.8f, 0.8f, 0.0f);
 		light->pos=glm::vec3(0, 5, 0);
 		light->dir=glm::vec3(0, -1, 0);
-		light->angle=10.0f;
+		light->angle=45.0f;
 		cw->getSceneManager()->addLight(light);
 		m_lightCamera = new Camera(m_cw, glm::vec3 (0.0f), glm::vec3 (0.0f), glm::vec3 (0.0f));
 	
@@ -365,6 +377,8 @@ namespace r3d
 		m_lightCamera->setFar(10.0f);
 		m_lightCamera->setAspect(1.0f);
 		m_lightCamera->setFov(light->angle*2.0f);
+		float near = m_lightCamera->getNear();
+		float far = m_lightCamera->getFar();
 
 		m_renderer->enableDepthTest(true);
 		m_renderTarget->bind();
@@ -375,11 +389,15 @@ namespace r3d
 		m_renderTarget->unbind();
 		m_renderer->setViewport(0, 0, m_cw->getWidth(), m_cw->getHeight());
 		light->dMap->bind(4);
+
 		m_programSL->setUniform("lightPos", light->pos);
 		m_programSL->setUniform("lightColor", light->color);
 		m_programSL->setUniform("lightDir", glm::normalize(light->dir));
 		m_programSL->setUniform("angle", light->angle*3.1415f/180);
 		m_programSL->setUniform("lightCamVp", m_lightCamera->getVPMatrix());
+		m_programSL->setUniform("converter", {2.0f*near*far, near+far, far-near});
+
+
 
 		m_renderer->drawArrays(m_programSL.get(), m_vao, PT_POINTS, 1);	
 

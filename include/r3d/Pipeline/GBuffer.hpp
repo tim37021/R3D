@@ -32,6 +32,8 @@ namespace r3d
 
 		ColorTexture2D *m_posMap, *m_diffuseMap, *m_normMap, *m_specMap;
 
+		ColorTexture2D *m_objMap;
+
 		DepthTexture2D *m_depthMap;
 
 		uint32_t m_width, m_height;

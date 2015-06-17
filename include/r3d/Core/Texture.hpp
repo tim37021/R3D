@@ -11,6 +11,9 @@ namespace r3d
 
 	enum PixelFormat
 	{
+		PF_R,
+		// texture for storing object, is an unsigned int texture storing in R component
+		PF_OBJECT_R,
 		PF_RGB,
 		PF_BGR,
 		PF_RGBA,
@@ -84,6 +87,7 @@ namespace r3d
 
 		virtual void setWrapping(Wrapping s, Wrapping t)=0;
 		virtual void setFilter(Filter min, Filter mag)=0;
+		virtual void generateMipmap()=0;
 
 		uint32_t getWidth() const
 		{ return m_width; }

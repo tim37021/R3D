@@ -23,6 +23,8 @@ namespace r3d
 		const glm::vec3 &getPos() const { return m_pos; }
 		const glm::vec3 &getDir() const { return m_dir; }
 		const glm::vec3 &getUp() const { return m_up; }
+		const float getNear() const { return m_near; }
+		const float getFar() const { return m_far; }
 		float getFov() const {return m_fov;}
 		void setPos(const glm::vec3 &pos) { m_pos = pos; m_dirty = true; }
 		void setDir(const glm::vec3 &dir) { m_dir = dir; m_dirty = true; }
