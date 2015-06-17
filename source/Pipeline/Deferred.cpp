@@ -157,6 +157,7 @@ static const char *fragment_shader_spotlight=
 	"uniform vec3 lightPos;\n"
 	"uniform vec3 lightColor;\n;"
 	"uniform vec3 lightDir;\n"
+	"uniform mat4 lightCamVp;\n"
 	"uniform float angle;\n"
 	"out vec4 color;\n"
 	"void main(){\n"
@@ -170,12 +171,20 @@ static const char *fragment_shader_spotlight=
 	"vec3 lightVec=normalize(lightPos-pos);"
 	"float diffuse=dot(norm, lightVec);\n"
 	"if(diffuse>=0.0){"
-	"if(dot(-lightVec, lightDir) < cos(angle)) discard;\n"
-	"float falloff = 1.0-clamp((d-6.0)/2.0, 0.0, 1.0);\n"
-	"float d=length(lightPos-pos);\n"
-	"float att=falloff*1.0/(0.9+0.1*d*d);"
-	"float specular = pow(max(dot(reflect(-lightVec, norm), normalize(eyePos-pos)), 0), 30);\n"
-	"color=att*vec4(diffuse*fColor*lightColor+specular*lightColor*spec, 1);} else discard;\n"
+	"	if(dot(-lightVec, lightDir) < cos(angle)) discard;\n"
+	"	vec4 shadowCoord=lightCamVp* vec4(pos, 1.0);"
+	"	shadowCoord.xyz/=shadowCoord.w;"
+	"	shadowCoord.xyz=(shadowCoord.xyz+vec3 (1.0))/2.0;"
+	"	if(texture(shadowMap, shadowCoord.xy ).x + 0.01 >=  shadowCoord.z ) {" // Decide if pixel should be litted
+	"		float falloff = 1.0-clamp((d-6.0)/2.0, 0.0, 1.0);\n"
+	"		float d=length(lightPos-pos);\n"
+	"		float att=falloff*1.0/(0.9+0.1*d*d);"
+	"		float specular = pow(max(dot(reflect(-lightVec, norm), normalize(eyePos-pos)), 0), 30);\n"
+	"		color=att*vec4(diffuse*fColor*lightColor+specular*lightColor*spec, 1); "
+	"	}else discard;"
+	"}"
+	"else discard;\n"
+
 	"}\n";
 ////////////////////////////////////
 static const char *vertex_shader_depth=
@@ -370,7 +379,10 @@ namespace r3d
 		m_programSL->setUniform("lightColor", light->color);
 		m_programSL->setUniform("lightDir", glm::normalize(light->dir));
 		m_programSL->setUniform("angle", light->angle*3.1415f/180);
+		m_programSL->setUniform("lightCamVp", m_lightCamera->getVPMatrix());
+
 		m_renderer->drawArrays(m_programSL.get(), m_vao, PT_POINTS, 1);	
+
 		
 
 		
@@ -395,11 +407,11 @@ namespace r3d
 		m_programPL->setUniform("normMap", 2);
 		m_programPL->setUniform("specMap", 3);
 
-		m_programSL->setUniform("shadowMap", 4);
 		m_programSL->setUniform("posMap", 0);
 		m_programSL->setUniform("diffuseMap", 1);
 		m_programSL->setUniform("normMap", 2);
 		m_programSL->setUniform("specMap", 3);
+		m_programSL->setUniform("shadowMap", 4);
 
 		m_programA->setUniform("diffuseMap", 0);
 		m_programA->setUniform("AOMap", 1);
