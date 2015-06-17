@@ -39,13 +39,18 @@ public:
 			switch(action)
 			{
 				case 1:
-				m_context->ProcessMouseButtonDown(button, 0);
-				node=deferred_pipeline->getObject(posx, posy);
-				if(node)
-					fprintf(stderr, "%s\n", node->getName());
-				break;
+				m_context->ProcessMouseButtonDown(button, 0); break;
 				case 0:
 				m_context->ProcessMouseButtonUp(button, 0); break;
+			}
+			if(action==1&&button==1)
+			{
+				node=deferred_pipeline->getObject(posx, posy);
+				if(node)
+				{
+					fprintf(stderr, "%s\n", node->getName());
+					LuaInterface::SetSelectObject(node);
+				}
 			}
 		}else
 		{

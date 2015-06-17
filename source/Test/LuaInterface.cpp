@@ -152,6 +152,17 @@ void LuaInterface::updatemspos(int x,int y)
 	Rocket::Core::Lua::Interpreter::ExecuteCall(2, 0);
 }
 
+void LuaInterface::SetSelectObject(r3d::SceneNode *node)
+{
+	lua_getglobal(L, "obj_sel");
+	if (lua_istable(L, -1))
+	{
+      lua_pushstring(L, "ptr");
+      lua_pushlightuserdata(L, node);
+      lua_settable(L, -3);
+	}
+}
+
 void LuaInterface::Initialise(r3d::Engine *engine)
 {
 	::engine=engine;
