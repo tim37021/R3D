@@ -8,7 +8,6 @@
 
 static r3d::Engine *engine;
 static lua_State *L;
-static int scn_num=0;
 static int LUASetRotation(lua_State *L){
 	glm::vec3 r;
 	r.x=lua_tonumber(L, 2);
@@ -88,19 +87,6 @@ static int LUALoadObjScene(lua_State *L)
 	auto cw=engine->getCurrentContext();
 	auto sMgr=cw->getSceneManager();
 	auto node=sMgr->loadObjScene(sMgr->getRootNode(), filename);
-	int x;
-	char name[50];
-	for(x=strlen(filename);x>=0;x--){
-		if(filename[x]=='\\' || filename[x]=='/')break;
-	}
-	
-	for(int i=0;i<strlen(filename)-x-1;i++){
-		name[i]=filename[i+x+1];
-		name[i+1]='\0';
-	}
-	sprintf(name,"%s_%d",name,scn_num);
-	scn_num++;
-	node->setName(name);
 	scene.addnode(node->getName(),"light",node);
 	
 	lua_createtable(L, 0, 7);

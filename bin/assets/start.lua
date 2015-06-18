@@ -1,6 +1,6 @@
 fonts={"Delicious-Roman.otf", "Delicious-Italic.otf", "Delicious-Bold.otf", "Delicious-BoldItalic.otf"}
 
-obj_sel=nil
+obj_sel=nil -- the obj you operate now
 
 function LoadFont()
 	for k, v in pairs(fonts) do
