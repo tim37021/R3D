@@ -46,12 +46,12 @@ public:
 			if(action==1&&button==1)
 			{
 				if(node&&node->getMaterial())
-					node->getMaterial()->setFillMode(r3d::FM_FILL);
+					node->getMaterial()->enableWireframeView(false);
 				node=deferred_pipeline->getObject(posx, posy);
 				if(node)
 				{
 					fprintf(stderr, "%s\n", node->getName());
-					node->getMaterial()->setFillMode(r3d::FM_LINE);
+					node->getMaterial()->enableWireframeView(true);
 					LuaInterface::SetSelectObject(node);
 				}
 			}
