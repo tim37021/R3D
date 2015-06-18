@@ -295,6 +295,7 @@ namespace r3d
 		if(mtl)
 		{
 			auto mtl_shader=mtl->getProgram().get();
+			m_renderer->setFillMode(mtl->getFillMode());
 			mtl->prepareShader();
 			mtl_shader->setUniform("id", node->getID());
 			node->render(m_renderer, mtl_shader, cam, trans, rot);

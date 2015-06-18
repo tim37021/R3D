@@ -27,12 +27,12 @@ public:
 		m_context(context_), cw(cw_)
 	{
 		FPSMode=false;
+		node=nullptr;
 	}
 	virtual void OnMouseButtonStateChange(int button, int action, int mods)
 	{
 		double posx, posy;
 		cw->getMouse()->getPos(&posx, &posy);
-		r3d::SceneNode *node;
 		if(!FPSMode)
 		{
 			switch(action)
@@ -44,10 +44,13 @@ public:
 			}
 			if(action==1&&button==1)
 			{
+				if(node&&node->getMaterial())
+					node->getMaterial()->setFillMode(r3d::FM_FILL);
 				node=deferred_pipeline->getObject(posx, posy);
 				if(node)
 				{
 					fprintf(stderr, "%s\n", node->getName());
+					node->getMaterial()->setFillMode(r3d::FM_LINE);
 					LuaInterface::SetSelectObject(node);
 				}
 			}
@@ -126,8 +129,10 @@ public:
 	}
 	
 	bool FPSMode;
+
 private:
 	Rocket::Core::Context *m_context;
+	r3d::SceneNode *node;
 	r3d::ContextWindow *cw;
 };
 

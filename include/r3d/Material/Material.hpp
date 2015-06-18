@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <r3d/Shader/Program.hpp>
 #include <r3d/Core/Texture.hpp>
+#include <r3d/Renderer/Renderer.hpp>
 
 namespace r3d
 {
@@ -12,7 +13,8 @@ namespace r3d
 	public:
 		Material(ProgramPtr program): 
 			m_ambient(0.05f), m_diffuse(1.0f), m_specular(1.0f),
-			m_emission(0.0f), m_dMap(nullptr), m_sMap(nullptr), m_program(program)
+			m_emission(0.0f), m_dMap(nullptr), m_sMap(nullptr), 
+			m_fillMode(FM_FILL), m_program(program)
 		{}
 
 		void setAmbient(const glm::vec3 &v)
@@ -33,7 +35,11 @@ namespace r3d
 		void setEmission(const glm::vec3 &v)
 		{ m_emission=v; }
 
+		void setFillMode(FillMode f)
+		{ m_fillMode=f; }
+
 		glm::vec3 getDiffuse() const { return m_diffuse; }
+		FillMode getFillMode() const { return m_fillMode; }
 
 		void prepareShader() const
 		{
@@ -72,6 +78,8 @@ namespace r3d
 		ColorTexture2D *m_sMap;
 
 		float shininess;
+
+		FillMode m_fillMode;
 
 		ProgramPtr m_program;
 	};
