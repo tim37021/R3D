@@ -102,12 +102,13 @@ namespace r3d
 		std::vector<tinyobj::shape_t> shapes;
 		std::vector<tinyobj::material_t> materials;
 		std::string basePath(filename);
+		std::size_t end=-1;
 
 		if(base)
 			tinyobj::LoadObj(shapes, materials, filename, base);
 		else
 		{
-			std::size_t end=basePath.find_last_of("/\\");
+			end=basePath.find_last_of("/\\");
 			end=(end!=std::string::npos? end: basePath.size()-1);
 			basePath=basePath.substr(0, end+1);
 			tinyobj::LoadObj(shapes, materials, filename, basePath.c_str());
@@ -119,7 +120,7 @@ namespace r3d
 		auto cw=m_engine->getCurrentContext();
 		auto tMgr=cw->getTextureManager();
 		auto objNode=SceneNodePtr(new EmptySceneNode(node, cw));
-		objNode->setName(filename);
+		objNode->setName(filename+end+1);
 		node->addChild(objNode);
 		for(auto &shape: shapes)
 		{

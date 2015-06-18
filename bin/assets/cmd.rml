@@ -1,0 +1,76 @@
+<rml>
+	<head>
+		<title>Demo</title>
+		<link type="text/template" href="window.rml" />
+		<style>
+			body
+			{
+				width: 450px;
+				height: 280px;
+				orih: 280px;
+				position: absolute;
+				right: 10px;
+				top: 70px;
+			}
+			
+			div#title_bar div#icon
+			{
+				display: none;
+			}
+			
+			div#content
+			{
+				text-align: left;
+			}
+		</style>
+		<script>
+			f=""
+			cmdarray={};
+			cmdindex=-1
+			for i=1,10 do
+				cmdarray[i]=""
+			end
+			
+			function keydownevent(event)
+				if event.parameters['key_identifier']==72 then
+					execmd(event.current_element.parent_node)
+				end
+				if event.parameters['key_identifier']==91 then
+					cmdindex=cmdindex+1
+					cmdindex=cmdindex%10
+					event.current_element:SetAttribute("value",cmdarray[cmdindex+1])
+				end
+				if event.parameters['key_identifier']==93 then
+					cmdindex=cmdindex+9
+					cmdindex=cmdindex%10
+					event.current_element:SetAttribute("value",cmdarray[cmdindex+1])
+				end
+			end
+			
+			function execmd(element)
+				for i=10,2,-1 do
+					cmdarray[i]=cmdarray[i-1]
+				end
+				cmdarray[1]=element:GetElementById("cmdin"):GetAttribute("value")
+				cmdindex=-1;
+				fnew=element:GetElementById("cmdin"):GetAttribute("value")
+				for i=math.floor(string.len(fnew)/33),1,-1 do
+					fnew=string.sub(fnew,1,i*33).."\n"..string.sub(fnew,i*33+1,-1)
+				end
+				
+				f=fnew.."\n"..f
+				element:GetElementById("cmdold"):SetAttribute("value",f)
+				fc=loadstring(element:GetElementById("cmdin"):GetAttribute("value"));
+				element:GetElementById("cmdin"):SetAttribute("value","")
+				fc();
+				element:GetElementById("cmdin"):Focus()
+			end
+		</script>
+	</head>
+	<body template="window">
+	<form onsubmit="execmd(element)">
+		<input onkeydown="keydownevent(event)" id="cmdin" type="text" value="" style="display:inline-block;width:90%;margin-left:21px;"/>
+		<textarea id="cmdold" rows="11" cols="35" value="" wrap="" disabled style="background-color:black;color:gray;margin-top:5px;"/>
+	</form>
+	</body>
+</rml>
