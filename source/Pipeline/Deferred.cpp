@@ -187,14 +187,14 @@ static const char *fragment_shader_spotlight=
 	////////PCF/////// 
 	"	float mapDepth = 0;\n"
 	"	float intense = 0;\n"
-	"	float bias = 0.05 * tan(acos(normal * normalize(lightPos - pos))); "
-	"	bias = clamp(bias, 0, 0.1); "
+	"	float bias = 0.1 * tan(acos(dot (normal,  normalize(lightPos - pos)))); "
+	"	bias = clamp(bias, 0, 0.3); "
 	"	for (int i = 0; i<numSamplingPositions; i++){\n"
 	"		float sampleDepth =sample(shadowCoord.xy, kernel[i] * 2) * 2 - 1;\n"
 	"		float sampleLinearDepth = converter.x / (converter.y-sampleDepth*converter.z);\n"
 	" 		float objectLinearDepth = converter.x / (converter.y-shadowCoord.z*converter.z);\n"
-	"		if( sampleLinearDepth + 0.05  < objectLinearDepth ) {\n"
-	"			intense += exp(-2*(objectLinearDepth - sampleLinearDepth )/converter.z) * gaussian[i]; \n" //
+	"		if( sampleLinearDepth + bias < objectLinearDepth ) {\n"
+	"			intense += exp(-5*(objectLinearDepth - sampleLinearDepth )/converter.z) * gaussian[i]; \n" //
 	"		}\n"
 	"	}\n"
 	//////////////////
