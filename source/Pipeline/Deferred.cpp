@@ -162,29 +162,42 @@ static const char *fragment_shader_spotlight=
 	"uniform float angle;\n"
 	"out vec4 color;\n"
 
-	"float shadowIntensity(vec3 shadowCoord){\n"
-	"	float sampleDepth=texture(shadowMap, shadowCoord.xy ).x*2.0-1.0;\n"
-	"	float sampleLinearDepth = converter.x / (converter.y-sampleDepth*converter.z);\n"
-	" 	float objectLinearDepth = converter.x / (converter.y-shadowCoord.z*converter.z);\n"
-	"	if( sampleLinearDepth +0.7  < objectLinearDepth ) {\n"
-	"		return exp(-2*(objectLinearDepth - sampleLinearDepth )/converter.z); \n"
-	"	}\n"
-	"	else return 0.0; \n"	
-	"}\n"
-
 	////////PCF/////// 
 
-	"const int numSamplingPositions = 4;\n"
-	"vec2 kernel[4] = vec2 [](\n"
-	"	vec2(1.0, 1.0), vec2(-1.0, 1.0), vec2(-1.0, -1.0), vec2(1.0, -1.0)\n"
+	"const int numSamplingPositions = 9;\n"
+	"vec2 kernel[9] = vec2 [](\n"
+	"	vec2(-1.0, -1.0), vec2(0.0, -1.0), vec2(1.0, -1.0),\n"
+	"	vec2(-1.0, 0.0), vec2(0.0, 0.0), vec2(1.0, 0.0),\n"
+	"	vec2(-1.0, 1.0), vec2(0.0, 1.0), vec2(1.0, 1.0)\n"
 	");\n"
 	
-	"void PCFSample(in vec3 coords, in vec2 offset, inout float factor, inout float numSamplesUsed){\n"
-	"	factor += texture(shadowMap, coords.xy + offset);\n"
-	"	numSamplesUsed += 1;\n"
+	"float gaussian[9] = float [] (\n"
+	"	0.07511360795411207, 0.12384140315297386, 0.07511360795411207, \n"
+	"	0.12384140315297386, 0.20417995557165622, 0.12384140315297386, \n"
+	"	0.07511360795411207, 0.12384140315297386, 0.07511360795411207\n"
+	");\n"
+	
+	"float sample(in vec2 coords, in vec2 offset){\n"
+	"	return  texture(shadowMap, coords + offset/1024);\n"
 	"}\n"
 
 	//////////////////
+
+	"float shadowIntensity(vec3 shadowCoord){\n"
+	////////PCF/////// 
+	"	float mapDepth = 0;\n"
+	"	float intense = 0;\n"
+	"	for (int i = 0; i<numSamplingPositions; i++){\n"
+	"		float sampleDepth =sample(shadowCoord.xy, kernel[i] * 2) * 2 - 1;\n"
+	"		float sampleLinearDepth = converter.x / (converter.y-sampleDepth*converter.z);\n"
+	" 		float objectLinearDepth = converter.x / (converter.y-shadowCoord.z*converter.z);\n"
+	"		if( sampleLinearDepth + 0.3  < objectLinearDepth ) {\n"
+	"			intense += exp(-2*(objectLinearDepth - sampleLinearDepth )/converter.z) * gaussian[i]; \n" //
+	"		}\n"
+	"	}\n"
+	//////////////////
+	"	return intense; \n"	
+	"}\n"
 
 	"void main(){\n"
 	"vec2 vTexCoord=gl_FragCoord.xy/viewport;\n"
@@ -207,18 +220,7 @@ static const char *fragment_shader_spotlight=
 	"	float att=falloff*1.0/(0.9+0.1*d*d);\n"
 	"	float specular = pow(max(dot(reflect(-lightVec, norm), normalize(eyePos-pos)), 0), 30);\n"
 
-	/////////////PCF Computing//////////////
-
-	" 	float shadowFactor = 0.0; \n"
-	"	float numSamplesUsed = 0.0; \n"
-	"	float PCFRadius = 1\n; "
-	"	for (int i = 0; i<numSamplingPositions; i++){\n"
-	"		PCFSample(shadowCoord.xyz, kernel[i]*shadow_inten * PCFRadius, shadowFactor, numSamplesUsed);\n"
-	"	}\n"
-	"	shadowFactor = shadowFactor/ numSamplesUsed; \n"
-	////////////////////////////////////////
-//shadow_inten + 
-	"	color=(1.0-shadowFactor)*att*vec4(diffuse*fColor*lightColor+specular*lightColor*spec, 1); \n"
+	"	color=(1.0-shadow_inten)*att*vec4(diffuse*fColor*lightColor+specular*lightColor*spec, 1); \n"
 	"}\n"
 	"else discard;\n"
 
