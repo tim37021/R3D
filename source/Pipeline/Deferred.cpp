@@ -243,6 +243,8 @@ namespace r3d
 				std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 		m_gBuffer->endScene();
 
+		m_renderer->setFillMode(FM_FILL);
+
 		m_ssao->update(m_cw->getSceneManager()->getMainCamera());
 
 		beginLightPass();
