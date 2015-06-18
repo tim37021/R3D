@@ -183,15 +183,17 @@ static const char *fragment_shader_spotlight=
 
 	//////////////////
 
-	"float shadowIntensity(vec3 shadowCoord){\n"
+	"float shadowIntensity(vec3 shadowCoord, vec3 pos, vec3 normal){\n"
 	////////PCF/////// 
 	"	float mapDepth = 0;\n"
 	"	float intense = 0;\n"
+	"	float bias = 0.05 * tan(acos(normal * normalize(lightPos - pos))); "
+	"	bias = clamp(bias, 0, 0.1); "
 	"	for (int i = 0; i<numSamplingPositions; i++){\n"
 	"		float sampleDepth =sample(shadowCoord.xy, kernel[i] * 2) * 2 - 1;\n"
 	"		float sampleLinearDepth = converter.x / (converter.y-sampleDepth*converter.z);\n"
 	" 		float objectLinearDepth = converter.x / (converter.y-shadowCoord.z*converter.z);\n"
-	"		if( sampleLinearDepth + 0.3  < objectLinearDepth ) {\n"
+	"		if( sampleLinearDepth + 0.05  < objectLinearDepth ) {\n"
 	"			intense += exp(-2*(objectLinearDepth - sampleLinearDepth )/converter.z) * gaussian[i]; \n" //
 	"		}\n"
 	"	}\n"
@@ -205,7 +207,7 @@ static const char *fragment_shader_spotlight=
 	"vec3 fColor=texture(diffuseMap, vTexCoord).rgb;\n"
 	"vec3 norm=texture(normMap, vTexCoord).xyz;\n"
 	"vec3 spec=texture(specMap, vTexCoord).rgb;\n"
-	"float d=length(pos-lightPos);\n"
+	"float d = length(pos-lightPos);\n"
 	"if(length(norm)<=0.5||d>=8) discard;\n"
 	"vec3 lightVec=normalize(lightPos-pos);\n"
 	"float diffuse=dot(norm, lightVec);\n"
@@ -214,7 +216,7 @@ static const char *fragment_shader_spotlight=
 	"	vec4 shadowCoord=lightCamVp* vec4(pos, 1.0);\n"
 	"	shadowCoord.xyz/=shadowCoord.w;\n"
 	"	shadowCoord.xy=(shadowCoord.xy+vec2 (1.0))/2.0;\n"
-	"	float shadow_inten=shadowIntensity(shadowCoord.xyz); \n" // Decide if pixel should be litted
+	"	float shadow_inten=shadowIntensity(shadowCoord.xyz, pos, norm); \n" // Decide if pixel should be litted
 	"	float falloff = 1.0-clamp((d-6.0)/2.0, 0.0, 1.0);\n"
 	"	float d=length(lightPos-pos);\n"
 	"	float att=falloff*1.0/(0.9+0.1*d*d);\n"
@@ -400,7 +402,7 @@ namespace r3d
 		m_lightCamera->setPos(light->pos);
 		m_lightCamera->setDir(light->dir);
 		m_lightCamera->setUp(light->up);
-		m_lightCamera->setNear(1.0f);
+		m_lightCamera->setNear(0.1f);
 		m_lightCamera->setFar(10.0f);
 		m_lightCamera->setAspect(1.0f);
 		m_lightCamera->setFov(light->angle*2.0f);
