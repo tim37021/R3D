@@ -6,7 +6,6 @@
 #include <Rocket/Core.h>
 #include <Rocket/Debugger.h>
 #include <Rocket/Controls.h>
-
 //LUA
 #include <Rocket/Core/Lua/Interpreter.h>
 #include <Rocket/Controls/Lua/Controls.h>
@@ -428,6 +427,7 @@ int main(int argc, char *argv[])
 		engine->getRenderer()->clear();
 		PostFXTest.runAll();
 		engine->getRenderer()->enableBlending(true, r3d::BP_SRC_ALPHA, r3d::BP_ONE_MINUS_SRC_ALPHA, r3d::BF_ADD);
+		context->Update();
 		context->Render();
 
 		cw->pollInput();

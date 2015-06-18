@@ -3,10 +3,12 @@
 #include <glm/glm.hpp>
 #include <Rocket/Core.h>
 #include <Rocket/Core/Lua/Interpreter.h>
+#include "SceneNodeList.cpp"
+#include <cstdio>
 
 static r3d::Engine *engine;
 static lua_State *L;
-
+static int scn_num=0;
 static int LUASetRotation(lua_State *L){
 	glm::vec3 r;
 	r.x=lua_tonumber(L, 2);
@@ -82,27 +84,25 @@ static int LUAGetScale(lua_State *L){
 static int LUALoadObjScene(lua_State *L)
 {
 	const char *filename=lua_tostring(L, 1);
-	/*
-	glm::vec3 t, r, z;
-	t.x=lua_tonumber(L, 2);
-	t.y=lua_tonumber(L, 3);
-	t.z=lua_tonumber(L, 4);
-
-	r.x=lua_tonumber(L, 5);
-	r.y=lua_tonumber(L, 6);
-	r.z=lua_tonumber(L, 7);
-
-	z.x=z.y=z.z=lua_tonumber(L, 8);
-
 	
-	node->getTransformation()->setTranslation(t);
-	node->getTransformation()->setRotation(r);
-	node->getTransformation()->setScale(z);
-	*/
 	auto cw=engine->getCurrentContext();
 	auto sMgr=cw->getSceneManager();
 	auto node=sMgr->loadObjScene(sMgr->getRootNode(), filename);
-
+	int x;
+	char name[50];
+	for(x=strlen(filename);x>=0;x--){
+		if(filename[x]=='\\' || filename[x]=='/')break;
+	}
+	
+	for(int i=0;i<strlen(filename)-x-1;i++){
+		name[i]=filename[i+x+1];
+		name[i+1]='\0';
+	}
+	sprintf(name,"%s_%d",name,scn_num);
+	scn_num++;
+	node->setName(name);
+	scene.addnode(node->getName(),"light",node);
+	
 	lua_createtable(L, 0, 7);
 	lua_pushstring(L, "ptr");
 	lua_pushlightuserdata(L, node);
