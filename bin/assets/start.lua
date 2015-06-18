@@ -1,7 +1,7 @@
 fonts={"Delicious-Roman.otf", "Delicious-Italic.otf", "Delicious-Bold.otf", "Delicious-BoldItalic.otf"}
 
 obj_sel=nil -- the obj you operate now
-
+obj_num=0 --total number of obj(exclude child node)
 function LoadFont()
 	for k, v in pairs(fonts) do
 		rocket:LoadFontFace("assets/"..v);
@@ -20,16 +20,17 @@ function LoadFile(element)
 	local zoom=tonumber(element:GetElementById("zoom").attributes.value)
 
 	obj_sel=LoadObjScene(fn);
+	obj_num=obj_num+1
 	obj_sel:SetRotation(r_x,r_y,r_z);
 	obj_sel:SetTranslation(t_x,t_y,t_z);
 	obj_sel:SetScale(zoom);
-	propertymenu:GetElementById("xpos"):SetAttribute("value",obj_sel:GetTranslation("x"));
-	propertymenu:GetElementById("ypos"):SetAttribute("value",obj_sel:GetTranslation("y"));
-	propertymenu:GetElementById("zpos"):SetAttribute("value",obj_sel:GetTranslation("z"));
-	propertymenu:GetElementById("xrot"):SetAttribute("value",obj_sel:GetRotation("x"));
-	propertymenu:GetElementById("yrot"):SetAttribute("value",obj_sel:GetRotation("y"));
-	propertymenu:GetElementById("zrot"):SetAttribute("value",obj_sel:GetRotation("z"));
-	propertymenu:GetElementById("zoom"):SetAttribute("value",obj_sel:GetScale());
+	tranmenu:GetElementById("xpos"):SetAttribute("value",obj_sel:GetTranslation("x"));
+	tranmenu:GetElementById("ypos"):SetAttribute("value",obj_sel:GetTranslation("y"));
+	tranmenu:GetElementById("zpos"):SetAttribute("value",obj_sel:GetTranslation("z"));
+	tranmenu:GetElementById("xrot"):SetAttribute("value",obj_sel:GetRotation("x"));
+	tranmenu:GetElementById("yrot"):SetAttribute("value",obj_sel:GetRotation("y"));
+	tranmenu:GetElementById("zrot"):SetAttribute("value",obj_sel:GetRotation("z"));
+	tranmenu:GetElementById("zoom"):SetAttribute("value",obj_sel:GetScale());
 end
 
 function OnFilesDropIn(filenames)

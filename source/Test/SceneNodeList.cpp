@@ -2,7 +2,7 @@
 #include<Rocket/Controls/DataSource.h>
 #include<r3d/r3d.hpp>
 #include<vector>
-
+#include<cstdio>
 class SceneNodeList:public Rocket::Controls::DataSource
 {
 	public :
@@ -25,6 +25,11 @@ class SceneNodeList:public Rocket::Controls::DataSource
 				}
 				else if (columns[i] == "type"){
 					row.push_back(list[row_index].type.c_str());
+				}
+				else if (columns[i] == "ptr"){
+					char addr[30];
+					sprintf(addr,"%d",list[row_index].ptr);
+					row.push_back(addr);
 				}
 			}
 		}

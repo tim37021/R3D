@@ -17,11 +17,22 @@
 				text-align: left;
 			}
 		</style>
+		<script>
+			function SelectObj(element)
+				obj_sel.ptr=ToUserdata(element.child_nodes[2].inner_rml)
+			end
+			function AttachEvent(element) 
+				local pr=element.child_nodes[1].child_nodes[obj_num];
+				
+				pr:AddEventListener('click', 'SelectObj(element)', True)
+			end	
+		</script>
 	</head>
 	<body template="window">
-	<datagrid id='dt' source="scene.list" onClick="printrow(element)">
+	<datagrid id='dt' source="scene.list" onrowadd="AttachEvent(element)">
 		<col fields="name" width="40%">Name:</col>
 		<col fields="type" width="20%">Type:</col>
+		<col fields="ptr" width="0px"/>
 	</datagrid>
 	</body>
 </rml>
