@@ -243,8 +243,6 @@ namespace r3d
 				std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 		m_gBuffer->endScene();
 
-		m_renderer->setFillMode(FM_FILL);
-
 		m_ssao->update(m_cw->getSceneManager()->getMainCamera());
 
 		beginLightPass();
@@ -297,7 +295,6 @@ namespace r3d
 		if(mtl)
 		{
 			auto mtl_shader=mtl->getProgram().get();
-			m_renderer->setFillMode(mtl->getFillMode());
 			mtl->prepareShader();
 			mtl_shader->setUniform("id", node->getID());
 			node->render(m_renderer, mtl_shader, cam, trans, rot);
