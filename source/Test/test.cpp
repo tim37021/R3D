@@ -12,143 +12,13 @@
 #include "r3drocket.h"
 #include "LuaInterface.h"
 
-static const char *vertex_shader=
-	"#version 330\n"
-	"void main(){}";
-
-static const char *geometry_shader_ambient=
-	"#version 330\n"
-	"layout(points) in;\n"
-	"layout(triangle_strip, max_vertices=6) out;\n"
-	"void main(){"
-	"gl_Position=vec4(-1, -1, 0, 1);\n"
-	"EmitVertex();\n"
-	"gl_Position=vec4(1, -1, 0, 1);\n"
-	"EmitVertex();\n"
-	"gl_Position=vec4(1, 1, 0, 1);\n"
-	"EmitVertex();\n"
-	"EndPrimitive();\n"
-	"gl_Position=vec4(-1, -1, 0, 1);\n"
-	"EmitVertex();\n"
-	"gl_Position=vec4(1, 1, 0, 1);\n"
-	"EmitVertex();\n"
-	"gl_Position=vec4(-1, 1, 0, 1);\n"
-	"EmitVertex();\n"
-	"EndPrimitive();\n}"
-	"\n";
-
-static const char *geometry_shader=
-	"#version 330\n"
-	"layout(points) in;\n"
-	"layout(triangle_strip, max_vertices=6) out;\n"
-	"uniform vec3 lightPos\n;"
-	"uniform mat4 view;\n"
-	"uniform float e=0.1, a=1.0;\n"
-	"void main(){\n"
-	"float rect[4]=float[](-1, -1, 1, 1);\n"
-	"float r=8.0;\n"
-	"vec3 l=(view*vec4(lightPos, 1.0)).xyz; vec3 l2=l*l; float r2=r*r;\n"
-	"float d=r2*l2.x-(l2.x+l2.z)*(r2-l2.z);\n"
-	"if(d>=0){\n"
-	"d=sqrt(d);\n"
-	"float nx1=(r*l.x+d)/(l2.x+l2.z), nx2=(r*l.x-d)/(l2.x+l2.z);\n"
-	"float nz1=(r-nx1*l.x)/l.z, nz2=(r-nx2*l.x)/l.z;\n"
-	"float pz1=(l2.x+l2.z-r2)/(l.z-(nz1/nx1)*l.x), pz2=(l2.x+l2.z-r2)/(l.z-(nz2/nx2)*l.x);\n"
-	"if(pz1>=0&&pz2>=0) return;\n"
-	"if(pz1<0){\n"
-	"float fx=nz1/nx1/(tan(22.5)/a);\n"
-	"float px=-pz1*nz1/nx1;\n"
-	"if(px<l.x) rect[0]=max(rect[0],fx);\n"
-	"else rect[2]=min(rect[2],fx);\n"
-	"}\n"
-	"if(pz2<0){\n"
-	"float fx=nz2/nx2/(tan(22.5)/a);\n"
-	"float px=-pz2*nz2/nx2;\n"
-	"if(px<l.x) rect[0]=max(rect[0],fx);\n"
-	"else rect[2]=min(rect[2],fx);\n"
-	"}\n"
-	"}\n"
-	"d=r2*l2.y-(l2.y+l2.z)*(r2-l2.z);\n"
-	"if(d>=0){\n"
-	"d=sqrt(d);\n"
-	"float ny1=(r*l.y+d)/(l2.y+l2.z), ny2=(r*l.y-d)/(l2.y+l2.z);\n"
-	"float nz1=(r-ny1*l.y)/l.z, nz2=(r-ny2*l.y)/l.z;\n"
-	"float pz1=(l2.y+l2.z-r2)/(l.z-(nz1/ny1)*l.y), pz2=(l2.y+l2.z-r2)/(l.z-(nz2/ny2)*l.y);\n"
-	"if(pz1>=0&&pz2>=0) return;\n"
-	"if(pz1<0){\n"
-	"float fy=nz1/ny1/tan(22.5);\n"
-	"float py=-pz1*nz1/ny1;\n"
-	"if(py<l.y) rect[1]=max(rect[1],fy);\n"
-	"else rect[3]=min(rect[3],fy)\n;"
-	"}\n"
-	"if(pz2<0){\n"
-	"float fy=nz2/ny2/tan(22.5);\n"
-	"float py=-pz2*nz2/ny2;\n"
-	"if(py<l.y) rect[1]=max(rect[1],fy);\n"
-	"else rect[3]=min(rect[3],fy)\n;"
-	"}\n"
-	"}\n"
-	"gl_Position=vec4(rect[0], rect[1], 0, 1);\n"
-	"EmitVertex();\n"
-	"gl_Position=vec4(rect[2], rect[1], 0, 1);\n"
-	"EmitVertex();\n"
-	"gl_Position=vec4(rect[2], rect[3], 0, 1);\n"
-	"EmitVertex();\n"
-	"EndPrimitive();\n"
-	"gl_Position=vec4(rect[0], rect[1], 0, 1);\n"
-	"EmitVertex();\n"
-	"gl_Position=vec4(rect[2], rect[3], 0, 1);\n"
-	"EmitVertex();\n"
-	"gl_Position=vec4(rect[0], rect[3], 0, 1);\n"
-	"EmitVertex();\n"
-	"EndPrimitive();\n}"
-	"\n";
-static const char *fragment_shader_ambient=
-	"#version 330\n"
-	"uniform sampler2D diffuseMap;"
-	"uniform vec2 viewport;"
-	"uniform vec3 lightColor;"
-	"out vec4 color;"
-	"void main(){"
-	"vec2 vTexCoord=gl_FragCoord.xy/viewport;"
-	"vec3 fColor=texture(diffuseMap, vTexCoord).rgb;"
-	"color=vec4(fColor*vec3(0.1), 1.0);"
-	"}\n";
-
-static const char *fragment_shader=
-	"#version 330\n"
-	"uniform sampler2D posMap;\n"
-	"uniform sampler2D diffuseMap;\n"
-	"uniform sampler2D normMap;\n"
-	"uniform sampler2D specMap;\n"
-	"uniform vec2 viewport;"
-	"uniform vec3 eyePos;"
-	"uniform vec3 lightPos;\n"
-	"uniform vec3 lightColor;\n;"
-	"out vec4 color;\n"
-	"void main(){\n"
-	"vec2 vTexCoord=gl_FragCoord.xy/viewport;"
-	"vec3 pos=texture(posMap, vTexCoord).xyz;\n"
-	"vec3 fColor=texture(diffuseMap, vTexCoord).rgb;\n"
-	"vec3 norm=texture(normMap, vTexCoord).xyz;\n"
-	"vec3 spec=texture(specMap, vTexCoord).rgb;\n"
-	"float d=length(pos-lightPos);\n"
-	"if(length(norm)<=0.5||d>=8) discard;"
-	"vec3 lightVec=normalize(lightPos-pos);"
-	"float diffuse=dot(norm, lightVec);\n"
-	"if(diffuse>=0.0){"
-	"float falloff = 1.0-clamp((d-6.0)/2.0, 0.0, 1.0);\n"
-	"float d=length(lightPos-pos);\n"
-	"float att=falloff*1.0/(0.9+0.1*d*d);"
-	"float specular = pow(max(dot(reflect(-lightVec, norm), normalize(eyePos-pos)), 0), 30);\n"
-	"color=att*vec4(diffuse*fColor*lightColor+specular*lightColor*spec, 1);} else discard;\n"
-	"}\n";
 
 static R3DRocket::SystemInterface *si;
 static R3DRocket::RenderInterface *ri;
 
 static r3d::Camera *global_fps;
 static r3d::VertexArray *vao;
+r3d::Deferred *deferred_pipeline;
 
 class MyEventListener: public r3d::EventListener
 {
@@ -160,6 +30,9 @@ public:
 	}
 	virtual void OnMouseButtonStateChange(int button, int action, int mods)
 	{
+		double posx, posy;
+		cw->getMouse()->getPos(&posx, &posy);
+		r3d::SceneNode *node;
 		if(!FPSMode)
 		{
 			switch(action)
@@ -168,6 +41,15 @@ public:
 				m_context->ProcessMouseButtonDown(button, 0); break;
 				case 0:
 				m_context->ProcessMouseButtonUp(button, 0); break;
+			}
+			if(action==1&&button==1)
+			{
+				node=deferred_pipeline->getObject(posx, posy);
+				if(node)
+				{
+					fprintf(stderr, "%s\n", node->getName());
+					LuaInterface::SetSelectObject(node);
+				}
 			}
 		}else
 		{
@@ -249,62 +131,6 @@ private:
 	r3d::ContextWindow *cw;
 };
 
-class RocketEventListener: public Rocket::Core::EventListener
-{
-public:
-	RocketEventListener(r3d::Engine *engine_): engine(engine_){}
-	virtual void ProcessEvent(Rocket::Core::Event& event)
-	{
-		auto sMgr=engine->getSceneManager();
-		auto var=event.GetCurrentElement()->GetElementById("fn")->GetAttribute("value");
-		float zoom=event.GetCurrentElement()->GetElementById("zoom")->GetAttribute("value")->Get<float>();
-		auto node=sMgr->loadObjScene(sMgr->getRootNode(), var->Get<Rocket::Core::String>().CString());
-		node->getTransformation()->setScale({zoom, zoom, zoom});
-	}
-private:
-	r3d::Engine *engine;
-};
-
-static r3d::ProgramPtr MakeShaderProgram(const r3d::Engine *engine, const char *vsource,
-	const char *gsource, const char *fsource)
-{
-	auto program=engine->newProgram();
-	auto vs=engine->newShader(r3d::ST_VERTEX_SHADER);
-	auto gs=engine->newShader(r3d::ST_GEOMETRY_SHADER);
-	auto fs=engine->newShader(r3d::ST_FRAGMENT_SHADER);
-	vs->source(vsource);
-	gs->source(gsource);
-	fs->source(fsource);
-	vs->compile();
-	gs->compile();
-	fs->compile();
-	program->attachShader(vs);
-	program->attachShader(fs);
-	program->attachShader(gs);
-	program->link();
-
-	return program;
-}
-
-static void BeginLightPass(r3d::Renderer *renderer, r3d::ContextWindow *cw, r3d::ProgramPtr &program, std::shared_ptr<r3d::GBuffer> &gBuffer)
-{
-	program->use();
-	gBuffer->getPositionMap()->bind(0);
-	program->setUniform("posMap", 0);
-	gBuffer->getDiffuseMap()->bind(1);
-	program->setUniform("diffuseMap", 1);
-	gBuffer->getNormalMap()->bind(2);
-	program->setUniform("normMap", 2);
-	gBuffer->getSpecularMap()->bind(3);
-	program->setUniform("specMap", 3);
-	program->setUniform("viewport", glm::vec2(cw->getWidth(), cw->getHeight()));
-
-
-	renderer->enableDepthTest(false);
-	renderer->clear();
-	renderer->enableBlending(true, r3d::BP_ONE, r3d::BP_ONE, r3d::BF_ADD);
-}
-
 static Rocket::Core::Context *SetupRocket(r3d::Engine *engine)
 {
 	si=new R3DRocket::SystemInterface(engine);
@@ -328,21 +154,11 @@ static Rocket::Core::Context *SetupRocket(r3d::Engine *engine)
 	Rocket::Debugger::Initialise(context);
 	Rocket::Debugger::SetVisible(true);
 
+	LuaInterface::Initialise(engine);
+
 	Rocket::Core::Lua::Interpreter::LoadFile("assets/start.lua");
 
 	return context;
-}
-
-void litPointLight(r3d::Renderer *renderer, r3d::ProgramPtr program, r3d::PointLight *light)
-{
-	program->setUniform("lightPos", light->pos);
-	program->setUniform("lightColor", light->color);
-	renderer->drawArrays(program.get(), vao, r3d::PT_POINTS, 1);
-}
-
-void litAmbientLight(r3d::Renderer *renderer, r3d::ProgramPtr program)
-{
-	renderer->drawArrays(program.get(), vao, r3d::PT_POINTS, 1);
 }
 
 int main(int argc, char *argv[])
@@ -358,29 +174,19 @@ int main(int argc, char *argv[])
 	}
 	auto cw=engine->newContextWindow(width, height, "R3D Engine v0.1");
 
-	auto sMgr=engine->getSceneManager();
 	std::shared_ptr<r3d::Camera> fps(new r3d::FPSCamera(cw, 45.0f, glm::vec3(5.0f, 0.0f, 0.0f)));
-	sMgr->setMainCamera(fps);
+	cw->getSceneManager()->setMainCamera(fps);
 	global_fps=fps.get();
 
-	std::shared_ptr<r3d::GBuffer> gBuffer(new r3d::GBuffer(engine, cw->getWidth(), cw->getHeight()));
-	r3d::PostFX::Initialise();
-	r3d::PostFX PostFXTest(engine, cw); 
-	PostFXTest.pushEffect("bloom");
-
-	// For lighting
-	auto program = MakeShaderProgram(engine, vertex_shader, geometry_shader, fragment_shader);
-	auto program_ambient = MakeShaderProgram(engine, vertex_shader, geometry_shader_ambient, fragment_shader_ambient);
-	vao = cw->getVertexArrayManager()->registerVertexArray("ATTRIBUTELESS");
+	deferred_pipeline = new r3d::Deferred(engine, cw);
 
 	Rocket::Core::Context *context=SetupRocket(engine);
 	MyEventListener myel(context, cw);
 	cw->setEventListener(&myel);
-	RocketEventListener myrel(engine);
-	LuaInterface::Initialise(engine);
 
 	cw->getMouse()->setPos(cw->getWidth()/2, cw->getHeight()/2);
 	fps->update(engine->getTime());
+
 	while(!cw->isCloseButtonClicked())
 	{
 		if(myel.FPSMode)
@@ -391,41 +197,11 @@ int main(int argc, char *argv[])
 			cw->getMouse()->getPos(&posx, &posy);
 			context->ProcessMouseMove((int)posx, (int)posy, 0);
 		}
-		//Update GBuffer
-		gBuffer->beginScene();
-		sMgr->drawAll();
-		gBuffer->endScene();
-		
-		PostFXTest.beginSource(); 
-		BeginLightPass(engine->getRenderer(), cw, program, gBuffer);
 
-		// setup post-processing lighting shader parameter
-		program->setUniform("eyePos", fps->getPos());
-		program->setUniform("view", fps->getVMatrix());
-		program->setUniform("a", (float)cw->getHeight()/cw->getWidth());
-		program->setUniform("e", 0.1f);
-
-		for(auto light: sMgr->getLights())
-		{
-			switch(light->type)
-			{
-				case r3d::LT_POINT_LIGHT:
-					litPointLight(engine->getRenderer(), program, (r3d::PointLight *)light);
-					break;
-				default:;
-			}
-		}
-
-		program_ambient->use();
-		gBuffer->getDiffuseMap()->bind(0);
-		program_ambient->setUniform("diffuseMap", 0);
-		program_ambient->setUniform("viewport", glm::vec2(cw->getWidth(), cw->getHeight()));
-
-		litAmbientLight(engine->getRenderer(), program_ambient);
-		PostFXTest.endSource();
-	
 		engine->getRenderer()->clear();
-		PostFXTest.runAll();
+
+		deferred_pipeline->run();
+
 		engine->getRenderer()->enableBlending(true, r3d::BP_SRC_ALPHA, r3d::BP_ONE_MINUS_SRC_ALPHA, r3d::BF_ADD);
 		context->Update();
 		context->Render();

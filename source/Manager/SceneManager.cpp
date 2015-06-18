@@ -20,7 +20,7 @@ static const char *vertex_shader=
 	"out vec3 vWorldPos;"
 	"out vec2 vTexCoord;"
 	"void main(){\n"
-	"vWorldPos=vec3(model*vec4(pos, 1.0));"
+	"vWorldPos=(model*vec4(pos, 1.0)).xyz;"
 	"vTexCoord=texCoord;"
 	"vNorm=norm;"
 	"gl_Position=mvp*vec4(pos, 1.0);"
@@ -37,13 +37,14 @@ static const char *geometry_shader=
 	"out vec3 gWorldPos;\n"
 	"out vec2 gTexCoord;\n"
 	"uniform int enableSmooth=1;"
+	"uniform mat4 nmat;"
 	"void main(){\n"
 	"vec3 oa=vWorldPos[1]-vWorldPos[0];\n"
 	"vec3 ob=vWorldPos[2]-vWorldPos[0];\n"
 	"vec3 norm=normalize(cross(oa, ob));\n"
 	"for(int i=0; i<3; i++){\n"
 	"gl_Position=gl_in[i].gl_Position;\n"
-	"gNorm=enableSmooth==1? vNorm[i]: norm;\n"
+	"gNorm=(enableSmooth==1? (nmat*vec4(vNorm[i], 1.0)).xyz: norm);\n"
 	"gWorldPos=vWorldPos[i];\n"
 	"gTexCoord=vTexCoord[i];\n"
 	"EmitVertex();\n"
@@ -57,11 +58,13 @@ static const char *fragment_shader=
 	"layout(location = 1) out vec3 diffuseMap;\n"
 	"layout(location = 2) out vec3 normalMap;\n"
 	"layout(location = 3) out vec3 specularMap;\n"
+	"layout(location = 4) out uint objectMap;\n"
 	"uniform vec3 diffuse;\n"
 	"uniform vec3 specular;\n"
 	"uniform vec3 emission;"
 	"uniform sampler2D diffuseTexture;\n"
 	"uniform sampler2D specularTexture;\n"
+	"uniform uint id;"
 	"in vec2 gTexCoord;\n"
 	"in vec3 gWorldPos;\n"
 	"in vec3 gNorm;\n"
@@ -70,29 +73,9 @@ static const char *fragment_shader=
 	"diffuseMap=vec3(texture(diffuseTexture, gTexCoord))*diffuse;\n"
 	"normalMap=gNorm;\n"
 	"specularMap=(specular.x<0?vec3(texture(specularTexture, gTexCoord)): specular);\n"
+	"objectMap=id;\n"
 	"if(length(emission)>0.2){ specularMap=-emission; }"
 	"}\n";
-
-static r3d::ProgramPtr MakeShaderProgram(const r3d::Engine *engine, const char *vsource,
-	const char *gsource, const char *fsource)
-{
-	auto program=engine->newProgram();
-	auto vs=engine->newShader(r3d::ST_VERTEX_SHADER);
-	auto gs=engine->newShader(r3d::ST_GEOMETRY_SHADER);
-	auto fs=engine->newShader(r3d::ST_FRAGMENT_SHADER);
-	vs->source(vsource);
-	gs->source(gsource);
-	fs->source(fsource);
-	vs->compile();
-	gs->compile();
-	fs->compile();
-	program->attachShader(vs);
-	program->attachShader(gs);
-	program->attachShader(fs);
-	program->link();
-
-	return program;
-}
 
 namespace r3d
 {
@@ -100,12 +83,6 @@ namespace r3d
 		: m_engine(engine), m_rootNode(SceneNodePtr(new EmptySceneNode(SceneNodePtr(), engine->getCurrentContext())))
 	{
 		m_program=MakeShaderProgram(m_engine, vertex_shader, geometry_shader, fragment_shader);
-	}
-
-	void SceneManager::drawAll()
-	{
-		if(m_camera)
-			m_rootNode->render(m_engine->getRenderer(), m_camera.get());
 	}
 
 	SceneNode *SceneManager::loadObjScene(SceneNodePtr node, const char *filename, const char *base)

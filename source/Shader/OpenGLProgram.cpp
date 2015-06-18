@@ -51,27 +51,46 @@ namespace r3d
 	#define CHECKNAME(n) GLint id; if((id=glGetUniformLocation(m_id, n.c_str()))==-1) return;
 	void OpenGLProgram::setUniform(const std::string &name, GLint value)
 	{
+		glUseProgram(m_id);
 		CHECKNAME(name);
 		glUniform1i(id, value);
 	}
+
+	void OpenGLProgram::setUniform(const std::string &name, GLuint value)
+	{
+		glUseProgram(m_id);
+		CHECKNAME(name);
+		glUniform1ui(id, value);
+	}
+
 	void OpenGLProgram::setUniform(const std::string &name, GLfloat value)
 	{
 		glUseProgram(m_id);
 		CHECKNAME(name);
 		glUniform1f(id, value);
 	}
+
 	void OpenGLProgram::setUniform(const std::string &name, const glm::vec2 &v)
 	{
 		glUseProgram(m_id);
 		CHECKNAME(name);
 		glUniform2fv(id, 1, glm::value_ptr(v));
 	}
+
 	void OpenGLProgram::setUniform(const std::string &name, const glm::vec3 &v)
 	{
 		glUseProgram(m_id);
 		CHECKNAME(name);
 		glUniform3fv(id, 1, glm::value_ptr(v));
 	}
+
+	void OpenGLProgram::setUniform(const std::string &name, const glm::mat3 &mat)
+	{
+		glUseProgram(m_id);
+		CHECKNAME(name);
+		glUniformMatrix3fv(id, 1, GL_FALSE, glm::value_ptr(mat));
+	}
+
 	void OpenGLProgram::setUniform(const std::string &name, const glm::mat4 &mat)
 	{
 		glUseProgram(m_id);

@@ -5,6 +5,7 @@
 #include <r3d/Camera/Camera.hpp>
 #include <r3d/Window/ContextWindow.hpp>
 #include <iostream>
+#include <glm/gtc/matrix_inverse.hpp>
 
 #include "../Core/Frustum.hpp"
 
@@ -41,10 +42,12 @@ namespace r3d
 		m_last=glm::mat4(0);
 	}
 
-	void MeshSceneNode::render(Renderer *renderer, Camera *cam, const glm::mat4 &current)
+	void MeshSceneNode::render(Renderer *renderer, Program *program, Camera *cam, 
+		const glm::mat4 &current, const glm::mat4 &currentRotation)
 	{
 		auto material=getMaterial();
 		const glm::mat4 tmpMatrix=current*m_relative.getMatrix();
+		const glm::mat4 tmpRotation=currentRotation*m_relative.getRotationMatrix();
 		if(m_last != tmpMatrix)
 		{
 			float xmin=0, ymin=0, zmin=0, xmax=0, ymax=0, zmax=0;
@@ -64,13 +67,10 @@ namespace r3d
 		Frustum frustum = cam->getFrustum();
 		if((frustum.AABBinFrustum(m_aabb)) && material)
 		{
-			material->prepareShader();
-			material->getProgram()->setUniform("mvp", cam->getVPMatrix()*tmpMatrix);
-			material->getProgram()->setUniform("model", tmpMatrix);
-			renderer->drawElements(material->getProgram().get(), m_vao, r3d::PT_TRIANGLES, m_indicesCount);
+			program->setUniform("mvp", cam->getVPMatrix()*tmpMatrix);
+			program->setUniform("model", tmpMatrix);
+			program->setUniform("nmat", tmpRotation);
+			renderer->drawElements(program, m_vao, PT_TRIANGLES, m_indicesCount);
 		}
-
-		for(SceneNodePtr &child: m_children)
-				child->render(renderer, cam, tmpMatrix);
 	}
 }

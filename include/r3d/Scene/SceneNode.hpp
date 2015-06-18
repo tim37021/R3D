@@ -18,6 +18,7 @@ namespace r3d
 	class SceneNode;
 	class Program;
 	class Camera;
+	class Program;
 
 	typedef std::shared_ptr<SceneNode> SceneNodePtr;
 
@@ -36,8 +37,8 @@ namespace r3d
 		virtual ~SceneNode(){}
 
 		//!< render this node
-		virtual void render(Renderer *renderer, Camera *cam, 
-			const glm::mat4 &current=glm::mat4(1.0f))=0;
+		virtual void render(Renderer *renderer, Program *program, Camera *cam, 
+			const glm::mat4 &current=glm::mat4(1.0f), const glm::mat4 &currentRotation=glm::mat4(1.0f))=0;
 
 		//!< get the name of the node.
 		virtual const char *getName() const
@@ -76,7 +77,10 @@ namespace r3d
 		Transformation *getTransformation()
 		{ return &m_relative; }
 
-		std::list<SceneNodePtr> getChildList() const { return m_children; }
+		const std::list<SceneNodePtr> &getChildren() const { return m_children; }
+
+		const uint32_t getID() const { return m_id; }
+
 	protected:
 		//!< pointer to its parent node.
 		SceneNode *m_parent;
@@ -88,6 +92,9 @@ namespace r3d
 
 		//!< Relative transformation to its parent
 		Transformation m_relative;
+
+		//!< it of the node
+		uint32_t m_id;
 
 	private:
 		//!< name of the node.
@@ -102,7 +109,7 @@ namespace r3d
 
 		MaterialPtr m_material;
 
-		// AABB m_aabb;
+		static uint32_t IDCounter;
 	};
 }
 

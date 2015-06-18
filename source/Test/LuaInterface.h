@@ -11,6 +11,7 @@ extern "C"
 namespace r3d
 {
 	class Engine;
+	class SceneNode;
 }
 
 class LuaInterface
@@ -19,6 +20,7 @@ public:
     static void Initialise(r3d::Engine *engine);
 	static void updatemspos(int ,int);
     static void OnFilesDropIn(uint32_t, const char *files[]);
+    static void SetSelectObject(r3d::SceneNode *node);
 };
 
 #endif

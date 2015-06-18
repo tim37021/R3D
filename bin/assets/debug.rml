@@ -25,7 +25,7 @@
 	<body template="window" style="left: 7px; top: 330px;">
 	<h1 style="text-align: center; color: black;">Diffuse</h1>
 	<p style="text-align: center;"><img src="/DiffuseMap" flipv width="400" height="250"/></p>
-	<h1 style="text-align: center; color: black;">Diffuse</h1>
+	<h1 style="text-align: center; color: black;">Position</h1>
 	<p style="text-align: center;"><img src="/PositionMap" flipv width="400" height="250"/></p>
 	<h1 style="text-align: center; color: black;">Normal</h1>
 	<p style="text-align: center;"><img src="/NormalMap" flipv width="400" height="250" /></p>
@@ -33,6 +33,8 @@
 	<p style="text-align: center;"><img src="/DepthMap" flipv width="400" height="250"/></p>
 	<h1 style="text-align: center; color: black;" >Specular</h1>
 	<p style="text-align: center;"><img src="/SpecularMap" flipv width="400" height="250"/></p>
+	<h1 style="text-align: center; color: black;" >SSAO</h1>
+	<p style="text-align: center;"><img src="/BlurredSSAOMap" flipv width="400" height="250"/></p>
 	<h1 style="text-align: center; color: black;" >Lighted</h1>
 	<p style="text-align: center;"><img src="/LightedMap" flipv width="400" height="250"/></p>
 	</body>
