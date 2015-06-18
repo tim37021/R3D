@@ -46,13 +46,16 @@ function Startup()
 	maincontext = rocket.contexts["main"]
 	debugwindow = maincontext:LoadDocument("assets/debug.rml")
 	debugwindow:GetElementById("title").inner_rml="Debug"
+	debugwindow:GetElementById("window").style["display"]="none"
+	debugwindow.style["height"]="0px";
 	debugwindow:Show()
 	
 	loadingwindow=maincontext:LoadDocument("assets/loading.rml")
 	loadingwindow:GetElementById("title").inner_rml="Load"
 	
-	propertymenu=maincontext:LoadDocument("assets/promenu.rml")
-	propertymenu:Show()
+	tranmenu=maincontext:LoadDocument("assets/promenu.rml")
+	tranmenu:GetElementById("title").inner_rml="Transformation"
+	tranmenu:Show()
 	comwin=maincontext:LoadDocument("assets/cmd.rml")
 	comwin:GetElementById("title").inner_rml="LUA Command"
 	comwin:GetElementById("window").style["display"]="none"

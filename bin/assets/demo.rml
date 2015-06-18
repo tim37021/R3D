@@ -10,7 +10,7 @@
 				orih: 280px;
 				position: absolute;
 				right: 10px;
-				top: 105px;
+				top: 370px;
 			}
 			div#content
 			{
