@@ -151,9 +151,9 @@ static const char *fragment_shader_spotlight=
 	"uniform sampler2D diffuseMap;\n"
 	"uniform sampler2D normMap;\n"
 	"uniform sampler2D specMap;\n"
-	"uniform sampler2D shadowMap;"
-	"uniform vec2 viewport;"
-	"uniform vec3 eyePos;"
+	"uniform sampler2D shadowMap;\n"
+	"uniform vec2 viewport;\n"
+	"uniform vec3 eyePos;\n"
 	"uniform vec3 lightPos;\n"
 	"uniform vec3 lightColor;\n;"
 	"uniform vec3 lightDir;\n"
@@ -162,39 +162,64 @@ static const char *fragment_shader_spotlight=
 	"uniform float angle;\n"
 	"out vec4 color;\n"
 
-	"float shadowIntensity(vec3 shadowCoord){"
-	"	float sampleDepth=texture(shadowMap, shadowCoord.xy ).x*2.0-1.0;"
-	"	float sampleLinearDepth = converter.x / (converter.y-sampleDepth*converter.z);"
-	" 	float objectLinearDepth = converter.x / (converter.y-shadowCoord.z*converter.z);"
-	"	if( sampleLinearDepth +0.7  < objectLinearDepth ) {"
-	"		return exp(-2*(objectLinearDepth - sampleLinearDepth )/converter.z); "
-	"	}"
-	"	else return 0.0; "	
-	"}"
+	"float shadowIntensity(vec3 shadowCoord){\n"
+	"	float sampleDepth=texture(shadowMap, shadowCoord.xy ).x*2.0-1.0;\n"
+	"	float sampleLinearDepth = converter.x / (converter.y-sampleDepth*converter.z);\n"
+	" 	float objectLinearDepth = converter.x / (converter.y-shadowCoord.z*converter.z);\n"
+	"	if( sampleLinearDepth +0.7  < objectLinearDepth ) {\n"
+	"		return exp(-2*(objectLinearDepth - sampleLinearDepth )/converter.z); \n"
+	"	}\n"
+	"	else return 0.0; \n"	
+	"}\n"
 
+	////////PCF/////// 
+
+	"const int numSamplingPositions = 4;\n"
+	"vec2 kernel[4] = vec2 [](\n"
+	"	vec2(1.0, 1.0), vec2(-1.0, 1.0), vec2(-1.0, -1.0), vec2(1.0, -1.0)\n"
+	");\n"
+	
+	"void PCFSample(in vec3 coords, in vec2 offset, inout float factor, inout float numSamplesUsed){\n"
+	"	factor += texture(shadowMap, coords.xy + offset);\n"
+	"	numSamplesUsed += 1;\n"
+	"}\n"
+
+	//////////////////
 
 	"void main(){\n"
-	"vec2 vTexCoord=gl_FragCoord.xy/viewport;"
+	"vec2 vTexCoord=gl_FragCoord.xy/viewport;\n"
 	"vec3 pos=texture(posMap, vTexCoord).xyz;\n"
 	"vec3 fColor=texture(diffuseMap, vTexCoord).rgb;\n"
 	"vec3 norm=texture(normMap, vTexCoord).xyz;\n"
 	"vec3 spec=texture(specMap, vTexCoord).rgb;\n"
 	"float d=length(pos-lightPos);\n"
-	"if(length(norm)<=0.5||d>=8) discard;"
-	"vec3 lightVec=normalize(lightPos-pos);"
+	"if(length(norm)<=0.5||d>=8) discard;\n"
+	"vec3 lightVec=normalize(lightPos-pos);\n"
 	"float diffuse=dot(norm, lightVec);\n"
-	"if(diffuse>=0.0){"
+	"if(diffuse>=0.0){\n"
 	"	if(dot(-lightVec, lightDir) < cos(angle)) discard;\n"
-	"	vec4 shadowCoord=lightCamVp* vec4(pos, 1.0);"
-	"	shadowCoord.xyz/=shadowCoord.w;"
-	"	shadowCoord.xy=(shadowCoord.xy+vec2 (1.0))/2.0;"
-	"	float shadow_inten=shadowIntensity(shadowCoord.xyz); " // Decide if pixel should be litted
+	"	vec4 shadowCoord=lightCamVp* vec4(pos, 1.0);\n"
+	"	shadowCoord.xyz/=shadowCoord.w;\n"
+	"	shadowCoord.xy=(shadowCoord.xy+vec2 (1.0))/2.0;\n"
+	"	float shadow_inten=shadowIntensity(shadowCoord.xyz); \n" // Decide if pixel should be litted
 	"	float falloff = 1.0-clamp((d-6.0)/2.0, 0.0, 1.0);\n"
 	"	float d=length(lightPos-pos);\n"
-	"	float att=falloff*1.0/(0.9+0.1*d*d);"
+	"	float att=falloff*1.0/(0.9+0.1*d*d);\n"
 	"	float specular = pow(max(dot(reflect(-lightVec, norm), normalize(eyePos-pos)), 0), 30);\n"
-	"	color=(1.0-shadow_inten)*att*vec4(diffuse*fColor*lightColor+specular*lightColor*spec, 1); "
-	"}"
+
+	/////////////PCF Computing//////////////
+
+	" 	float shadowFactor = 0.0; \n"
+	"	float numSamplesUsed = 0.0; \n"
+	"	float PCFRadius = 1\n; "
+	"	for (int i = 0; i<numSamplingPositions; i++){\n"
+	"		PCFSample(shadowCoord.xyz, kernel[i]*shadow_inten * PCFRadius, shadowFactor, numSamplesUsed);\n"
+	"	}\n"
+	"	shadowFactor = shadowFactor/ numSamplesUsed; \n"
+	////////////////////////////////////////
+//shadow_inten + 
+	"	color=(1.0-shadowFactor)*att*vec4(diffuse*fColor*lightColor+specular*lightColor*spec, 1); \n"
+	"}\n"
 	"else discard;\n"
 
 	"}\n";
