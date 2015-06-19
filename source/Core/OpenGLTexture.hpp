@@ -34,6 +34,9 @@ namespace r3d
 		GLenum m_internalFormat;
 		GLenum getGLInternelFormat() const;
 		void resetGLTexture() const;
+		void generatePBO();
+		GLuint m_pbo;
+		void *m_lockedPtr;
 	};
 
 	class OpenGLDepthTexture2D: public DepthTexture2D, public OpenGLObject

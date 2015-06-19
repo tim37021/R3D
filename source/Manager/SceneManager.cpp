@@ -36,8 +36,10 @@ static const char *geometry_shader=
 	"out vec3 gNorm;\n"
 	"out vec3 gWorldPos;\n"
 	"out vec2 gTexCoord;\n"
+	"out vec3 vBC;\n"
 	"uniform int enableSmooth=1;"
 	"uniform mat4 nmat;"
+	"vec3 barycentric[3] = vec3[3](vec3(1, 0, 0), vec3(0, 1, 0), vec3(0, 0, 1));"
 	"void main(){\n"
 	"vec3 oa=vWorldPos[1]-vWorldPos[0];\n"
 	"vec3 ob=vWorldPos[2]-vWorldPos[0];\n"
@@ -47,6 +49,7 @@ static const char *geometry_shader=
 	"gNorm=(enableSmooth==1? (nmat*vec4(vNorm[i], 1.0)).xyz: norm);\n"
 	"gWorldPos=vWorldPos[i];\n"
 	"gTexCoord=vTexCoord[i];\n"
+	"vBC=barycentric[i];\n"
 	"EmitVertex();\n"
 	"}"
 	"EndPrimitive();\n"
@@ -64,16 +67,26 @@ static const char *fragment_shader=
 	"uniform vec3 emission;"
 	"uniform sampler2D diffuseTexture;\n"
 	"uniform sampler2D specularTexture;\n"
+	"uniform uint id;"
+	"uniform int wireframeView;"
 	"in vec2 gTexCoord;\n"
 	"in vec3 gWorldPos;\n"
 	"in vec3 gNorm;\n"
+	"in vec3 vBC;\n"
+
+	"float edgeFactor(){\n"
+	"    vec3 d = fwidth(vBC);\n"
+	"    vec3 a3 = smoothstep(vec3(0.0), d*1.5, vBC);\n"
+	"    return min(min(a3.x, a3.y), a3.z);\n"
+	"}"
+
 	"void main(){\n"
 	"worldPosMap=gWorldPos;\n"
-	"diffuseMap=vec3(texture(diffuseTexture, gTexCoord))*diffuse;\n"
+	"vec3 color=vec3(texture(diffuseTexture, gTexCoord))*diffuse;\n"
+	"diffuseMap=(wireframeView==1? mix(vec3(0.0), color, edgeFactor()): color);\n"
 	"normalMap=gNorm;\n"
 	"specularMap=(specular.x<0?vec3(texture(specularTexture, gTexCoord)): specular);\n"
-	"objectMap=uint(0);\n"
-	"if(length(emission)>0.2){ specularMap=-emission; }"
+	"objectMap=id;\n"
 	"}\n";
 
 namespace r3d
@@ -89,12 +102,13 @@ namespace r3d
 		std::vector<tinyobj::shape_t> shapes;
 		std::vector<tinyobj::material_t> materials;
 		std::string basePath(filename);
+		std::size_t end=-1;
 
 		if(base)
 			tinyobj::LoadObj(shapes, materials, filename, base);
 		else
 		{
-			std::size_t end=basePath.find_last_of("/\\");
+			end=basePath.find_last_of("/\\");
 			end=(end!=std::string::npos? end: basePath.size()-1);
 			basePath=basePath.substr(0, end+1);
 			tinyobj::LoadObj(shapes, materials, filename, basePath.c_str());
@@ -106,7 +120,7 @@ namespace r3d
 		auto cw=m_engine->getCurrentContext();
 		auto tMgr=cw->getTextureManager();
 		auto objNode=SceneNodePtr(new EmptySceneNode(node, cw));
-		objNode->setName(filename);
+		objNode->setName(filename+end+1);
 		node->addChild(objNode);
 		for(auto &shape: shapes)
 		{

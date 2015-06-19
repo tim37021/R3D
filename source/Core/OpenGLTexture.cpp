@@ -20,7 +20,9 @@ namespace r3d
 		: ColorTexture2D(width, height, pf), OpenGLObject(glGenTextures, glDeleteTextures)
 	{
 		m_internalFormat=getGLInternelFormat();
+		generatePBO();
 		resetGLTexture();
+		m_lockedPtr = nullptr;
 	}
 
 	OpenGLColorTexture2D::OpenGLColorTexture2D(const Image *image)
@@ -28,7 +30,9 @@ namespace r3d
 	{
 		memcpy(m_data.get(), image->GetPixels(), image->GetWidth()*image->GetHeight()*4);
 		m_internalFormat=image->HasAlpha()? GL_RGBA8: GL_RGB8;
+		generatePBO();
 		resetGLTexture();
+		m_lockedPtr = nullptr;
 	}
 
 	void OpenGLColorTexture2D::bind(uint32_t channel)
@@ -49,24 +53,41 @@ namespace r3d
 
 	void *OpenGLColorTexture2D::lock()
 	{
-		return m_data.get();
-	}
-
-	void OpenGLColorTexture2D::unlock()
-	{
+		if(m_lockedPtr)
+			return m_lockedPtr;
 		PUSHSTATE();
-
 		glBindTexture(GL_TEXTURE_2D, getID());
+		//glBindBuffer(GL_PIXEL_PACK_BUFFER, m_pbo);
+
+		// determine type for glTexSubImage2D
 		GLenum gltype;
 		PixelFormat pf=getPixelFormat();
 		if(pf==PF_RGBF||pf==PF_BGRF||pf==PF_RGBAF||pf==PF_BGRAF)
 			gltype=GL_FLOAT;
+		else if(pf==PF_OBJECT_R)
+			gltype=GL_UNSIGNED_INT;
 		else
 			gltype=GL_UNSIGNED_BYTE;
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, getWidth(), getHeight(),
-			PixelFormatOpenGLMap[getPixelFormat()], gltype, m_data.get());
 
+
+        // copy pixels from PBO to texture object
+        // Use offset instead of ponter.
+		glGetTexImage(GL_TEXTURE_2D, 0, PixelFormatOpenGLMap[pf], gltype, m_data.get());
+
+		//m_lockedPtr=glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+		//glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 		POPSTATE();
+		return m_lockedPtr=m_data.get();
+	}
+
+	void OpenGLColorTexture2D::unlock()
+	{
+		if(!m_lockedPtr)
+			return;
+		//glBindBuffer(GL_PIXEL_PACK_BUFFER, m_pbo);
+		//glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+		//glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+		m_lockedPtr=nullptr;
 	}
 
 	void OpenGLColorTexture2D::generateMipmap()
@@ -129,6 +150,36 @@ namespace r3d
 		glTexImage2D(GL_TEXTURE_2D, 0, m_internalFormat, getWidth(), getHeight(), 0, PixelFormatOpenGLMap[pf], gltype, m_data.get());
 		
 		POPSTATE();
+	}
+
+	void OpenGLColorTexture2D::generatePBO()
+	{
+		int element_size;
+		switch(getPixelFormat())
+		{
+			case PF_R:
+				element_size=1; break;
+			case PF_OBJECT_R:
+				element_size=4; break;
+			case PF_RGB:
+			case PF_BGR:
+				element_size=3; break;
+			case PF_RGBA:
+			case PF_BGRA:
+				element_size=4; break;
+			case PF_RGBF:
+			case PF_BGRF:
+				element_size=12; break;
+			case PF_RGBAF:
+			case PF_BGRAF:
+				element_size=16; break;
+		}
+
+		// pbo for data streaming
+		glGenBuffers(1, &m_pbo);
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, m_pbo);
+		glBufferData(GL_PIXEL_PACK_BUFFER, element_size*getWidth()*getHeight(), nullptr, GL_STREAM_DRAW);
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 	}
 
 	void OpenGLColorTexture2D::setWrapping(Wrapping s, Wrapping t)

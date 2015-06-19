@@ -8,6 +8,7 @@ static GLenum BlendParameterOpenGLMap[]=
 {GL_ZERO, GL_ONE, GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR, GL_DST_COLOR, GL_ONE_MINUS_DST_COLOR,
 	GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_DST_ALPHA,	GL_ONE_MINUS_DST_ALPHA};
 static GLenum BlendFunctionOpenGLMap[]={GL_FUNC_ADD, GL_FUNC_SUBTRACT, GL_FUNC_REVERSE_SUBTRACT};
+static GLenum FillModeOpenGLMap[]={GL_POINT, GL_LINE, GL_FILL};
 namespace r3d
 {
 	OpenGLRenderer::OpenGLRenderer(Engine *engine)
@@ -18,6 +19,11 @@ namespace r3d
 	void OpenGLRenderer::clear()
 	{
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+	}
+
+	void OpenGLRenderer::setFillMode(FillMode f)
+	{
+		glPolygonMode(GL_FRONT_AND_BACK, FillModeOpenGLMap[f]);
 	}
 
 	void OpenGLRenderer::enableDepthTest(bool value)

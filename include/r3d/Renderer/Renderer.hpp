@@ -34,6 +34,13 @@ namespace r3d
 		BP_ONE_MINUS_DST_ALPHA
 	};
 
+	enum FillMode
+	{
+		FM_POINT,
+		FM_LINE,
+		FM_FILL
+	};
+
 	class VertexArray;
 
 	class Renderer
@@ -41,6 +48,7 @@ namespace r3d
 	public:
 		virtual ~Renderer(){}
 		virtual void clear()=0;
+		virtual void setFillMode(FillMode)=0;
 		virtual void enableDepthTest(bool value)=0;
 		virtual void enableBackfaceCulling(bool value)=0;
 		virtual void enableScissorTest(bool enable)=0;

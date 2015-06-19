@@ -3,10 +3,11 @@
 #include <glm/glm.hpp>
 #include <Rocket/Core.h>
 #include <Rocket/Core/Lua/Interpreter.h>
+#include "SceneNodeList.cpp"
+#include <cstdio>
 
 static r3d::Engine *engine;
 static lua_State *L;
-
 static int LUASetRotation(lua_State *L){
 	glm::vec3 r;
 	r.x=lua_tonumber(L, 2);
@@ -82,27 +83,12 @@ static int LUAGetScale(lua_State *L){
 static int LUALoadObjScene(lua_State *L)
 {
 	const char *filename=lua_tostring(L, 1);
-	/*
-	glm::vec3 t, r, z;
-	t.x=lua_tonumber(L, 2);
-	t.y=lua_tonumber(L, 3);
-	t.z=lua_tonumber(L, 4);
-
-	r.x=lua_tonumber(L, 5);
-	r.y=lua_tonumber(L, 6);
-	r.z=lua_tonumber(L, 7);
-
-	z.x=z.y=z.z=lua_tonumber(L, 8);
-
 	
-	node->getTransformation()->setTranslation(t);
-	node->getTransformation()->setRotation(r);
-	node->getTransformation()->setScale(z);
-	*/
 	auto cw=engine->getCurrentContext();
 	auto sMgr=cw->getSceneManager();
 	auto node=sMgr->loadObjScene(sMgr->getRootNode(), filename);
-
+	scene.addnode(node->getName(),"light",node);
+	
 	lua_createtable(L, 0, 7);
 	lua_pushstring(L, "ptr");
 	lua_pushlightuserdata(L, node);
@@ -150,6 +136,17 @@ void LuaInterface::updatemspos(int x,int y)
 	lua_pushnumber(L, x);
 	lua_pushnumber(L, y);
 	Rocket::Core::Lua::Interpreter::ExecuteCall(2, 0);
+}
+
+void LuaInterface::SetSelectObject(r3d::SceneNode *node)
+{
+	lua_getglobal(L, "obj_sel");
+	if (lua_istable(L, -1))
+	{
+      lua_pushstring(L, "ptr");
+      lua_pushlightuserdata(L, node);
+      lua_settable(L, -3);
+	}
 }
 
 void LuaInterface::Initialise(r3d::Engine *engine)

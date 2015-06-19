@@ -11,6 +11,7 @@ namespace r3d
 	public:
 		OpenGLRenderer(Engine *);
 		virtual void clear();
+		virtual void setFillMode(FillMode);
 		virtual void enableDepthTest(bool value);
 		virtual void enableBackfaceCulling(bool value);
 		virtual void enableScissorTest(bool enable);

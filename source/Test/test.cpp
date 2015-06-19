@@ -6,7 +6,6 @@
 #include <Rocket/Core.h>
 #include <Rocket/Debugger.h>
 #include <Rocket/Controls.h>
-
 //LUA
 #include <Rocket/Core/Lua/Interpreter.h>
 #include <Rocket/Controls/Lua/Controls.h>
@@ -19,6 +18,7 @@ static R3DRocket::RenderInterface *ri;
 
 static r3d::Camera *global_fps;
 static r3d::VertexArray *vao;
+r3d::Deferred *deferred_pipeline;
 
 class MyEventListener: public r3d::EventListener
 {
@@ -27,9 +27,12 @@ public:
 		m_context(context_), cw(cw_)
 	{
 		FPSMode=false;
+		node=nullptr;
 	}
 	virtual void OnMouseButtonStateChange(int button, int action, int mods)
 	{
+		double posx, posy;
+		cw->getMouse()->getPos(&posx, &posy);
 		if(!FPSMode)
 		{
 			switch(action)
@@ -38,6 +41,18 @@ public:
 				m_context->ProcessMouseButtonDown(button, 0); break;
 				case 0:
 				m_context->ProcessMouseButtonUp(button, 0); break;
+			}
+			if(action==1&&button==1)
+			{
+				if(node&&node->getMaterial())
+					node->getMaterial()->enableWireframeView(false);
+				node=deferred_pipeline->getObject(posx, posy);
+				if(node)
+				{
+					fprintf(stderr, "%s\n", node->getName());
+					node->getMaterial()->enableWireframeView(true);
+					LuaInterface::SetSelectObject(node);
+				}
 			}
 		}else
 		{
@@ -128,8 +143,10 @@ public:
 	}
 	
 	bool FPSMode;
+
 private:
 	Rocket::Core::Context *m_context;
+	r3d::SceneNode *node;
 	r3d::ContextWindow *cw;
 };
 
@@ -180,7 +197,7 @@ int main(int argc, char *argv[])
 	cw->getSceneManager()->setMainCamera(fps);
 	global_fps=fps.get();
 
-	r3d::Deferred deferred_pipeline(engine, cw);
+	deferred_pipeline = new r3d::Deferred(engine, cw);
 
 	Rocket::Core::Context *context=SetupRocket(engine);
 	MyEventListener myel(context, cw);
@@ -202,9 +219,10 @@ int main(int argc, char *argv[])
 
 		engine->getRenderer()->clear();
 
-		deferred_pipeline.run();
+		deferred_pipeline->run();
 
 		engine->getRenderer()->enableBlending(true, r3d::BP_SRC_ALPHA, r3d::BP_ONE_MINUS_SRC_ALPHA, r3d::BF_ADD);
+		context->Update();
 		context->Render();
 
 		cw->pollInput();

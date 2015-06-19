@@ -1,6 +1,6 @@
 fonts={"Delicious-Roman.otf", "Delicious-Italic.otf", "Delicious-Bold.otf", "Delicious-BoldItalic.otf"}
 
-obj_sel=nil
+obj_sel=nil -- the obj you operate now
 
 function LoadFont()
 	for k, v in pairs(fonts) do
@@ -53,13 +53,15 @@ function Startup()
 	
 	propertymenu=maincontext:LoadDocument("assets/promenu.rml")
 	propertymenu:Show()
-	comwin=maincontext:LoadDocument("assets/demo.rml")
+	comwin=maincontext:LoadDocument("assets/cmd.rml")
 	comwin:GetElementById("title").inner_rml="LUA Command"
+	comwin:GetElementById("window").style["display"]="none"
+	comwin.style["height"]="0px";
 	comwin:Show()
-	for k,v in pairs(comwin:GetElementById("cmdold").attributes) do
-	print(k..":"..v)
-	end
-	print(maincontext)
+	scnlist=maincontext:LoadDocument("assets/demo.rml")
+	scnlist:GetElementById("title").inner_rml="Scene List"
+	scnlist:Show()
+	
 	maincontext:LoadDocument("assets/menu.rml"):Show()
 	mspos=maincontext:LoadDocument("assets/mspos.rml")
 	mspos:Show()
