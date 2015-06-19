@@ -18,12 +18,18 @@
 			}
 		</style>
 		<script>
+			choose_last=nil
 			function SelectObj(element)
+				if choose_last~=nil then
+					choose_last.style["color"]="black";
+				end
 				obj_sel.ptr=ToUserdata(element.child_nodes[2].inner_rml)
+				element.style["color"]="red";
+				choose_last=element
 			end
 			function AttachEvent(element) 
 				local pr=element.child_nodes[1].child_nodes[obj_num];
-				
+				pr.child_nodes[2].style["display"] = "none"
 				pr:AddEventListener('click', 'SelectObj(element)', True)
 			end	
 		</script>
