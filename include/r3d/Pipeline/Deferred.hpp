@@ -4,6 +4,7 @@
 #include <memory>
 #include <functional>
 #include <glm/glm.hpp>
+#include <utility>
 
 namespace r3d
 {
@@ -44,11 +45,13 @@ namespace r3d
 		// attributeless vao
 		VertexArray *m_vao;
 
-		void litPointLight(PointLight *light);
-		void litSpotLight(SpotLight *);
-		void litAmbientLight();
+		void litPointLight(Camera *cam, PointLight *light);
+		void litSpotLight(Camera *cam, SpotLight *);
+		void litAmbientLight(const glm::vec3 &lColor);
 		void beginLightPass();
 		void endLightPass();
+
+		std::pair<glm::vec2, glm::vec2> calcLitRegion(Camera *cam, const glm::vec3 &lightPos, float radius);
 
 		bool renderMaterial(Camera *cam, SceneNode *node, const glm::mat4 &trans, const glm::mat4 &rot);
 		bool renderDepth(Camera *cam, SceneNode *node, const glm::mat4 &trans, const glm::mat4 &rot);

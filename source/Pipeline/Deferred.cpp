@@ -41,68 +41,24 @@ static const char *geometry_shader=
 	"#version 330\n"
 	"layout(points) in;\n"
 	"layout(triangle_strip, max_vertices=6) out;\n"
-	"uniform vec3 lightPos\n;"
-	"uniform mat4 view;\n"
-	"uniform float e=0.1, a=1.0;\n"
+	"uniform vec2 rectBottomLeft;\n"
+	"uniform vec2 rectTopRight;\n"
 	"void main(){\n"
-	"float rect[4]=float[](-1, -1, 1, 1);\n"
-	"float r=8.0;\n"
-	"vec3 l=(view*vec4(lightPos, 1.0)).xyz; vec3 l2=l*l; float r2=r*r;\n"
-	"float d=r2*l2.x-(l2.x+l2.z)*(r2-l2.z);\n"
-	"if(d>=0){\n"
-	"d=sqrt(d);\n"
-	"float nx1=(r*l.x+d)/(l2.x+l2.z), nx2=(r*l.x-d)/(l2.x+l2.z);\n"
-	"float nz1=(r-nx1*l.x)/l.z, nz2=(r-nx2*l.x)/l.z;\n"
-	"float pz1=(l2.x+l2.z-r2)/(l.z-(nz1/nx1)*l.x), pz2=(l2.x+l2.z-r2)/(l.z-(nz2/nx2)*l.x);\n"
-	"if(pz1>=0&&pz2>=0) return;\n"
-	"if(pz1<0){\n"
-	"float fx=nz1/nx1/(tan(22.5)/a);\n"
-	"float px=-pz1*nz1/nx1;\n"
-	"if(px<l.x) rect[0]=max(rect[0],fx);\n"
-	"else rect[2]=min(rect[2],fx);\n"
-	"}\n"
-	"if(pz2<0){\n"
-	"float fx=nz2/nx2/(tan(22.5)/a);\n"
-	"float px=-pz2*nz2/nx2;\n"
-	"if(px<l.x) rect[0]=max(rect[0],fx);\n"
-	"else rect[2]=min(rect[2],fx);\n"
-	"}\n"
-	"}\n"
-	"d=r2*l2.y-(l2.y+l2.z)*(r2-l2.z);\n"
-	"if(d>=0){\n"
-	"d=sqrt(d);\n"
-	"float ny1=(r*l.y+d)/(l2.y+l2.z), ny2=(r*l.y-d)/(l2.y+l2.z);\n"
-	"float nz1=(r-ny1*l.y)/l.z, nz2=(r-ny2*l.y)/l.z;\n"
-	"float pz1=(l2.y+l2.z-r2)/(l.z-(nz1/ny1)*l.y), pz2=(l2.y+l2.z-r2)/(l.z-(nz2/ny2)*l.y);\n"
-	"if(pz1>=0&&pz2>=0) return;\n"
-	"if(pz1<0){\n"
-	"float fy=nz1/ny1/tan(22.5);\n"
-	"float py=-pz1*nz1/ny1;\n"
-	"if(py<l.y) rect[1]=max(rect[1],fy);\n"
-	"else rect[3]=min(rect[3],fy)\n;"
-	"}\n"
-	"if(pz2<0){\n"
-	"float fy=nz2/ny2/tan(22.5);\n"
-	"float py=-pz2*nz2/ny2;\n"
-	"if(py<l.y) rect[1]=max(rect[1],fy);\n"
-	"else rect[3]=min(rect[3],fy)\n;"
-	"}\n"
-	"}\n"
-	"gl_Position=vec4(rect[0], rect[1], 0, 1);\n"
+	"gl_Position=vec4(rectBottomLeft.x, rectBottomLeft.y, 0, 1);\n"
 	"EmitVertex();\n"
-	"gl_Position=vec4(rect[2], rect[1], 0, 1);\n"
+	"gl_Position=vec4(rectTopRight.x, rectBottomLeft.y, 0, 1);\n"
 	"EmitVertex();\n"
-	"gl_Position=vec4(rect[2], rect[3], 0, 1);\n"
+	"gl_Position=vec4(rectTopRight.x, rectTopRight.y, 0, 1);\n"
 	"EmitVertex();\n"
 	"EndPrimitive();\n"
-	"gl_Position=vec4(rect[0], rect[1], 0, 1);\n"
+	"gl_Position=vec4(rectBottomLeft.x, rectBottomLeft.y, 0, 1);\n"
 	"EmitVertex();\n"
-	"gl_Position=vec4(rect[2], rect[3], 0, 1);\n"
+	"gl_Position=vec4(rectTopRight.x, rectTopRight.y, 0, 1);\n"
 	"EmitVertex();\n"
-	"gl_Position=vec4(rect[0], rect[3], 0, 1);\n"
+	"gl_Position=vec4(rectBottomLeft.x, rectTopRight.y, 0, 1);\n"
 	"EmitVertex();\n"
-	"EndPrimitive();\n}"
-	"\n";
+	"EndPrimitive();\n"
+	"}\n";
 static const char *fragment_shader_ambient=
 	"#version 330\n"
 	"uniform sampler2D diffuseMap;"
@@ -236,14 +192,15 @@ namespace r3d
 
 	void Deferred::run()
 	{
+		auto mainCamera=m_cw->getSceneManager()->getMainCamera();
 		m_gBuffer->beginScene();
 		foreachSceneNode(m_cw->getSceneManager()->getRootNode().get(), 
 			std::bind(&Deferred::renderMaterial, this, 
-				m_cw->getSceneManager()->getMainCamera(), 
+				mainCamera, 
 				std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 		m_gBuffer->endScene();
 
-		m_ssao->update(m_cw->getSceneManager()->getMainCamera());
+		m_ssao->update(mainCamera);
 
 		beginLightPass();
 
@@ -251,21 +208,25 @@ namespace r3d
 		prepareViewRelativeUniform(m_programA, m_cw->getSceneManager()->getMainCamera());
 		prepareViewRelativeUniform(m_programSL, m_cw->getSceneManager()->getMainCamera());
 
+		glm::vec3 ambientColor(0.1f);
 		// lit the light one by one
 		for(auto light: m_cw->getSceneManager()->getLights())
 		{
+			ambientColor+=light->color;
 			switch(light->type)
 			{
 				case LT_POINT_LIGHT:
-					litPointLight((PointLight *)light);
+					litPointLight(mainCamera, (PointLight *)light);
 					break;
 				case LT_SPOT_LIGHT:
-					litSpotLight((SpotLight *)light);
+					litSpotLight(mainCamera, (SpotLight *)light);
 				default:;
 			}
 		}
+		ambientColor/=m_cw->getSceneManager()->getLights().size();
+		ambientColor*=0.5f;
 
-		litAmbientLight();
+		litAmbientLight(ambientColor);
 
 		endLightPass();
 	}
@@ -337,29 +298,36 @@ namespace r3d
 		m_renderer->enableBlending(false);
 	}
 
-	void Deferred::litPointLight(PointLight *light)
+	void Deferred::litPointLight(Camera *cam, PointLight *light)
 	{
 		m_programPL->setUniform("lightPos", light->pos);
 		m_programPL->setUniform("lightColor", light->color);
+		auto region=calcLitRegion(cam, light->pos, 8.0f);
+		m_programPL->setUniform("rectBottomLeft", region.first);
+		m_programPL->setUniform("rectTopRight", region.second);
 		m_renderer->drawArrays(m_programPL.get(), m_vao, PT_POINTS, 1);
 	}
 
-	void Deferred::litSpotLight(SpotLight *light )
+	void Deferred::litSpotLight(Camera *cam, SpotLight *light )
 	{
 
 		m_programSL->setUniform("lightPos", light->pos);
 		m_programSL->setUniform("lightColor", light->color);
 		m_programSL->setUniform("lightDir", glm::normalize(light->dir));
 		m_programSL->setUniform("angle", light->angle);
+		auto region=calcLitRegion(cam, light->pos, 8.0f);
+		m_programSL->setUniform("rectBottomLeft", region.first);
+		m_programSL->setUniform("rectTopRight", region.second);
+
 		m_renderer->drawArrays(m_programSL.get(), m_vao, PT_POINTS, 1);	
 
 	}
 
-	void Deferred::litAmbientLight()
+	void Deferred::litAmbientLight(const glm::vec3 &lColor)
 	{
 		m_gBuffer->getDiffuseMap()->bind(0);
 		m_ssao->getBlurredAmbientMap()->bind(1);
-		m_programA->setUniform("lightColor", {0.8f, 0.8f, 0.8f});
+		m_programA->setUniform("lightColor", lColor);
 		m_renderer->drawArrays(m_programA.get(), m_vao, PT_POINTS, 1);
 	}
 	
@@ -402,5 +370,68 @@ namespace r3d
 			std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
 		return searchResult;
+	}
+
+	std::pair<glm::vec2, glm::vec2> Deferred::calcLitRegion(Camera *cam, const glm::vec3 &lightPos, float r)
+	{
+		float rect[4]={-1, -1, 1, 1};
+		float e=-0.1f, a=(float)m_cw->getHeight()/m_cw->getWidth();
+		glm::vec3 l=glm::vec3(cam->getVMatrix()*glm::vec4(lightPos, 1.0)); glm::vec3 l2=l*l; float r2=r*r;
+		float d=r2*l2.x-(l2.x+l2.z)*(r2-l2.z);
+		if(d>=0)
+		{
+			d=sqrt(d);
+			float nx1=(r*l.x+d)/(l2.x+l2.z), nx2=(r*l.x-d)/(l2.x+l2.z);
+			float nz1=(r-nx1*l.x)/l.z, nz2=(r-nx2*l.x)/l.z;
+			float pz1=(l2.x+l2.z-r2)/(l.z-(nz1/nx1)*l.x), pz2=(l2.x+l2.z-r2)/(l.z-(nz2/nx2)*l.x);
+			if(pz1>=e&&pz2>=e) return {{}, {}};
+			if(pz1<e)
+			{
+				float fx=nz1/nx1/(tan(22.5)/a);
+				float px=-pz1*nz1/nx1;
+				if(px<l.x)
+					rect[0]=glm::max(rect[0], fx);
+				else
+					rect[2]=glm::min(rect[2], fx);
+			}
+			if(pz2<e)
+			{
+				float fx=nz2/nx2/(tan(22.5)/a);
+				float px=-pz2*nz2/nx2;
+				if(px<l.x)
+					rect[0]=glm::max(rect[0], fx);
+				else
+					rect[2]=glm::min(rect[2], fx);
+			}
+		}
+		d=r2*l2.y-(l2.y+l2.z)*(r2-l2.z);
+		if(d>=0)
+		{
+			d=sqrt(d);
+			float ny1=(r*l.y+d)/(l2.y+l2.z), ny2=(r*l.y-d)/(l2.y+l2.z);
+			float nz1=(r-ny1*l.y)/l.z, nz2=(r-ny2*l.y)/l.z;
+			float pz1=(l2.y+l2.z-r2)/(l.z-(nz1/ny1)*l.y), pz2=(l2.y+l2.z-r2)/(l.z-(nz2/ny2)*l.y);
+			if(pz1>=e&&pz2>=e) return {{}, {}};
+			if(pz1<e)
+			{
+				float fy=nz1/ny1/tan(22.5);
+				float py=-pz1*nz1/ny1;
+				if(py<l.y)
+					rect[1]=glm::max(rect[1], fy);
+				else
+					rect[3]=glm::min(rect[3], fy);
+			}
+			if(pz2<e)
+			{
+				float fy=nz2/ny2/tan(22.5);
+				float py=-pz2*nz2/ny2;
+				if(py<l.y)
+					rect[1]=glm::max(rect[1], fy);
+				else
+					rect[3]=glm::min(rect[3], fy);
+			}
+		}
+
+		return {{rect[0], rect[1]}, {rect[2], rect[3]}};
 	}
 }
