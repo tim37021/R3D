@@ -32,8 +32,10 @@ namespace r3d
 		uint32_t m_indicesCount;
 		std::vector<Vertex> m_vertices;
 		AABB m_aabb;
-
-		void findAABB(const glm::mat4 &trans);
+		AABB m_aabbOriginal;
+		
+		void findAABB();
+		void transformAABB(const glm::mat4 &trans);
 	};
 
 

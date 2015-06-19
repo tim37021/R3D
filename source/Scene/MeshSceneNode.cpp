@@ -12,6 +12,14 @@
 
 #define INF 9999999.9f
 
+template <class T>
+inline static void swap(T &a, T &b)
+{
+	T tmp=a;
+	a=b;
+	b=tmp;
+}
+
 namespace r3d
 {
 
@@ -23,10 +31,12 @@ namespace r3d
 	{
 		// We must move object to the middle
 		m_vertices = vertices;
-		findAABB(glm::mat4(1.0f));
+		findAABB();
 		const glm::vec3 &middle=(m_aabb.m_max+m_aabb.m_min)/2.0f;
 		for(auto &v: m_vertices)
 			v.pos-=middle;
+		// We change the vertex data, must find aabb again
+		findAABB();
 		m_relative.setTranslation(middle);
 
 		auto vaoMgr=cw->getVertexArrayManager();
@@ -57,7 +67,7 @@ namespace r3d
 		const glm::mat4 tmpMatrix=current*m_relative.getMatrix();
 		const glm::mat4 tmpRotation=currentRotation*m_relative.getRotationMatrix();
 		if(m_last != tmpMatrix)
-			findAABB(tmpMatrix);
+			transformAABB(tmpMatrix);
 		Frustum frustum = cam->getFrustum();
 		if((frustum.AABBinFrustum(m_aabb)) && material)
 		{
@@ -68,8 +78,9 @@ namespace r3d
 		}
 	}
 
-	void MeshSceneNode::findAABB(const glm::mat4 &trans)
+	void MeshSceneNode::findAABB()
 	{
+		const glm::mat4 &trans=glm::mat4(1.0f);
 		float xmin=INF, ymin=INF, zmin=INF, xmax=-INF, ymax=-INF, zmax=-INF;
 		for(uint32_t v=0; v<m_vertices.size(); v++)
 		{	//todo: pos * tmpmatrix
@@ -82,6 +93,39 @@ namespace r3d
 			zmax = (transV.z > zmax) ? transV.z : zmax;
 		}
 		m_aabb.set(glm::vec3(xmax, ymax, zmax), glm::vec3(xmin, ymin, zmin));
+		m_aabbOriginal=m_aabb;
+		m_last = trans;
+	}
+
+	void MeshSceneNode::transformAABB(const glm::mat4 &trans)
+	{
+		const glm::vec3 &old_max=m_aabbOriginal.m_max;
+		const glm::vec3 &old_min=m_aabbOriginal.m_min;
+
+		std::vector<glm::vec3> box; box.resize(8);
+		box[0]={old_max.x, old_max.y, old_max.z};
+		box[1]={old_min.x, old_max.y, old_max.z};
+		box[2]={old_max.x, old_min.y, old_max.z};
+		box[3]={old_max.x, old_max.y, old_min.z};
+		box[4]={old_min.x, old_min.y, old_max.z};
+		box[5]={old_max.x, old_min.y, old_min.z};
+		box[6]={old_min.x, old_max.y, old_min.z};
+		box[7]={old_min.x, old_min.y, old_min.z};
+
+		float xmin=INF, ymin=INF, zmin=INF, xmax=-INF, ymax=-INF, zmax=-INF;
+
+		for(uint32_t v=0; v<box.size(); v++)
+		{	//todo: pos * tmpmatrix
+			glm::vec4 transV = trans * glm::vec4(box[v], 1);
+			xmin = (transV.x < xmin) ? transV.x : xmin;
+			ymin = (transV.y < ymin) ? transV.y : ymin;
+			zmin = (transV.z < zmin) ? transV.z : zmin;
+			xmax = (transV.x > xmax) ? transV.x : xmax;
+			ymax = (transV.y > ymax) ? transV.y : ymax;
+			zmax = (transV.z > zmax) ? transV.z : zmax;
+		}
+
+		m_aabb.set({xmax, ymax, zmax}, {xmin, ymin, zmin});
 		m_last = trans;
 	}
 }
