@@ -166,18 +166,26 @@ static const char *fragment_shader_spotlight=
 
 	////////PCF/////// 
 
-	"const int numSamplingPositions = 9;\n"
+	"const int numSamplingPositions = 4;\n"
 	"vec2 kernel[9] = vec2 [](\n"
 	"	vec2(-1.0, -1.0), vec2(0.0, -1.0), vec2(1.0, -1.0),\n"
 	"	vec2(-1.0, 0.0), vec2(0.0, 0.0), vec2(1.0, 0.0),\n"
 	"	vec2(-1.0, 1.0), vec2(0.0, 1.0), vec2(1.0, 1.0)\n"
 	");\n"
 	
+	"vec2 poissonKernel[4] = vec2 [](\n"
+	"	vec2( -0.94201624, -0.39906216 ),\n"
+  	"	vec2( 0.94558609, -0.76890725 ),\n"
+  	"	vec2( -0.094184101, -0.92938870 ),\n"
+  	"	vec2( 0.34495938, 0.29387760 )\n"
+	");\n"
+
 	"float gaussian[9] = float [] (\n"
 	"	0.07511360795411207, 0.12384140315297386, 0.07511360795411207, \n"
 	"	0.12384140315297386, 0.20417995557165622, 0.12384140315297386, \n"
 	"	0.07511360795411207, 0.12384140315297386, 0.07511360795411207\n"
 	");\n"
+
 	
 	"float sample(in vec2 coords, in vec2 offset){\n"
 	"	return  texture(shadowMap, coords + offset/1024);\n"
@@ -187,16 +195,18 @@ static const char *fragment_shader_spotlight=
 
 	"float shadowIntensity(vec3 shadowCoord, vec3 pos, vec3 normal){\n"
 	////////PCF/////// 
+	///Using poisson//
 	"	float mapDepth = 0;\n"
 	"	float intense = 0;\n"
-	"	float bias = 0.15 * tan(acos(dot (normal,  normalize(lightPos - pos)))); "
-	"	bias = clamp(bias, 0, 0.4); "
-	"	for (int i = 0; i<numSamplingPositions; i++){\n"
-	"		float sampleDepth =sample(shadowCoord.xy, kernel[i] * 2) * 2 - 1;\n"
+	"	float bias = 0.15 * tan(acos(dot (normal,  normalize(lightPos - pos)))); \n"
+	"	bias = clamp(bias, 0, 0.4); \n"
+	"	for (int i = 0; i<4; i++){\n"
+	//"		float sampleDepth =sample(shadowCoord.xy, kernel[i] * 2) * 2 - 1;\n"
+	"		float sampleDepth = texture(shadowMap, shadowCoord.xy + poissonKernel[i]/700)*2 -1 ;\n"
 	"		float sampleLinearDepth = converter.x / (converter.y-sampleDepth*converter.z);\n"
 	" 		float objectLinearDepth = converter.x / (converter.y-shadowCoord.z*converter.z);\n"
-	"		if( sampleLinearDepth + 0.3 < objectLinearDepth ) {\n"
-	"			intense += gaussian[i]; \n" //exp(-5*(objectLinearDepth - sampleLinearDepth )/converter.z)
+	"		if( sampleLinearDepth + bias < objectLinearDepth ) {\n"
+	"			intense += 0.2; \n" //exp(-5*(objectLinearDepth - sampleLinearDepth )/converter.z)*
 	"		}\n"
 	"	}\n"
 	//////////////////
@@ -225,11 +235,13 @@ static const char *fragment_shader_spotlight=
 	"	float att=falloff*1.0/(0.9+0.1*d*d);\n"
 	"	float specular = pow(max(dot(reflect(-lightVec, norm), normalize(eyePos-pos)), 0), 30);\n"
 	"	vec4 lightIntense = att*vec4(diffuse*fColor*lightColor+specular*lightColor*spec, 1);"
+	//Spotlight fading
 	"	if(angleCos < cos(innerAngle)) {\n"
 	"		float ratio = (acos(angleCos) - innerAngle)/(outerAngle - innerAngle);"
 	"		float factor = 1 - ratio * ratio;\n"
 	"		lightIntense *= factor; \n"
 	"	}\n"
+
 	"	color=(1.0-shadow_inten)*lightIntense; \n"
 	"}\n"
 	"else discard;\n"
