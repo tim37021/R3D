@@ -58,7 +58,7 @@ namespace r3d
 
 	const Frustum Camera::getFrustum(){
 		Frustum frustum;
-		frustum.setFrustum(m_pos, m_dir, m_up, m_fov, (float)m_window->getWidth()/m_window->getHeight(), 0.1f, 1000.0f);
+		frustum.setFrustum(m_pos, m_dir, m_up, m_fov+10, (float)m_window->getWidth()/m_window->getHeight(), 0.1f, 1000.0f);
 		// std::cout<<frustum.p[0].x<<" "<<frustum.p[0].y<<" "<<frustum.p[0].z<<" "<<frustum.p[0].w<<std::endl;
 		return frustum;
 	}

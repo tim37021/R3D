@@ -42,15 +42,15 @@ static const char *fragment_shader=
 	"uniform sampler2D noiseMap;"
 	"uniform vec3 kernel[64];"
 	"uniform ivec3 noiseScale_kernelSize=ivec3(4, 4, 24);"
-	"uniform float radius=1.5f;"
+	"uniform float radius=2.0f;"
 	"uniform vec3 converter;"
 	"uniform vec2 viewport;"
 	"uniform mat4 view, pureView, proj;"
 	"layout(location=0) out float color;"
 
-	"mat3 calcTBN(vec3 normal, vec2 texcoord){"
+	"mat3 calcTBN(vec3 normal, vec2 texcoord, vec2 delta){"
 	 	//"ivec2 noiseScale = noiseScale_kernelSize.xy;"
-	    "vec3 rvec = texture(noiseMap, texcoord).xyz;"
+	    "vec3 rvec = normalize(texture(noiseMap, texcoord+delta).xyz);"
 	    "vec3 tangent = normalize(rvec - normal * dot(rvec, normal));"
 	    "vec3 bitangent = cross(normal, tangent);"
 	    "return mat3(tangent, bitangent, normal);"
@@ -60,8 +60,9 @@ static const char *fragment_shader=
 		"vec2 vTexCoord=gl_FragCoord.xy/viewport;"
 		"vec3 normView=(pureView*texture(normMap, vTexCoord)).xyz;"
 		"if(length(normView)<0.5) discard;"
-		"vec3 posView=(view*texture(posMap, vTexCoord)).xyz;"
-		"mat3 tbn=calcTBN(normView, vTexCoord);"
+		"vec4 worldPos=texture(posMap, vTexCoord);"
+		"vec3 posView=(view*worldPos).xyz;"
+		"mat3 tbn=calcTBN(normView, vTexCoord, normalize(worldPos.xy+worldPos.zz));"
 
 		"float ao=0.0f;"
 		"int kernel_size=noiseScale_kernelSize.z;"
@@ -76,9 +77,9 @@ static const char *fragment_shader=
 		//"if(sample_depth>0) {color=vec3(1.0, 0.0, 0.0); return;}"
 		"float linear_depth = -converter.x / (converter.y-sample_depth*converter.z);"
 		"if(abs(posView.z - linear_depth) < radius && linear_depth<-0.1f)"
-			"ao = (sample.z <= linear_depth ? 1.0: 0.0);"
+			"ao += (sample.z <= linear_depth ? 1.0: 0.0);"
 		"}"
-		"color=1.0-ao/kernel_size*24;"
+		"color=1.0-ao/kernel_size;"
 	"}\n";
 
 static const char *fragment_shader_blur=
@@ -86,17 +87,17 @@ static const char *fragment_shader_blur=
 	"uniform sampler2D text;"
 	"uniform vec2 textResol;"
 	"uniform vec2 viewport;"
-	"layout(location=0) out float color;"
+	"layout(location=0) out vec4 color;"
 	"void main(){"
 	"vec2 vTexCoord=gl_FragCoord.xy/viewport;"
 	"const int radius=5;"
     "const float kernel_size=float((radius*2+1)*(radius*2+1));"
-    "float c=0.0;"
+    "vec3 c=vec3(0.0);"
 	"for(int i=-radius; i<=radius; i++)"
 		"for(int j=-radius; j<=radius; j++)"
-			"c+=texture2D(text, vTexCoord+vec2(i, j)/textResol).r;"
+			"c+=texture2D(text, vTexCoord+vec2(i, j)/textResol).rgb;"
 	"c=c/kernel_size;"
-	"color=c;"
+	"color=vec4(c, 1.0);"
 	"}";
   
 namespace r3d
@@ -124,12 +125,12 @@ namespace r3d
 		m_noiseMap = tMgr->registerColorTexture2D("noise.png");
 
 		// Generate needed texture storage, in half resolution
-		m_ambientMap = tMgr->registerColorTexture2D("SSAOMap", cw->getWidth()/2, cw->getHeight()/2, PF_R);
+		m_ambientMap = tMgr->registerColorTexture2D("SSAOMap", cw->getWidth()/2, cw->getHeight()/2, PF_BGR);
 		m_ambientMap->setFilter(F_LINEAR, F_LINEAR);
 		// Clamp to edge !!!!!!!!!
 		m_ambientMap->setWrapping(W_CLAMP_TO_EDGE, W_CLAMP_TO_EDGE);
 
-		m_ambientMapBlurred = tMgr->registerColorTexture2D("BlurredSSAOMap", cw->getWidth(), cw->getHeight(), PF_R);
+		m_ambientMapBlurred = tMgr->registerColorTexture2D("BlurredSSAOMap", cw->getWidth(), cw->getHeight(), PF_BGR);
 		m_ambientMapBlurred->setFilter(F_LINEAR, F_LINEAR);
 		m_ambientMapBlurred->setWrapping(W_CLAMP_TO_BORDER, W_CLAMP_TO_BORDER);
 		//////////////////////////////////////////////

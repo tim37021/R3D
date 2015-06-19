@@ -218,7 +218,7 @@ namespace r3d
 		prepareProgramInput();
 
 		m_gBuffer = new GBuffer(engine, cw->getWidth(), cw->getHeight());
-		m_ssao = new SSAO(engine, cw, m_gBuffer->getDepthMap(), m_gBuffer->getPositionMap(), m_gBuffer->getNormalMap());
+		m_ssao = new SSAO(engine, cw, m_gBuffer->getPositionMap(), m_gBuffer->getDepthMap(), m_gBuffer->getNormalMap());
 
 		SpotLight *light=new SpotLight(cw);
 		light->color=glm::vec3(1.0f);
@@ -359,7 +359,7 @@ namespace r3d
 	{
 		m_gBuffer->getDiffuseMap()->bind(0);
 		m_ssao->getBlurredAmbientMap()->bind(1);
-		m_programA->setUniform("lightColor", {0.1f, 0.1f, 0.1f});
+		m_programA->setUniform("lightColor", {0.8f, 0.8f, 0.8f});
 		m_renderer->drawArrays(m_programA.get(), m_vao, PT_POINTS, 1);
 	}
 	
