@@ -4,6 +4,7 @@
 #include <memory>
 #include <functional>
 #include <glm/glm.hpp>
+#include <r3d/Core/Texture.hpp>
 
 namespace r3d
 {
@@ -37,7 +38,7 @@ namespace r3d
 		Renderer *m_renderer;
 		Camera *m_lightCamera;
 		RenderTarget2DPtr m_renderTarget;
-
+		ColorTexture2D *m_noiseMap;
 		GBuffer *m_gBuffer;
 
 		SSAO *m_ssao;

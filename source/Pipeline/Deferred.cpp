@@ -153,6 +153,7 @@ static const char *fragment_shader_spotlight=
 	"uniform sampler2D normMap;\n"
 	"uniform sampler2D specMap;\n"
 	"uniform sampler2D shadowMap;\n"
+	"uniform sampler2D noiseMap;\n "
 	"uniform vec2 viewport;\n"
 	"uniform vec3 eyePos;\n"
 	"uniform vec3 lightPos;\n"
@@ -190,8 +191,7 @@ static const char *fragment_shader_spotlight=
 	"float sample(in vec2 coords, in vec2 offset){\n"
 	"	return  texture(shadowMap, coords + offset/1024);\n"
 	"}\n"
-
-	//////////////////
+	////////
 
 	"float shadowIntensity(vec3 shadowCoord, vec3 pos, vec3 normal){\n"
 	////////PCF/////// 
@@ -202,11 +202,12 @@ static const char *fragment_shader_spotlight=
 	"	bias = clamp(bias, 0, 0.4); \n"
 	"	for (int i = 0; i<4; i++){\n"
 	//"		float sampleDepth =sample(shadowCoord.xy, kernel[i] * 2) * 2 - 1;\n"
-	"		float sampleDepth = texture(shadowMap, shadowCoord.xy + poissonKernel[i]/700)*2 -1 ;\n"
+	"		int noise = (int(texture(noiseMap, shadowCoord.xy + poissonKernel[i]).x*10000))%(15+i);\n"
+	"		float sampleDepth = texture(shadowMap, shadowCoord.xy + poissonKernel[noise%4]/700)*2 -1 ;\n"
 	"		float sampleLinearDepth = converter.x / (converter.y-sampleDepth*converter.z);\n"
 	" 		float objectLinearDepth = converter.x / (converter.y-shadowCoord.z*converter.z);\n"
 	"		if( sampleLinearDepth + bias < objectLinearDepth ) {\n"
-	"			intense += 0.2; \n" //exp(-5*(objectLinearDepth - sampleLinearDepth )/converter.z)*
+	"			intense +=  0.2; \n" //exp(-5*(objectLinearDepth - sampleLinearDepth )/converter.z)*
 	"		}\n"
 	"	}\n"
 	//////////////////
@@ -278,6 +279,8 @@ namespace r3d
 	Deferred::Deferred(Engine *engine, ContextWindow *cw):
 		m_engine(engine), m_cw(cw)
 	{
+		auto tMgr = cw->getTextureManager();
+
 		m_renderer=engine->getRenderer();
 		m_vao=m_cw->getVertexArrayManager()->registerVertexArray("ATTRIBUTELESS");
 
@@ -295,6 +298,7 @@ namespace r3d
 	
 		m_renderTarget = engine->newRenderTarget2D();
 		m_renderTarget->attachDepthTexture(cw->getTextureManager()->registerDepthTexture2D("ShadowMap[1024x1024]", 1024, 1024, DF_24));
+		m_noiseMap = tMgr->registerColorTexture2D("noise.png");
 	}
 
 	Deferred::~Deferred()
@@ -393,6 +397,9 @@ namespace r3d
 		m_gBuffer->getDiffuseMap()->bind(1);
 		m_gBuffer->getNormalMap()->bind(2);
 		m_gBuffer->getSpecularMap()->bind(3);
+		//ShadowMap bind (4) for each light source
+		m_noiseMap->bind(5);
+
 
 		// disable depth test!!!!
 		m_renderer->enableDepthTest(false);
