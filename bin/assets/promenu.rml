@@ -3,7 +3,11 @@
 		<title>Demo</title>
 		<link type="text/template" href="window.rml" />
 		<style>
-			body{width: 250x; height: 240px; orih: 240px; margin: auto;
+			body{
+			width: 250x; height: 240px; orih: 240px;
+				position: absolute;
+				right: 10px;
+				top: 70px;
 			}
 		</style>
 		<script>
@@ -81,7 +85,7 @@
 			end
 		</script>
 	</head>
-	<body template="window" style="left: 7px; top: 35px;">
+	<body template="window">
 	<h1 style="text-align: left; color: white; font-size: 18;">
 	Position<br/>
 	x:<bl/><bl/><minusbut onClick="setTrans(element.parent_node,-1,0,0)"/>

@@ -22,7 +22,7 @@
 			}
 		</style>
 	</head>
-	<body template="window" style="left: 7px; top: 330px;">
+	<body template="window" style="left: 0px; top: 25px;">
 	<h1 style="text-align: center; color: black;">Diffuse</h1>
 	<p style="text-align: center;"><img src="/DiffuseMap" flipv width="400" height="250"/></p>
 	<h1 style="text-align: center; color: black;">Position</h1>

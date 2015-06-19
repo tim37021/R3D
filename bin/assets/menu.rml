@@ -5,7 +5,7 @@
 			body
 			{	
 				height: 30;
-				width:600;
+				width:450;
 				font-family: Delicious;
 				font-weight: normal;
 				font-style: normal;
@@ -25,11 +25,10 @@
 			}
 			mbar{
 				display: inline-block;
-				width:600;
+				width:450;
 				height:30;
 				background-decorator: image;
-			    background-image: r3d_menu.png 0px 0px 600px 30px;
-				
+			    background-image: r3d_menu.png 0px 0px 450px 30px;				
 			}
 			div#title_bar div#icon
 			{
@@ -133,7 +132,8 @@
 		</style>
 	</head>
 	<body style="">
-	<mbar><p  style="margin-right:60px;"><filebtn/><img src="r3d_seg.png" style="margin-right:5px;margin-left:5px;"/>
+	<mbar><p  style="margin-right:60px;">
+	<filebtn/><img src="r3d_seg.png" style="margin-right:5px;margin-left:5px;"/>
 	<loadbtn/><img src="r3d_seg.png" style="margin-right:5px;margin-left:5px;"/>
 	<addbtn/><img src="r3d_seg.png" style="margin-right:5px;margin-left:5px;"/>
 	<setbtn/><img src="r3d_seg.png" style="margin-right:5px;margin-left:5px;"/>

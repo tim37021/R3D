@@ -5,6 +5,7 @@
 #include <Rocket/Core/Lua/Interpreter.h>
 #include "SceneNodeList.cpp"
 #include <cstdio>
+#include <cstdlib>
 
 static r3d::Engine *engine;
 static lua_State *L;
@@ -114,6 +115,19 @@ static int LUALoadObjScene(lua_State *L)
 	return 1;
 }
 
+static int LUAStrToUdata(lua_State *L){
+	const char *ud=lua_tostring(L, 1);
+	int udn=atoi(ud);
+	union cov{
+		int addr;
+		r3d::SceneNode *node;
+	};
+	cov addcov;
+	addcov.addr=udn;
+	lua_pushlightuserdata(L, addcov.node);
+	return 1;
+}
+
 void LuaInterface::OnFilesDropIn(uint32_t count, const char *files[])
 {
 	lua_getglobal(L, "OnFilesDropIn");
@@ -154,5 +168,6 @@ void LuaInterface::Initialise(r3d::Engine *engine)
 	::engine=engine;
 	L=Rocket::Core::Lua::Interpreter::GetLuaState();
 
-	lua_register(L, "LoadObjScene", LUALoadObjScene);  
+	lua_register(L, "LoadObjScene", LUALoadObjScene);
+	lua_register(L, "ToUserdata", LUAStrToUdata);  
 }

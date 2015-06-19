@@ -9,8 +9,8 @@
 				height: 280px;
 				orih: 280px;
 				position: absolute;
-				right: 10px;
-				top: 70px;
+				left: 460px;
+				top: 25px;
 			}
 			
 			div#title_bar div#icon
