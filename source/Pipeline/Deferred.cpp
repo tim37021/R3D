@@ -272,11 +272,6 @@ namespace r3d
 		m_ssao = new SSAO(engine, cw, m_gBuffer->getDepthMap(), m_gBuffer->getPositionMap(), m_gBuffer->getNormalMap());
 
 		SpotLight *light=new SpotLight(cw);
-		light->color=glm::vec3(0.8f, 0.8f, 0.0f);
-		light->pos=glm::vec3(0, 5, 0);
-		light->dir=glm::vec3(0, -1, 0);
-		light->angle=45.0f;
-		cw->getSceneManager()->addLight(light);
 		m_lightCamera = new Camera(m_cw, glm::vec3 (0.0f), glm::vec3 (0.0f), glm::vec3 (0.0f));
 	
 		m_renderTarget = engine->newRenderTarget2D();
