@@ -160,7 +160,8 @@ static const char *fragment_shader_spotlight=
 	"uniform vec3 lightDir;\n"
 	"uniform vec3 converter\n;"
 	"uniform mat4 lightCamVp;\n"
-	"uniform float angle;\n"
+	"uniform float innerAngle;\n"
+	"uniform float outerAngle;\n"
 	"out vec4 color;\n"
 
 	////////PCF/////// 
@@ -213,7 +214,8 @@ static const char *fragment_shader_spotlight=
 	"vec3 lightVec=normalize(lightPos-pos);\n"
 	"float diffuse=dot(norm, lightVec);\n"
 	"if(diffuse>=0.0){\n"
-	"	if(dot(-lightVec, lightDir) < cos(angle)) discard;\n"
+	"	float angleCos = dot(-lightVec, lightDir); "
+	"	if(angleCos < cos(outerAngle)) discard;\n"
 	"	vec4 shadowCoord=lightCamVp* vec4(pos, 1.0);\n"
 	"	shadowCoord.xyz/=shadowCoord.w;\n"
 	"	shadowCoord.xy=(shadowCoord.xy+vec2 (1.0))/2.0;\n"
@@ -222,8 +224,13 @@ static const char *fragment_shader_spotlight=
 	"	float d=length(lightPos-pos);\n"
 	"	float att=falloff*1.0/(0.9+0.1*d*d);\n"
 	"	float specular = pow(max(dot(reflect(-lightVec, norm), normalize(eyePos-pos)), 0), 30);\n"
-
-	"	color=(1.0-shadow_inten)*att*vec4(diffuse*fColor*lightColor+specular*lightColor*spec, 1); \n"
+	"	vec4 lightIntense = att*vec4(diffuse*fColor*lightColor+specular*lightColor*spec, 1);"
+	"	if(angleCos < cos(innerAngle)) {\n"
+	"		float ratio = (acos(angleCos) - innerAngle)/(outerAngle - innerAngle);"
+	"		float factor = 1 - ratio * ratio;\n"
+	"		lightIntense *= factor; \n"
+	"	}\n"
+	"	color=(1.0-shadow_inten)*lightIntense; \n"
 	"}\n"
 	"else discard;\n"
 
@@ -403,7 +410,7 @@ namespace r3d
 		m_lightCamera->setNear(0.1f);
 		m_lightCamera->setFar(10.0f);
 		m_lightCamera->setAspect(1.0f);
-		m_lightCamera->setFov(light->angle*2.0f);
+		m_lightCamera->setFov(light->outerAngle*2.0f);
 		float near = m_lightCamera->getNear();
 		float far = m_lightCamera->getFar();
 
@@ -422,7 +429,8 @@ namespace r3d
 		m_programSL->setUniform("lightPos", light->pos);
 		m_programSL->setUniform("lightColor", light->color);
 		m_programSL->setUniform("lightDir", glm::normalize(light->dir));
-		m_programSL->setUniform("angle", light->angle*3.1415f/180);
+		m_programSL->setUniform("innerAngle", light->innerAngle*3.1415f/180);
+		m_programSL->setUniform("outerAngle", light->outerAngle*3.1415f/180);
 		m_programSL->setUniform("lightCamVp", m_lightCamera->getVPMatrix());
 		m_programSL->setUniform("converter", {2.0f*near*far, near+far, far-near});
 

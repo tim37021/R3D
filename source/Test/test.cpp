@@ -72,7 +72,8 @@ public:
 				r3d::SpotLight *light=new r3d::SpotLight(cw);
 				light->dir = global_fps->getDir();
 				light->up = global_fps->getUp();
-				light->angle = 30.0 ; 
+				light->innerAngle = 20;
+				light->outerAngle = 30;
 
 				light->pos=global_fps->getPos();
 				light->color=(glm::vec3(0.3f)+
