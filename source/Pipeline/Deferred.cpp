@@ -196,7 +196,7 @@ static const char *fragment_shader_spotlight=
 	"		float sampleLinearDepth = converter.x / (converter.y-sampleDepth*converter.z);\n"
 	" 		float objectLinearDepth = converter.x / (converter.y-shadowCoord.z*converter.z);\n"
 	"		if( sampleLinearDepth + 0.3 < objectLinearDepth ) {\n"
-	"			intense += exp(-5*(objectLinearDepth - sampleLinearDepth )/converter.z) * gaussian[i]; \n" //
+	"			intense += gaussian[i]; \n" //exp(-5*(objectLinearDepth - sampleLinearDepth )/converter.z)
 	"		}\n"
 	"	}\n"
 	//////////////////
