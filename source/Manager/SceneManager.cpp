@@ -89,6 +89,16 @@ static const char *fragment_shader=
 	"objectMap=id;\n"
 	"}\n";
 
+static std::string ReplaceString(std::string subject, const std::string& search,
+                          const std::string& replace) {
+    size_t pos = 0;
+    while ((pos = subject.find(search, pos)) != std::string::npos) {
+         subject.replace(pos, search.length(), replace);
+         pos += replace.length();
+    }
+    return subject;
+}
+
 namespace r3d
 {
 	SceneManager::SceneManager(Engine *engine)
@@ -120,7 +130,7 @@ namespace r3d
 		auto cw=m_engine->getCurrentContext();
 		auto tMgr=cw->getTextureManager();
 		auto objNode=SceneNodePtr(new EmptySceneNode(node, cw));
-		objNode->setName(filename+end+1);
+		objNode->setName(ReplaceString(std::string(filename+end+1), ".", "_").c_str());
 		node->addChild(objNode);
 		for(auto &shape: shapes)
 		{
