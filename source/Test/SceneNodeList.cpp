@@ -23,7 +23,6 @@ class SceneNodeList:public Rocket::Controls::DataSource
 
 		void GetRow(Rocket::Core::StringList& row, const Rocket::Core::String& table, int row_index, const Rocket::Core::StringList& columns)
 		{
-			printf("GetRow: %s", table.CString());
 			if(!currentEntry) return;
 			auto lit=currentEntry->getChildren().cbegin();
 			for(int i=0;i<row_index;i++,lit++);
@@ -48,7 +47,6 @@ class SceneNodeList:public Rocket::Controls::DataSource
 
 	int GetNumRows(const Rocket::Core::String& table)
 	{
-		printf("GetNumRows: %s", table.CString());
 		auto sMgr=engine->getSceneManager();
 		std::string entryName;
 		currentEntry=nullptr;
@@ -80,6 +78,28 @@ class SceneNodeList:public Rocket::Controls::DataSource
 				entryName="";
 			}
 		}
+
+		if(currentEntry&&entryName!="")
+		{
+			// find the entry
+			auto &children=currentEntry->getChildren();
+			currentEntry=nullptr;
+			for(auto &child: children)
+			{
+				if(entryName==child->getName())
+				{
+					currentEntry=child.get();
+					break;
+				}
+			}
+			// not found
+			if(currentEntry==nullptr)
+				return 0;
+		}else
+			currentEntry=sMgr->getRootNode().get();
+
+		
+
 		return currentEntry?currentEntry->getChildren().size(): 0;
 	}
 	
