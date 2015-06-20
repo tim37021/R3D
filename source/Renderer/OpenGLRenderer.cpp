@@ -21,6 +21,11 @@ namespace r3d
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	}
 
+	void OpenGLRenderer::setViewport(int32_t x, int32_t y, uint32_t width, uint32_t height)
+	{
+		glViewport(x, y, width, height);
+	}
+
 	void OpenGLRenderer::setFillMode(FillMode f)
 	{
 		glPolygonMode(GL_FRONT_AND_BACK, FillModeOpenGLMap[f]);

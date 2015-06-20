@@ -1,6 +1,7 @@
 #include <r3d/Pipeline/Deferred.hpp>
 #include <r3d/Pipeline/GBuffer.hpp>
 #include <r3d/Pipeline/SSAO.hpp>
+#include <r3d/Pipeline/PostFX.hpp>
 #include <r3d/Core/VertexArray.hpp>
 #include <r3d/Scene/SceneNode.hpp>
 #include <r3d/Scene/Light.hpp>
@@ -79,6 +80,7 @@ static const char *fragment_shader=
 	"uniform sampler2D diffuseMap;\n"
 	"uniform sampler2D normMap;\n"
 	"uniform sampler2D specMap;\n"
+	"uniform sampler2D AOMap;\n"
 	"uniform vec2 viewport;"
 	"uniform vec3 eyePos;"
 	"uniform vec3 lightPos;\n"
@@ -90,6 +92,7 @@ static const char *fragment_shader=
 	"vec3 fColor=texture(diffuseMap, vTexCoord).rgb;\n"
 	"vec3 norm=texture(normMap, vTexCoord).xyz;\n"
 	"vec3 spec=texture(specMap, vTexCoord).rgb;\n"
+	"float ao=texture(AOMap, vTexCoord).r;"
 	"float d=length(pos-lightPos);\n"
 	"if(length(norm)<=0.5||d>=8) discard;"
 	"vec3 lightVec=normalize(lightPos-pos);"
@@ -99,7 +102,7 @@ static const char *fragment_shader=
 	"float d=length(lightPos-pos);\n"
 	"float att=falloff*1.0/(0.9+0.1*d*d);"
 	"float specular = pow(max(dot(reflect(-lightVec, norm), normalize(eyePos-pos)), 0), 30);\n"
-	"color=att*vec4(diffuse*fColor*lightColor+specular*lightColor*spec, 1);} else discard;\n"
+	"color=mix(ao, 1.0, diffuse)*diffuse*att*vec4(diffuse*fColor*lightColor+specular*lightColor*spec, 1);} else discard;\n"
 	"}\n";
 
 static const char *fragment_shader_spotlight=
@@ -146,8 +149,20 @@ static const char *vertex_shader_depth=
 static const char *fragment_shader_depth = 
 	"#version 330\n"
 	"void main(){}";
-
 ///////////////////////////////////
+static const char *fragment_shader_combine=
+	"#version 330\n"
+	"uniform sampler2D lightedMap;\n"
+	"uniform sampler2D bloomMap;\n"
+	"uniform vec2 viewport;\n"
+	"out vec4 color;\n"
+	"void main(){"
+	"vec2 vTexCoord=gl_FragCoord.xy/viewport;\n"
+	"vec4 lighted=texture(lightedMap, vTexCoord);\n"
+	"vec4 bloomed=texture(bloomMap, vTexCoord);"
+	"color=lighted+bloomed;\n"
+	"}";
+
 namespace r3d
 {
 	// private struct for rendering
@@ -167,14 +182,16 @@ namespace r3d
 		m_renderer=engine->getRenderer();
 		m_vao=m_cw->getVertexArrayManager()->registerVertexArray("ATTRIBUTELESS");
 
-		m_programPL = r3d::MakeShaderProgram(engine, vertex_shader, geometry_shader, fragment_shader);
-		m_programSL = r3d::MakeShaderProgram(engine, vertex_shader, geometry_shader, fragment_shader_spotlight);
-		m_programA = r3d::MakeShaderProgram(engine, vertex_shader, geometry_shader_ambient, fragment_shader_ambient);
-		m_programDepth = r3d::MakeShaderProgram(engine, vertex_shader_depth, fragment_shader_depth);
+		m_programPL = MakeShaderProgram(engine, vertex_shader, geometry_shader, fragment_shader);
+		m_programSL = MakeShaderProgram(engine, vertex_shader, geometry_shader, fragment_shader_spotlight);
+		m_programA = MakeShaderProgram(engine, vertex_shader, geometry_shader_ambient, fragment_shader_ambient);
+		m_programDepth = MakeShaderProgram(engine, vertex_shader_depth, fragment_shader_depth);
+		m_programCombine = MakeShaderProgram(engine, vertex_shader, geometry_shader_ambient, fragment_shader_combine);
 		prepareProgramInput();
 
 		m_gBuffer = new GBuffer(engine, cw->getWidth(), cw->getHeight());
 		m_ssao = new SSAO(engine, cw, m_gBuffer->getPositionMap(), m_gBuffer->getDepthMap(), m_gBuffer->getNormalMap());
+		m_pfx = new PostFX(engine, cw);
 
 		SpotLight *light=new SpotLight(cw);
 		light->color=glm::vec3(1.0f);
@@ -182,12 +199,21 @@ namespace r3d
 		light->dir=glm::vec3(0, -1, 0);
 		light->angle=10.0f;
 		cw->getSceneManager()->addLight(light);
+
+		m_lightRT = engine->newRenderTarget2D();
+		m_lightedMap = m_cw->getTextureManager()->registerColorTexture2D("LightedMap", cw->getWidth(), cw->getHeight(), PF_BGR);
+		ColorTexture2D *texts[]={m_lightedMap};
+		m_lightRT->attachColorTextures(1, texts);
+
+		// register bloom effect
+		m_bloom=m_pfx->pushEffect("bloom", m_lightedMap);
 	}
 
 	Deferred::~Deferred()
 	{
 		delete m_gBuffer;
 		delete m_ssao;
+		delete m_pfx;
 	}
 
 	void Deferred::run()
@@ -223,12 +249,19 @@ namespace r3d
 				default:;
 			}
 		}
-		ambientColor/=m_cw->getSceneManager()->getLights().size();
-		ambientColor*=0.5f;
+		//ambientColor/=m_cw->getSceneManager()->getLights().size();
+		//ambientColor*=0.5f;
+		ambientColor=glm::vec3(0.1f);
 
 		litAmbientLight(ambientColor);
 
 		endLightPass();
+
+		m_pfx->runAll();
+
+
+		combineStage();
+
 	}
 
 	void Deferred::foreachSceneNode(SceneNode *root, std::function<bool(SceneNode *, const glm::mat4&, const glm::mat4&)> callback)
@@ -279,11 +312,14 @@ namespace r3d
 
 	void Deferred::beginLightPass()
 	{
+		m_lightRT->bind();
+
 		// preparing gbuffer
 		m_gBuffer->getPositionMap()->bind(0);
 		m_gBuffer->getDiffuseMap()->bind(1);
 		m_gBuffer->getNormalMap()->bind(2);
 		m_gBuffer->getSpecularMap()->bind(3);
+		m_ssao->getBlurredAmbientMap()->bind(4);
 
 		// disable depth test!!!!
 		m_renderer->enableDepthTest(false);
@@ -296,6 +332,7 @@ namespace r3d
 	void Deferred::endLightPass()
 	{
 		m_renderer->enableBlending(false);
+		m_lightRT->unbind();
 	}
 
 	void Deferred::litPointLight(Camera *cam, PointLight *light)
@@ -338,6 +375,7 @@ namespace r3d
 		m_programPL->setUniform("diffuseMap", 1);
 		m_programPL->setUniform("normMap", 2);
 		m_programPL->setUniform("specMap", 3);
+		m_programPL->setUniform("AOMap", 4);
 
 		m_programSL->setUniform("posMap", 0);
 		m_programSL->setUniform("diffuseMap", 1);
@@ -346,6 +384,9 @@ namespace r3d
 
 		m_programA->setUniform("diffuseMap", 0);
 		m_programA->setUniform("AOMap", 1);
+
+		m_programCombine->setUniform("lighedMap", 0);
+		m_programCombine->setUniform("bloomMap", 1);
 	}
 
 	void Deferred::prepareViewRelativeUniform(ProgramPtr program, Camera *cam)
@@ -372,6 +413,15 @@ namespace r3d
 		return searchResult;
 	}
 
+	void Deferred::combineStage()
+	{
+		m_programCombine->setUniform("viewport", {m_cw->getWidth(), m_cw->getHeight()});
+		m_lightedMap->bind(0);
+		m_bloom->getResult()->bind(1);
+		m_renderer->drawArrays(m_programCombine.get(), m_vao, PT_POINTS, 1);
+
+	}
+
 	std::pair<glm::vec2, glm::vec2> Deferred::calcLitRegion(Camera *cam, const glm::vec3 &lightPos, float r)
 	{
 		float rect[4]={-1, -1, 1, 1};
@@ -384,8 +434,8 @@ namespace r3d
 			float nx1=(r*l.x+d)/(l2.x+l2.z), nx2=(r*l.x-d)/(l2.x+l2.z);
 			float nz1=(r-nx1*l.x)/l.z, nz2=(r-nx2*l.x)/l.z;
 			float pz1=(l2.x+l2.z-r2)/(l.z-(nz1/nx1)*l.x), pz2=(l2.x+l2.z-r2)/(l.z-(nz2/nx2)*l.x);
-			if(pz1>=e&&pz2>=e) return {{}, {}};
-			if(pz1<e)
+			if(pz1>=0&&pz2>=0) return {{}, {}};
+			if(pz1<0)
 			{
 				float fx=nz1/nx1/(tan(22.5)/a);
 				float px=-pz1*nz1/nx1;
@@ -394,7 +444,7 @@ namespace r3d
 				else
 					rect[2]=glm::min(rect[2], fx);
 			}
-			if(pz2<e)
+			if(pz2<0)
 			{
 				float fx=nz2/nx2/(tan(22.5)/a);
 				float px=-pz2*nz2/nx2;
@@ -411,8 +461,8 @@ namespace r3d
 			float ny1=(r*l.y+d)/(l2.y+l2.z), ny2=(r*l.y-d)/(l2.y+l2.z);
 			float nz1=(r-ny1*l.y)/l.z, nz2=(r-ny2*l.y)/l.z;
 			float pz1=(l2.y+l2.z-r2)/(l.z-(nz1/ny1)*l.y), pz2=(l2.y+l2.z-r2)/(l.z-(nz2/ny2)*l.y);
-			if(pz1>=e&&pz2>=e) return {{}, {}};
-			if(pz1<e)
+			if(pz1>=0&&pz2>=0) return {{}, {}};
+			if(pz1<0)
 			{
 				float fy=nz1/ny1/tan(22.5);
 				float py=-pz1*nz1/ny1;
@@ -421,7 +471,7 @@ namespace r3d
 				else
 					rect[3]=glm::min(rect[3], fy);
 			}
-			if(pz2<e)
+			if(pz2<0)
 			{
 				float fy=nz2/ny2/tan(22.5);
 				float py=-pz2*nz2/ny2;

@@ -1,5 +1,5 @@
 #version 330
-out vec4 outColor;
+out vec3 outColor;
 uniform vec2 viewport;
 uniform sampler2D text;
 
@@ -58,8 +58,7 @@ void main()
 	
 	color += sample(tc);
 	
-	outColor.xyz = mix(sample(tc), color, 0.3);
-	outColor.w = 1.0;
+	outColor = color;
 }
 
 vec3 sample(vec2 tc)

@@ -48,6 +48,7 @@ namespace r3d
 	public:
 		virtual ~Renderer(){}
 		virtual void clear()=0;
+		virtual void setViewport(int32_t, int32_t, uint32_t, uint32_t)=0;
 		virtual void setFillMode(FillMode)=0;
 		virtual void enableDepthTest(bool value)=0;
 		virtual void enableBackfaceCulling(bool value)=0;

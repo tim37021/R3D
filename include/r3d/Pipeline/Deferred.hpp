@@ -19,8 +19,13 @@ namespace r3d
 	class Camera;
 	class SSAO;
 	class SceneNode;
+	class RenderTarget2D;
+	class ColorTexture2D;
+	class PostFX;
+	class PostEffect;
 
 	typedef std::shared_ptr<Program> ProgramPtr;
+	typedef std::shared_ptr<RenderTarget2D> RenderTarget2DPtr;
 
 	class Deferred
 	{
@@ -37,10 +42,16 @@ namespace r3d
 
 		GBuffer *m_gBuffer;
 
+		// post processing
 		SSAO *m_ssao;
+		PostFX *m_pfx;
+		PostEffect *m_bloom;
 
 		// point light program
-		ProgramPtr m_programPL, m_programSL, m_programA, m_programDepth;
+		ProgramPtr m_programPL, m_programSL, m_programA, m_programDepth, m_programCombine;
+
+		RenderTarget2DPtr m_lightRT;
+		ColorTexture2D *m_lightedMap;
 
 		// attributeless vao
 		VertexArray *m_vao;
@@ -50,6 +61,7 @@ namespace r3d
 		void litAmbientLight(const glm::vec3 &lColor);
 		void beginLightPass();
 		void endLightPass();
+		void combineStage();
 
 		std::pair<glm::vec2, glm::vec2> calcLitRegion(Camera *cam, const glm::vec3 &lightPos, float radius);
 

@@ -60,9 +60,8 @@
 				
 				f=fnew.."\n"..f
 				element:GetElementById("cmdold"):SetAttribute("value",f)
-				fc=loadstring(element:GetElementById("cmdin"):GetAttribute("value"));
+				load(element:GetElementById("cmdin"):GetAttribute("value"))()
 				element:GetElementById("cmdin"):SetAttribute("value","")
-				fc();
 				element:GetElementById("cmdin"):Focus()
 			end
 		</script>
