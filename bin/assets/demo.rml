@@ -27,15 +27,34 @@
 				element.style["color"]="red";
 				choose_last=element
 			end
+			
+			function seturl(element)
+				print(element.inner_rml)
+				print(sceneurl:GetAttribute("value"))
+			end
+			
 			function AttachEvent(element) 
-				local pr=element.child_nodes[1].child_nodes[obj_num];
-				pr.child_nodes[2].style["display"] = "none"
-				pr:AddEventListener('click', 'SelectObj(element)', True)
+				local pr=element.child_nodes[1].child_nodes;
+				for k,v in pairs(pr) do
+					pr[k].child_nodes[2].style["display"] = "none"
+					pr[k]:AddEventListener('click', 'SelectObj(element)', True)
+					pr[k]:AddEventListener('dblclick', 'seturl(element)', True)
+				end
+				
 			end	
+
+			function SearchPath(element, document, event)
+				if event.parameters['key_identifier']==72 then
+					local dbb=document:GetElementById("dt");
+					ElementDataGrid.SetDataSource(dbb, "scene."..element:GetAttribute("value"));
+				end
+
+			end
 		</script>
 	</head>
 	<body template="window">
-	<datagrid id='dt' source="scene.list" onrowadd="AttachEvent(element)">
+	<input onkeydown="SearchPath(element, document, event)" id="sceneurl" type="text" value="/" style="display:inline-block;width:90%;margin-left:15px;"/>
+	<datagrid id='dt' source="" onrowadd="AttachEvent(element)">
 		<col fields="name" width="40%">Name:</col>
 		<col fields="type" width="20%">Type:</col>
 		<col fields="ptr" width="0px"/>

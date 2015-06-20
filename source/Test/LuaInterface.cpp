@@ -8,6 +8,8 @@
 #include <cstdlib>
 
 static r3d::Engine *engine;
+static SceneNodeList *datasource;
+
 static lua_State *L;
 static int LUASetRotation(lua_State *L){
 	glm::vec3 r;
@@ -88,7 +90,6 @@ static int LUALoadObjScene(lua_State *L)
 	auto cw=engine->getCurrentContext();
 	auto sMgr=cw->getSceneManager();
 	auto node=sMgr->loadObjScene(sMgr->getRootNode(), filename);
-	scene.addnode(node->getName(),"light",node);
 	
 	lua_createtable(L, 0, 7);
 	lua_pushstring(L, "ptr");
@@ -169,5 +170,7 @@ void LuaInterface::Initialise(r3d::Engine *engine)
 	L=Rocket::Core::Lua::Interpreter::GetLuaState();
 
 	lua_register(L, "LoadObjScene", LUALoadObjScene);
-	lua_register(L, "ToUserdata", LUAStrToUdata);  
+	lua_register(L, "ToUserdata", LUAStrToUdata); 
+
+	datasource = new SceneNodeList("scene", engine);
 }

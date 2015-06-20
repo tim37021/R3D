@@ -8,22 +8,9 @@ function LoadFont()
 	end
 end
 
-function LoadFile(element)
-	local t_x=tonumber(element:GetElementById("t_x").attributes.value)
-	local t_y=tonumber(element:GetElementById("t_y").attributes.value)
-	local t_z=tonumber(element:GetElementById("t_z").attributes.value)
-
-	local r_x=tonumber(element:GetElementById("r_x").attributes.value)
-	local r_y=tonumber(element:GetElementById("r_y").attributes.value)
-	local r_z=tonumber(element:GetElementById("r_z").attributes.value)
-
-	local zoom=tonumber(element:GetElementById("zoom").attributes.value)
-
+function LoadFile()
 	obj_sel=LoadObjScene(fn);
 	obj_num=obj_num+1
-	obj_sel:SetRotation(r_x,r_y,r_z);
-	obj_sel:SetTranslation(t_x,t_y,t_z);
-	obj_sel:SetScale(zoom);
 	tranmenu:GetElementById("xpos"):SetAttribute("value",obj_sel:GetTranslation("x"));
 	tranmenu:GetElementById("ypos"):SetAttribute("value",obj_sel:GetTranslation("y"));
 	tranmenu:GetElementById("zpos"):SetAttribute("value",obj_sel:GetTranslation("z"));
@@ -34,8 +21,8 @@ function LoadFile(element)
 end
 
 function OnFilesDropIn(filenames)
-	loadingwindow:Show();
 	fn=filenames[1]
+	LoadFile()
 end
 
 function updatems(mpx,mpy)
@@ -64,6 +51,9 @@ function Startup()
 	comwin:Show()
 	scnlist=maincontext:LoadDocument("assets/demo.rml")
 	scnlist:GetElementById("title").inner_rml="Scene List"
+	local ds=scnlist:GetElementById("dt")
+	sceneurl=scnlist:GetElementById("sceneurl")--!!!!!!!!!!!!!!!!!!!!!!!!!!!!URL
+	ElementDataGrid.SetDataSource(ds,"scene."..scnlist:GetElementById("sceneurl"):GetAttribute("value"))
 	scnlist:Show()
 	
 	maincontext:LoadDocument("assets/menu.rml"):Show()
