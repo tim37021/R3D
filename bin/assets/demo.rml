@@ -19,6 +19,16 @@
 		</style>
 		<script>
 			choose_last=nil
+
+			function dirname(str)
+				if str:match(".-/.-") then
+					local name = string.gsub(str, "(.*/)(.*)", "%1")
+					return name
+				else
+					return ''
+				end
+			end
+
 			function SelectObj(element)
 				if choose_last~=nil then
 					choose_last.style["color"]="black";
@@ -44,15 +54,24 @@
 			end	
 
 			function SearchPath(element, document, event)
+				print(dirname(element:GetAttribute("value")))
 				if event.parameters['key_identifier']==72 then
 					local dbb=document:GetElementById("dt");
 					ElementDataGrid.SetDataSource(dbb, "scene."..element:GetAttribute("value"));
 				end
 
 			end
+
+			function SearchPath2(document)
+				local path=dirname(document:GetElementById("sceneurl"):GetAttribute("value"))
+				local dbb=document:GetElementById("dt");
+				ElementDataGrid.SetDataSource(dbb, "scene."..path);
+				document:GetElementById("sceneurl"):SetAttribute("value", path)
+			end
 		</script>
 	</head>
 	<body template="window">
+	<button onclick="SearchPath2(document)" style="width: 25px; height: 25px">&lt;-</button><br />
 	<input onkeydown="SearchPath(element, document, event)" id="sceneurl" type="text" value="/" style="display:inline-block;width:90%;margin-left:15px;"/>
 	<datagrid id='dt' source="" onrowadd="AttachEvent(element)">
 		<col fields="name" width="40%">Name:</col>
