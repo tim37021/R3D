@@ -202,8 +202,8 @@ static const char *fragment_shader_spotlight=
 	"	bias = clamp(bias, 0, 0.4); \n"
 	"	for (int i = 0; i<4; i++){\n"
 	//"		float sampleDepth =sample(shadowCoord.xy, kernel[i] * 2) * 2 - 1;\n"
-	"		int noise = (int(texture(noiseMap, shadowCoord.xy + poissonKernel[i]).x*10000))%(15+i);\n"
-	"		float sampleDepth = texture(shadowMap, shadowCoord.xy + poissonKernel[noise%4]/700)*2 -1 ;\n"
+	"		int noise = (int(texture(noiseMap, shadowCoord.xy + poissonKernel[i]/1000).x*1000))%4;\n"
+	"		float sampleDepth = texture(shadowMap, shadowCoord.xy + poissonKernel[noise]/1200)*2 -1 ;\n"
 	"		float sampleLinearDepth = converter.x / (converter.y-sampleDepth*converter.z);\n"
 	" 		float objectLinearDepth = converter.x / (converter.y-shadowCoord.z*converter.z);\n"
 	"		if( sampleLinearDepth + bias < objectLinearDepth ) {\n"
@@ -477,6 +477,7 @@ namespace r3d
 		m_programSL->setUniform("normMap", 2);
 		m_programSL->setUniform("specMap", 3);
 		m_programSL->setUniform("shadowMap", 4);
+		m_programSL->setUniform("noiseMap",5);
 
 		m_programA->setUniform("diffuseMap", 0);
 		m_programA->setUniform("AOMap", 1);
