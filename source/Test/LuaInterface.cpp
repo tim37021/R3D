@@ -11,6 +11,49 @@ static r3d::Engine *engine;
 static SceneNodeList *datasource;
 
 static lua_State *L;
+
+
+static int LUASetDiffuse(lua_State *L){
+	glm::vec3 r;
+	r.r=lua_tonumber(L, 2);
+	r.g=lua_tonumber(L, 3);
+	r.b=lua_tonumber(L, 4);
+
+	lua_getfield(L, 1, "ptr");
+
+	auto *node=static_cast<r3d::SceneNode *>(lua_touserdata(L,-1));
+	auto mtl=node->getMaterial();
+	if(mtl)
+		mtl->setDiffuse(r);
+	return 0;
+}
+
+static int LUAGetDiffuse(lua_State *L){
+	const char* ch=lua_tostring(L,2);
+	lua_getfield(L, 1, "ptr");
+	auto *node=static_cast<r3d::SceneNode *>(lua_touserdata(L,-1));
+	auto mtl=node->getMaterial();
+
+	if(mtl)
+	{
+		switch(ch[0])
+		{
+		case 'r':
+			lua_pushnumber(L, mtl->getDiffuse().r);
+			break;
+		case 'g':
+			lua_pushnumber(L, mtl->getDiffuse().g);
+			break;
+		case 'b':
+			lua_pushnumber(L, mtl->getDiffuse().b);
+			break;
+		}
+	}else
+		lua_pushnumber(L, 0.0);
+	return 1;
+}
+
+
 static int LUASetRotation(lua_State *L){
 	glm::vec3 r;
 	r.x=lua_tonumber(L, 2);
@@ -112,6 +155,12 @@ static int LUALoadObjScene(lua_State *L)
 	lua_settable(L, -3);
 	lua_pushstring(L, "GetScale");
 	lua_pushcfunction (L, LUAGetScale);
+	lua_settable(L, -3);
+	lua_pushstring(L, "SetDiffuse");
+	lua_pushcfunction (L, LUASetDiffuse);
+	lua_settable(L, -3);
+	lua_pushstring(L, "GetDiffuse");
+	lua_pushcfunction (L, LUAGetDiffuse);
 	lua_settable(L, -3);
 	return 1;
 }

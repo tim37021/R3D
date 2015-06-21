@@ -11,6 +11,12 @@
 			}
 		</style>
 		<script>
+			function math.Clamp( _in, low, high )
+				if (_in < low ) then return low end
+				if (_in > high ) then return high end
+				return _in
+			end
+		
 			function ktevent(event,type)
 			if obj_sel~=nil then
 				element=event.current_element
@@ -66,6 +72,22 @@
 				element:GetElementById("zrot"):SetAttribute("value",z)
 			end
 			end
+
+			function setDiffuse(element, r, g, b)
+				if obj_sel~=nil then
+					r=obj_sel:GetDiffuse('r')+r
+					g=obj_sel:GetDiffuse('g')+g
+					b=obj_sel:GetDiffuse('b')+b
+					r=math.Clamp(r, 0, 1)
+					g=math.Clamp(g, 0, 1)
+					b=math.Clamp(b, 0, 1)
+					obj_sel:SetDiffuse(r, g, b)
+					element:GetElementById("rdiff"):SetAttribute("value",r)
+					element:GetElementById("gdiff"):SetAttribute("value",g)
+					element:GetElementById("bdiff"):SetAttribute("value",b)
+				end
+
+			end
 			
 			function kzevent(event)
 			if obj_sel~=nil then
@@ -76,6 +98,24 @@
 				end
 			end
 			end
+
+			function kdevent(event, type)
+			if obj_sel~=nil then
+				element=event.current_element
+				if event.parameters['key_identifier']==72 then				
+				if type=='r' then
+					setDiffuse(element.parent_node,element:GetAttribute('value')-obj_sel:GetDiffuse('r'),0,0)
+				end
+				if type=='g' then
+					setDiffuse(element.parent_node,0,element:GetAttribute('value')-obj_sel:GetDiffuse('g'),0)
+				end
+				if type=='b' then
+					setDiffuse(element.parent_node,0,0,element:GetAttribute('value')-obj_sel:GetDiffuse('b'))
+				end
+				end
+			end
+			end
+
 			function setzoom(element,x)
 			if obj_sel~=nil then
 				x=obj_sel:GetScale('x')*x
@@ -123,5 +163,21 @@
 	<input type="text" id="zrot" size="5" maxlength="20" value="0"  onkeydown="krevent(event,'z')"/>
 	<bl/><plusbut onClick="setRot(element.parent_node,0,0,0.125)"/><br/>
 	</h1>
+
+	<h1 style="text-align: left; color: white; font-size: 18;">
+	Diffuse<br/>
+	r:<bl/><bl/><minusbut onClick="setDiffuse(element.parent_node,-0.125,0,0)"/>
+	<input type="text" id="rdiff" size="5" maxlength="20" value="0"  onkeydown="kdevent(event,'r')"/>
+	<bl/><plusbut onClick="setDiffuse(element.parent_node,0.125,0,0)"/><br/>
+	
+	g:<bl/><bl/><minusbut onClick="setDiffuse(element.parent_node,0,-0.125,0)"/>
+	<input type="text" id="gdiff" size="5" maxlength="20" value="0"  onkeydown="kdevent(event,'g')"/>
+	<bl/><plusbut onClick="setDiffuse(element.parent_node,0,0.125,0)"/><br/>
+	
+	b:<bl/><bl/><minusbut onClick="setDiffuse(element.parent_node,0,0,-0.125)"/>
+	<input type="text" id="bdiff" size="5" maxlength="20" value="0"  onkeydown="kdevent(event,'b')"/>
+	<bl/><plusbut onClick="setDiffuse(element.parent_node,0,0,0.125)"/><br/>
+	</h1>
+
 	</body>
 </rml>
