@@ -102,7 +102,7 @@ static const char *fragment_shader=
 	"float d=length(lightPos-pos);\n"
 	"float att=falloff*1.0/(0.9+0.1*d*d);"
 	"float specular = pow(max(dot(reflect(-lightVec, norm), normalize(eyePos-pos)), 0), 30);\n"
-	"color=mix(ao, 1.0, diffuse)*diffuse*att*vec4(diffuse*fColor*lightColor+specular*lightColor*spec, 1);} else discard;\n"
+	"color=mix(ao, 1.0, diffuse)*att*vec4(diffuse*fColor*lightColor+specular*lightColor*spec, 1);} else discard;\n"
 	"}\n";
 
 static const char *fragment_shader_spotlight=
