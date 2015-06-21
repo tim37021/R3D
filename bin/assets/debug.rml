@@ -35,6 +35,8 @@
 	<p style="text-align: center;"><img src="/SpecularMap" flipv width="400" height="250"/></p>
 	<h1 style="text-align: center; color: black;" >SSAO</h1>
 	<p style="text-align: center;"><img src="/BlurredSSAOMap" flipv width="400" height="250"/></p>
+	<h1 style="text-align: center; color: black;" >Shadow1024x1024</h1>
+	<p style="text-align: center;"><img src="/ShadowMap[1024x1024]" flipv width="400" height="250"/></p>
 	<h1 style="text-align: center; color: black;" >Lighted</h1>
 	<p style="text-align: center;"><img src="/LightedMap" flipv width="400" height="250"/></p>
 	<h1 style="text-align: center; color: black;" >Bloom</h1>

@@ -25,6 +25,9 @@ namespace r3d
 		virtual void setFilter(Filter min, Filter mag);
 		virtual void generateMipmap();
 
+		//Set Border
+		virtual void setBorder(const glm::vec4 border) ;
+
 		// must update gpu
 		virtual void resize(uint32_t width, uint32_t height);
 	private:
@@ -53,6 +56,9 @@ namespace r3d
 		virtual void setFilter(Filter min, Filter mag);
 		virtual void generateMipmap();
 
+		//Set Border
+		virtual void setBorder(const glm::vec4 border) ;
+		
 		// must update gpu
 		virtual void resize(uint32_t width, uint32_t height);
 	private:

@@ -56,13 +56,28 @@ public:
 			}
 		}else
 		{
-			if(button==1&&action){
+			if(button==1&&action){//Mouse click right 
 				auto sMgr=cw->getSceneManager();
 				
 				r3d::PointLight *light=new r3d::PointLight();
 				light->pos=global_fps->getPos();
 				light->color=(glm::vec3(0.3f)+
-				glm::vec3((float)rand()/RAND_MAX, (float)rand()/RAND_MAX, (float)rand()/RAND_MAX));
+				1.5f*glm::vec3((float)rand()/RAND_MAX, (float)rand()/RAND_MAX, (float)rand()/RAND_MAX));
+				sMgr->addLight(light);
+			}
+
+			if(button==2&&action){//Mouse click middle
+				auto sMgr=cw->getSceneManager();
+				
+				r3d::SpotLight *light=new r3d::SpotLight(cw, 1536, 1536);
+				light->dir = global_fps->getDir();
+				light->up = global_fps->getUp();
+				light->innerAngle = 20;
+				light->outerAngle = 30;
+
+				light->pos=global_fps->getPos();
+				light->color=(glm::vec3(0.3f)+
+				5.0f*glm::vec3((float)rand()/RAND_MAX, (float)rand()/RAND_MAX, (float)rand()/RAND_MAX));
 				sMgr->addLight(light);
 			}
 		}

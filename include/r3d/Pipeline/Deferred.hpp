@@ -5,6 +5,7 @@
 #include <functional>
 #include <glm/glm.hpp>
 #include <utility>
+#include <r3d/Core/Texture.hpp>
 
 namespace r3d
 {
@@ -18,12 +19,14 @@ namespace r3d
 	class SpotLight;
 	class Camera;
 	class SSAO;
+	class RenderTarget2D;
 	class SceneNode;
 	class RenderTarget2D;
 	class ColorTexture2D;
 	class PostFX;
 	class PostEffect;
 
+	typedef std::shared_ptr<RenderTarget2D> RenderTarget2DPtr;
 	typedef std::shared_ptr<Program> ProgramPtr;
 	typedef std::shared_ptr<RenderTarget2D> RenderTarget2DPtr;
 
@@ -39,7 +42,9 @@ namespace r3d
 		Engine *m_engine;
 		ContextWindow *m_cw;
 		Renderer *m_renderer;
-
+		Camera *m_lightCamera;
+		RenderTarget2DPtr m_renderTarget;
+		ColorTexture2D *m_noiseMap;
 		GBuffer *m_gBuffer;
 
 		// post processing

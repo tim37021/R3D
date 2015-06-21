@@ -111,30 +111,103 @@ static const char *fragment_shader_spotlight=
 	"uniform sampler2D diffuseMap;\n"
 	"uniform sampler2D normMap;\n"
 	"uniform sampler2D specMap;\n"
-	"uniform vec2 viewport;"
-	"uniform vec3 eyePos;"
+	"uniform sampler2D AOMap;\n"
+	"uniform sampler2D shadowMap;\n"
+	"uniform sampler2D noiseMap;\n"
+	"uniform vec2 viewport;\n"
+	"uniform vec3 eyePos;\n"
 	"uniform vec3 lightPos;\n"
 	"uniform vec3 lightColor;\n;"
 	"uniform vec3 lightDir;\n"
-	"uniform float angle;\n"
+	"uniform vec3 converter\n;"
+	"uniform mat4 lightCamVp;\n"
+	"uniform float innerAngle;\n"
+	"uniform float outerAngle;\n"
 	"out vec4 color;\n"
+
+	////////PCF/////// 
+
+	"const int numSamplingPositions = 4;\n"
+	"vec2 kernel[9] = vec2 [](\n"
+	"	vec2(-1.0, -1.0), vec2(0.0, -1.0), vec2(1.0, -1.0),\n"
+	"	vec2(-1.0, 0.0), vec2(0.0, 0.0), vec2(1.0, 0.0),\n"
+	"	vec2(-1.0, 1.0), vec2(0.0, 1.0), vec2(1.0, 1.0)\n"
+	");\n"
+	
+	"vec2 poissonKernel[4] = vec2 [](\n"
+	"	vec2( -0.94201624, -0.39906216 ),\n"
+  	"	vec2( 0.94558609, -0.76890725 ),\n"
+  	"	vec2( -0.094184101, -0.92938870 ),\n"
+  	"	vec2( 0.34495938, 0.29387760 )\n"
+	");\n"
+
+	"float gaussian[9] = float [] (\n"
+	"	0.07511360795411207, 0.12384140315297386, 0.07511360795411207, \n"
+	"	0.12384140315297386, 0.20417995557165622, 0.12384140315297386, \n"
+	"	0.07511360795411207, 0.12384140315297386, 0.07511360795411207\n"
+	");\n"
+
+	
+	"float sample(in vec2 coords, in vec2 offset){\n"
+	"	return  texture(shadowMap, coords + offset/1024);\n"
+	"}\n"
+	////////
+
+	"float shadowIntensity(vec3 shadowCoord, vec3 pos, vec3 normal){\n"
+	////////PCF/////// 
+	///Using poisson//
+	"	float mapDepth = 0;\n"
+	"	float intense = 0;\n"
+	"	float bias = 0.15 * tan(acos(dot (normal,  normalize(lightPos - pos)))); \n"
+	"	bias = clamp(bias, 0, 0.4); \n"
+	"	for (int i = 0; i<4; i++){\n"
+	//"		float sampleDepth =sample(shadowCoord.xy, kernel[i] * 2) * 2 - 1;\n"
+	"		int noise = (int(texture(noiseMap, normalize(pos.xy/pos.z) + shadowCoord.xy*2.0 + poissonKernel[i]/1000).x*1000))%4;\n"
+	"		float sampleDepth = texture(shadowMap, shadowCoord.xy + poissonKernel[noise]/1000).x*2 -1 ;\n"
+	"		float sampleLinearDepth = converter.x / (converter.y-sampleDepth*converter.z);\n"
+	" 		float objectLinearDepth = converter.x / (converter.y-shadowCoord.z*converter.z);\n"
+	"		if( sampleLinearDepth + bias < objectLinearDepth ) {\n"
+	"			intense +=  0.2; \n" //exp(-5*(objectLinearDepth - sampleLinearDepth )/converter.z)*
+	"		}\n"
+	"	}\n"
+	//////////////////
+	"	return intense; \n"	
+	"}\n"
+
 	"void main(){\n"
-	"vec2 vTexCoord=gl_FragCoord.xy/viewport;"
+	"vec2 vTexCoord=gl_FragCoord.xy/viewport;\n"
 	"vec3 pos=texture(posMap, vTexCoord).xyz;\n"
 	"vec3 fColor=texture(diffuseMap, vTexCoord).rgb;\n"
 	"vec3 norm=texture(normMap, vTexCoord).xyz;\n"
 	"vec3 spec=texture(specMap, vTexCoord).rgb;\n"
-	"float d=length(pos-lightPos);\n"
-	"if(length(norm)<=0.5||d>=8) discard;"
-	"vec3 lightVec=normalize(lightPos-pos);"
+	"float ao=texture(AOMap, vTexCoord).r;"
+	"float d = length(pos-lightPos);\n"
+	"if(length(norm)<=0.5||d>=8) discard;\n"
+	"vec3 lightVec=normalize(lightPos-pos);\n"
 	"float diffuse=dot(norm, lightVec);\n"
-	"if(diffuse>=0.0){"
-	"if(dot(-lightVec, lightDir) < cos(angle)) discard;\n"
-	"float falloff = 1.0-clamp((d-6.0)/2.0, 0.0, 1.0);\n"
-	"float d=length(lightPos-pos);\n"
-	"float att=falloff*1.0/(0.9+0.1*d*d);"
-	"float specular = pow(max(dot(reflect(-lightVec, norm), normalize(eyePos-pos)), 0), 30);\n"
-	"color=att*vec4(diffuse*fColor*lightColor+specular*lightColor*spec, 1);} else discard;\n"
+	"if(diffuse>=0.0){\n"
+	"	float angleCos = dot(-lightVec, lightDir); "
+	"	if(angleCos < cos(outerAngle)) discard;\n"
+	"	vec4 shadowCoord=lightCamVp* vec4(pos, 1.0);\n"
+	"	shadowCoord.xyz/=shadowCoord.w;\n"
+	"	shadowCoord.xy=(shadowCoord.xy+vec2 (1.0))/2.0;\n"
+	"	float shadow_inten=shadowIntensity(shadowCoord.xyz, pos, norm); \n" // Decide if pixel should be litted
+	"	float falloff = 1.0-clamp((d-6.0)/2.0, 0.0, 1.0);\n"
+	"	float d=length(lightPos-pos);\n"
+	"	float att=falloff*1.0/(0.9+0.1*d*d);\n"
+	"	float specular = pow(max(dot(reflect(-lightVec, norm), normalize(eyePos-pos)), 0), 30);\n"
+	"	vec4 lightIntense = mix(ao, 1.0, diffuse)*att*vec4(diffuse*fColor*lightColor+specular*lightColor*spec, 1);"
+	//Spotlight fading
+	"	if(angleCos < cos(innerAngle)) {\n"
+	"		float ratio = (acos(angleCos) - innerAngle)/(outerAngle - innerAngle);"
+	"		float factor = 1 - ratio * ratio;\n"
+	"		lightIntense *= factor; \n"
+	"	}\n"
+
+	"	color=(1.0-shadow_inten)*lightIntense; \n"
+	"}\n"
+	"else discard;\n"
+
 	"}\n";
 ////////////////////////////////////
 static const char *vertex_shader_depth=
@@ -179,6 +252,8 @@ namespace r3d
 	Deferred::Deferred(Engine *engine, ContextWindow *cw):
 		m_engine(engine), m_cw(cw)
 	{
+		auto tMgr = cw->getTextureManager();
+
 		m_renderer=engine->getRenderer();
 		m_vao=m_cw->getVertexArrayManager()->registerVertexArray("ATTRIBUTELESS");
 
@@ -194,11 +269,6 @@ namespace r3d
 		m_pfx = new PostFX(engine, cw);
 
 		SpotLight *light=new SpotLight(cw);
-		light->color=glm::vec3(1.0f);
-		light->pos=glm::vec3(0, 5, 0);
-		light->dir=glm::vec3(0, -1, 0);
-		light->angle=10.0f;
-		cw->getSceneManager()->addLight(light);
 
 		m_lightRT = engine->newRenderTarget2D();
 		m_lightedMap = m_cw->getTextureManager()->registerColorTexture2D("LightedMap", cw->getWidth(), cw->getHeight(), PF_BGR);
@@ -207,6 +277,11 @@ namespace r3d
 
 		// register bloom effect
 		m_bloom=m_pfx->pushEffect("bloom", m_lightedMap);
+		m_lightCamera = new Camera(m_cw, glm::vec3 (0.0f), glm::vec3 (0.0f), glm::vec3 (0.0f));
+	
+		m_renderTarget = engine->newRenderTarget2D();
+		m_renderTarget->attachDepthTexture(cw->getTextureManager()->registerDepthTexture2D("ShadowMap[1536x1536]", 1536, 1536, DF_24));
+		m_noiseMap = tMgr->registerColorTexture2D("noise.png");
 	}
 
 	Deferred::~Deferred()
@@ -214,6 +289,7 @@ namespace r3d
 		delete m_gBuffer;
 		delete m_ssao;
 		delete m_pfx;
+		delete m_lightCamera;
 	}
 
 	void Deferred::run()
@@ -246,6 +322,7 @@ namespace r3d
 					break;
 				case LT_SPOT_LIGHT:
 					litSpotLight(mainCamera, (SpotLight *)light);
+					break;
 				default:;
 			}
 		}
@@ -320,6 +397,8 @@ namespace r3d
 		m_gBuffer->getNormalMap()->bind(2);
 		m_gBuffer->getSpecularMap()->bind(3);
 		m_ssao->getBlurredAmbientMap()->bind(4);
+		//ShadowMap bind (5) for each light source
+		m_noiseMap->bind(6);
 
 		// disable depth test!!!!
 		m_renderer->enableDepthTest(false);
@@ -347,17 +426,44 @@ namespace r3d
 
 	void Deferred::litSpotLight(Camera *cam, SpotLight *light )
 	{
+		// See if we need this light?
+		auto region=calcLitRegion(cam, light->pos, 8.0f);
+		if(glm::length(region.second-region.first)<0.005f*1.414f)
+			return;
+
+		m_lightCamera->setPos(light->pos);
+		m_lightCamera->setDir(light->dir);
+		m_lightCamera->setUp(light->up);
+		m_lightCamera->setNear(0.1f);
+		m_lightCamera->setFar(10.0f);
+		m_lightCamera->setAspect(1.0f);
+		m_lightCamera->setFov(light->outerAngle*2.0f);
+		float near = m_lightCamera->getNear();
+		float far = m_lightCamera->getFar();
+
+		m_renderer->enableDepthTest(true);
+		m_renderTarget->bind();
+		m_renderer->setViewport(0, 0, light->dMap->getWidth(), light->dMap->getHeight());
+		m_renderer->clear();
+		foreachSceneNode(m_cw->getSceneManager()->getRootNode().get(), 
+			std::bind(&Deferred::renderDepth, this, m_lightCamera, std::placeholders::_1, std::placeholders::_2
+				, std::placeholders::_3));
+		m_renderer->enableDepthTest(false);
+		m_lightRT->bind();
+		m_renderer->setViewport(0, 0, m_cw->getWidth(), m_cw->getHeight());
+		light->dMap->bind(5);
 
 		m_programSL->setUniform("lightPos", light->pos);
 		m_programSL->setUniform("lightColor", light->color);
 		m_programSL->setUniform("lightDir", glm::normalize(light->dir));
-		m_programSL->setUniform("angle", light->angle);
-		auto region=calcLitRegion(cam, light->pos, 8.0f);
+
 		m_programSL->setUniform("rectBottomLeft", region.first);
 		m_programSL->setUniform("rectTopRight", region.second);
-
+		m_programSL->setUniform("innerAngle", light->innerAngle*3.1415f/180);
+		m_programSL->setUniform("outerAngle", light->outerAngle*3.1415f/180);
+		m_programSL->setUniform("lightCamVp", m_lightCamera->getVPMatrix());
+		m_programSL->setUniform("converter", {2.0f*near*far, near+far, far-near});
 		m_renderer->drawArrays(m_programSL.get(), m_vao, PT_POINTS, 1);	
-
 	}
 
 	void Deferred::litAmbientLight(const glm::vec3 &lColor)
@@ -381,6 +487,9 @@ namespace r3d
 		m_programSL->setUniform("diffuseMap", 1);
 		m_programSL->setUniform("normMap", 2);
 		m_programSL->setUniform("specMap", 3);
+		m_programSL->setUniform("AOMap", 4);
+		m_programSL->setUniform("shadowMap", 5);
+		m_programSL->setUniform("noiseMap",6);
 
 		m_programA->setUniform("diffuseMap", 0);
 		m_programA->setUniform("AOMap", 1);

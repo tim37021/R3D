@@ -1,7 +1,9 @@
 #include <GL/glew.h>
+#include <glm/gtc/type_ptr.hpp>
 #include "OpenGLTexture.hpp"
 #include <r3d/Utils/Image.hpp>
 #include <cstring>
+
 
 #define PUSHSTATE() GLint restoreId; glGetIntegerv( GL_TEXTURE_BINDING_2D, &restoreId );
 #define POPSTATE() glBindTexture( GL_TEXTURE_2D, restoreId );
@@ -202,6 +204,17 @@ namespace r3d
 		POPSTATE();
 	}
 
+	void OpenGLColorTexture2D::setBorder(const glm::vec4 border)
+	{
+		m_border = border;
+		PUSHSTATE();
+
+		glBindTexture(GL_TEXTURE_2D, getID());
+		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, glm::value_ptr(m_border));
+
+		POPSTATE();
+	}
+
 	OpenGLDepthTexture2D::OpenGLDepthTexture2D(uint32_t width, uint32_t height, DepthFormat df):
 		DepthTexture2D(width, height, df), OpenGLObject(glGenTextures, glDeleteTextures)
 	{
@@ -272,6 +285,17 @@ namespace r3d
 		glBindTexture( GL_TEXTURE_2D, getID());
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, WrappingOpenGLMap[s]);
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, WrappingOpenGLMap[t]);
+
+		POPSTATE();
+	}
+
+	void OpenGLDepthTexture2D::setBorder(const glm::vec4 border)
+	{
+		m_border = border;
+		PUSHSTATE();
+
+		glBindTexture(GL_TEXTURE_2D, getID());
+		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, glm::value_ptr(m_border));
 
 		POPSTATE();
 	}
