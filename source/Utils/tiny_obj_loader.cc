@@ -31,7 +31,7 @@
 #include <fstream>
 #include <sstream>
 
-#include "tiny_obj_loader.h"
+#include <r3d/Utils/ObjLoader.hpp>
 
 namespace tinyobj {
 

@@ -1,13 +1,14 @@
 #include <r3d/Manager/SceneManager.hpp>
-#include <r3d/Utils/tiny_obj_loader.h>
 #include <r3d/Core/Core.hpp>
 #include <r3d/Core/Vertex.hpp>
 #include <r3d/Core/AttribPointer.hpp>
 #include <r3d/Scene/SceneNode.hpp>
 #include <glm/glm.hpp>
 #include <r3d/Material/Material.hpp>
+#include <r3d/Utils/ObjLoader.hpp>
 #include "../Scene/MeshSceneNode.hpp"
 #include "../Scene/EmptySceneNode.hpp"
+
 
 static const char *vertex_shader=
 	"#version 330\n"
@@ -134,14 +135,7 @@ namespace r3d
 		node->addChild(objNode);
 		for(auto &shape: shapes)
 		{
-			std::vector<Vertex> vertices;
-			for(uint32_t v=0; v<shape.mesh.positions.size()/3; v++)
-			{
-				vertices.push_back({glm::vec3(shape.mesh.positions[v*3], shape.mesh.positions[v*3+1], shape.mesh.positions[v*3+2]),
-								shape.mesh.texcoords.size()>0?glm::vec2(shape.mesh.texcoords.at(v*2), 1.0f-shape.mesh.texcoords.at(v*2+1)): glm::vec2(),
-								glm::vec3(shape.mesh.normals.at(v*3), shape.mesh.normals.at(v*3+1), shape.mesh.normals.at(v*3+2))});
-			}
-			MeshSceneNode *newNode = new MeshSceneNode(objNode, cw, vertices, shape.mesh.indices, shape.name.c_str());
+			MeshSceneNode *newNode = new MeshSceneNode(objNode, cw, shape);
 			
 			auto m_defaultMaterial = std::make_shared<Material>(m_program);
 

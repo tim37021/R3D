@@ -4,11 +4,13 @@
 #include <r3d/Core/VertexArray.hpp>
 #include <r3d/Camera/Camera.hpp>
 #include <r3d/Window/ContextWindow.hpp>
-#include <iostream>
-#include <glm/gtc/matrix_inverse.hpp>
-#include <cstdint>
-
+#include <r3d/Utils/ObjLoader.hpp>
 #include "../Core/Frustum.hpp"
+
+#include <glm/gtc/matrix_inverse.hpp>
+
+#include <iostream>
+#include <cstdint>
 
 #define INF 9999999.9f
 
@@ -24,13 +26,19 @@ namespace r3d
 {
 
 	MeshSceneNode::MeshSceneNode(SceneNodePtr parent, ContextWindow *cw, 
-		const std::vector<Vertex> &vertices, const std::vector<uint32_t> &indices,
-		const char *name, 
-		const Transformation &relative):
-		SceneNode(parent, cw, name, relative)
+		const Shape &shape,	const char *name_, const Transformation &relative):
+		SceneNode(parent, cw, (name_? name_: shape.name.c_str()), relative)
 	{
+		std::string name=(name_? name_: shape.name.c_str());
+		// construct vertex struct
+		for(uint32_t v=0; v<shape.mesh.positions.size()/3; v++)
+		{
+			m_vertices.push_back({glm::vec3(shape.mesh.positions[v*3], shape.mesh.positions[v*3+1], shape.mesh.positions[v*3+2]),
+							shape.mesh.texcoords.size()>0?glm::vec2(shape.mesh.texcoords.at(v*2), 1.0f-shape.mesh.texcoords.at(v*2+1)): glm::vec2(),
+							glm::vec3(shape.mesh.normals.at(v*3), shape.mesh.normals.at(v*3+1), shape.mesh.normals.at(v*3+2))});
+		}
+
 		// We must move object to the middle
-		m_vertices = vertices;
 		findAABB();
 		const glm::vec3 &middle=(m_aabb.m_max+m_aabb.m_min)/2.0f;
 		for(auto &v: m_vertices)
@@ -43,7 +51,7 @@ namespace r3d
 		auto bMgr=cw->getBufferManager();
 		
 		auto vbo=bMgr->registerVertexBuffer(name, m_vertices.data(), sizeof(Vertex)*m_vertices.size(), BU_STATIC_DRAW);
-		auto ibo=bMgr->registerIndexBuffer(name, indices, BU_STATIC_DRAW);
+		auto ibo=bMgr->registerIndexBuffer(name, shape.mesh.indices, BU_STATIC_DRAW);
 	
 		m_vao=vaoMgr->registerVertexArray(name);
 		m_vao->bindVertexBuffer(vbo);
@@ -57,7 +65,7 @@ namespace r3d
 		m_vao->enableAttribArray(1, texCoordAtt);
 		m_vao->enableAttribArray(2, normAtt);
 
-		m_indicesCount=indices.size();
+		m_indicesCount=shape.mesh.indices.size();
 	}
 
 	void MeshSceneNode::render(Renderer *renderer, Program *program, Camera *cam, 

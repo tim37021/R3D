@@ -8,10 +8,18 @@
 #include <r3d/Core/Vertex.hpp>
 #include <r3d/Core/AABB.hpp>
 
+namespace tinyobj
+{
+	struct shape_t;
+}
+
 namespace r3d
 {
 	class SceneManager;
 	class VertexArray;
+
+	typedef tinyobj::shape_t Shape;
+
 	class MeshSceneNode: public SceneNode
 	{
 		friend class SceneManager;
@@ -19,8 +27,8 @@ namespace r3d
 		//!> SceneManager
 		MeshSceneNode(SceneNodePtr parent, 
 			ContextWindow *cw, 
-			const std::vector<Vertex> &vertices, const std::vector<uint32_t> &indices,
-			const char *name="Untitled", const Transformation &relative=Transformation());
+			const Shape &shape,
+			const char *name=nullptr, const Transformation &relative=Transformation());
 
 		//!> Render whole scene
 		virtual void render(Renderer *, Program *program, Camera *, 
