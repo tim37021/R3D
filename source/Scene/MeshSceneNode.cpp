@@ -26,7 +26,7 @@ namespace r3d
 {
 
 	MeshSceneNode::MeshSceneNode(SceneNodePtr parent, ContextWindow *cw, 
-		const Shape &shape,	const char *name_, const Transformation &relative):
+		Shape &shape, const char *name_, const Transformation &relative):
 		SceneNode(parent, cw, (name_? name_: shape.name.c_str()), relative)
 	{
 		std::string name=(name_? name_: shape.name.c_str());
@@ -37,6 +37,7 @@ namespace r3d
 							shape.mesh.texcoords.size()>0?glm::vec2(shape.mesh.texcoords.at(v*2), 1.0f-shape.mesh.texcoords.at(v*2+1)): glm::vec2(),
 							glm::vec3(shape.mesh.normals.at(v*3), shape.mesh.normals.at(v*3+1), shape.mesh.normals.at(v*3+2))});
 		}
+
 
 		// We must move object to the middle
 		findAABB();

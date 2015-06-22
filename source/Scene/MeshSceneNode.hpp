@@ -27,7 +27,7 @@ namespace r3d
 		//!> SceneManager
 		MeshSceneNode(SceneNodePtr parent, 
 			ContextWindow *cw, 
-			const Shape &shape,
+			Shape &shape,
 			const char *name=nullptr, const Transformation &relative=Transformation());
 
 		//!> Render whole scene
