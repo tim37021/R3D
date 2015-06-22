@@ -69,7 +69,7 @@ namespace r3d
 
 	FPSCamera::FPSCamera(ContextWindow *window, float fov, const glm::vec3 &pos)
 		: Camera(window), m_horizontalAngle(3.14f), m_verticalAngle(0.0f),
-		m_speed(3.0f), m_mouseSpeed(0.2f), m_lastUpdate(0.0f)
+		m_speed(12.0f), m_mouseSpeed(0.2f), m_lastUpdate(0.0f)
 	{
 		m_pos=pos;
 		m_fov=fov;

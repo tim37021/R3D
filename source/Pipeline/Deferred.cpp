@@ -94,13 +94,13 @@ static const char *fragment_shader=
 	"vec3 spec=texture(specMap, vTexCoord).rgb;\n"
 	"float ao=texture(AOMap, vTexCoord).r;"
 	"float d=length(pos-lightPos);\n"
-	"if(length(norm)<=0.5||d>=8) discard;"
+	"if(length(norm)<=0.5||d>=32) discard;"
 	"vec3 lightVec=normalize(lightPos-pos);"
 	"float diffuse=dot(norm, lightVec);\n"
 	"if(diffuse>=0.0){"
-	"float falloff = 1.0-clamp((d-6.0)/2.0, 0.0, 1.0);\n"
+	"float falloff = 1.0-clamp((d-24.0)/8.0, 0.0, 1.0);\n"
 	"float d=length(lightPos-pos);\n"
-	"float att=falloff*1.0/(0.9+0.1*d*d);"
+	"float att=falloff*1.0/(0.9375+0.0625*d*d);"
 	"float specular = pow(max(dot(reflect(-lightVec, norm), normalize(eyePos-pos)), 0), 30);\n"
 	"color=mix(ao, 1.0, diffuse)*att*vec4(diffuse*fColor*lightColor+specular*lightColor*spec, 1);} else discard;\n"
 	"}\n";
@@ -158,12 +158,12 @@ static const char *fragment_shader_spotlight=
 	///Using poisson//
 	"	float mapDepth = 0;\n"
 	"	float intense = 0;\n"
-	"	float bias = 0.15 * tan(acos(dot (normal,  normalize(lightPos - pos)))); \n"
-	"	bias = clamp(bias, 0, 0.4); \n"
+	"	float bias = -0.05 * tan(acos(dot (normal,  normalize(lightPos - pos)))); \n"
+	"	bias = clamp(bias, -0.1, 0); \n"
 	"	for (int i = 0; i<4; i++){\n"
 	//"		float sampleDepth =sample(shadowCoord.xy, kernel[i] * 2) * 2 - 1;\n"
 	"		int noise = (int(texture(noiseMap, normalize(pos.xy/pos.z) + shadowCoord.xy*2.0 + poissonKernel[i]/1000).x*1000))%4;\n"
-	"		float sampleDepth = texture(shadowMap, shadowCoord.xy + poissonKernel[noise]/1000).x*2 -1 ;\n"
+	"		float sampleDepth = texture(shadowMap, shadowCoord.xy + poissonKernel[noise]/1200).x*2 -1 ;\n"
 	"		float sampleLinearDepth = converter.x / (converter.y-sampleDepth*converter.z);\n"
 	" 		float objectLinearDepth = converter.x / (converter.y-shadowCoord.z*converter.z);\n"
 	"		if( sampleLinearDepth + bias < objectLinearDepth ) {\n"
@@ -182,7 +182,7 @@ static const char *fragment_shader_spotlight=
 	"vec3 spec=texture(specMap, vTexCoord).rgb;\n"
 	"float ao=texture(AOMap, vTexCoord).r;"
 	"float d = length(pos-lightPos);\n"
-	"if(length(norm)<=0.5||d>=8) discard;\n"
+	"if(length(norm)<=0.5||d>=32) discard;\n"
 	"vec3 lightVec=normalize(lightPos-pos);\n"
 	"float diffuse=dot(norm, lightVec);\n"
 	"if(diffuse>=0.0){\n"
@@ -192,9 +192,9 @@ static const char *fragment_shader_spotlight=
 	"	shadowCoord.xyz/=shadowCoord.w;\n"
 	"	shadowCoord.xy=(shadowCoord.xy+vec2 (1.0))/2.0;\n"
 	"	float shadow_inten=shadowIntensity(shadowCoord.xyz, pos, norm); \n" // Decide if pixel should be litted
-	"	float falloff = 1.0-clamp((d-6.0)/2.0, 0.0, 1.0);\n"
+	"	float falloff = 1.0-clamp((d-24.0)/8.0, 0.0, 1.0);\n"
 	"	float d=length(lightPos-pos);\n"
-	"	float att=falloff*1.0/(0.9+0.1*d*d);\n"
+	"	float att=falloff*1.0/(0.9375+0.0625*d*d);\n"
 	"	float specular = pow(max(dot(reflect(-lightVec, norm), normalize(eyePos-pos)), 0), 30);\n"
 	"	vec4 lightIntense = mix(ao, 1.0, diffuse)*att*vec4(diffuse*fColor*lightColor+specular*lightColor*spec, 1);"
 	//Spotlight fading
@@ -418,7 +418,7 @@ namespace r3d
 	{
 		m_programPL->setUniform("lightPos", light->pos);
 		m_programPL->setUniform("lightColor", light->color);
-		auto region=calcLitRegion(cam, light->pos, 8.0f);
+		auto region=calcLitRegion(cam, light->pos, 32.0f);
 		m_programPL->setUniform("rectBottomLeft", region.first);
 		m_programPL->setUniform("rectTopRight", region.second);
 		m_renderer->drawArrays(m_programPL.get(), m_vao, PT_POINTS, 1);
@@ -427,15 +427,15 @@ namespace r3d
 	void Deferred::litSpotLight(Camera *cam, SpotLight *light )
 	{
 		// See if we need this light?
-		auto region=calcLitRegion(cam, light->pos, 8.0f);
+		auto region=calcLitRegion(cam, light->pos, 32.0f);
 		if(glm::length(region.second-region.first)<0.005f*1.414f)
 			return;
 
 		m_lightCamera->setPos(light->pos);
 		m_lightCamera->setDir(light->dir);
 		m_lightCamera->setUp(light->up);
-		m_lightCamera->setNear(0.1f);
-		m_lightCamera->setFar(10.0f);
+		m_lightCamera->setNear(0.4f);
+		m_lightCamera->setFar(40.0f);
 		m_lightCamera->setAspect(1.0f);
 		m_lightCamera->setFov(light->outerAngle*2.0f);
 		float near = m_lightCamera->getNear();
@@ -444,12 +444,16 @@ namespace r3d
 		m_renderer->enableDepthTest(true);
 		m_renderTarget->bind();
 		m_renderer->setViewport(0, 0, light->dMap->getWidth(), light->dMap->getHeight());
+		m_engine->getRenderer()->enableFaceCulling(F_FRONT, true);
 		m_renderer->clear();
 		foreachSceneNode(m_cw->getSceneManager()->getRootNode().get(), 
 			std::bind(&Deferred::renderDepth, this, m_lightCamera, std::placeholders::_1, std::placeholders::_2
 				, std::placeholders::_3));
 		m_renderer->enableDepthTest(false);
+		m_engine->getRenderer()->enableFaceCulling(F_BACK, true);
+
 		m_lightRT->bind();
+
 		m_renderer->setViewport(0, 0, m_cw->getWidth(), m_cw->getHeight());
 		light->dMap->bind(5);
 

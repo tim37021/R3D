@@ -39,7 +39,7 @@ namespace r3d
 		m_fbo->bind();
 		m_engine->getRenderer()->clear();
 		m_engine->getRenderer()->enableDepthTest(true);
-		m_engine->getRenderer()->enableBackfaceCulling(true);
+		m_engine->getRenderer()->enableFaceCulling(F_BACK, true);
 		m_engine->getRenderer()->enableBlending(false);
 	}
 

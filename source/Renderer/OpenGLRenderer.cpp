@@ -9,6 +9,7 @@ static GLenum BlendParameterOpenGLMap[]=
 	GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_DST_ALPHA,	GL_ONE_MINUS_DST_ALPHA};
 static GLenum BlendFunctionOpenGLMap[]={GL_FUNC_ADD, GL_FUNC_SUBTRACT, GL_FUNC_REVERSE_SUBTRACT};
 static GLenum FillModeOpenGLMap[]={GL_POINT, GL_LINE, GL_FILL};
+static GLenum FaceOpenGLMap[]={GL_FRONT, GL_BACK, GL_FRONT_AND_BACK};
 namespace r3d
 {
 	OpenGLRenderer::OpenGLRenderer(Engine *engine)
@@ -39,13 +40,13 @@ namespace r3d
 			glDisable(GL_DEPTH_TEST);
 	}
 
-	void OpenGLRenderer::enableBackfaceCulling(bool value)
+	void OpenGLRenderer::enableFaceCulling(Face f, bool value)
 	{
 		if(value)
 			glEnable(GL_CULL_FACE);
 		else
 			glDisable(GL_CULL_FACE);
-		glCullFace(GL_BACK);
+		glCullFace(FaceOpenGLMap[f]);
 	}
 	void OpenGLRenderer::enableScissorTest(bool enable)
 	{

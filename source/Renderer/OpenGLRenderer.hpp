@@ -14,7 +14,7 @@ namespace r3d
 		virtual void setViewport(int32_t, int32_t, uint32_t width, uint32_t height);
 		virtual void setFillMode(FillMode);
 		virtual void enableDepthTest(bool value);
-		virtual void enableBackfaceCulling(bool value);
+		virtual void enableFaceCulling(Face, bool value);
 		virtual void enableScissorTest(bool enable);
 		virtual void setScissorRegion(int32_t, int32_t, uint32_t, uint32_t);
 		virtual void enableBlending(bool value, BlendParameter sf, BlendParameter df, BlendFunction bf);

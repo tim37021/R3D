@@ -62,7 +62,7 @@ public:
 				r3d::PointLight *light=new r3d::PointLight();
 				light->pos=global_fps->getPos();
 				light->color=(glm::vec3(0.3f)+
-				1.5f*glm::vec3((float)rand()/RAND_MAX, (float)rand()/RAND_MAX, (float)rand()/RAND_MAX));
+				6.0f*glm::vec3((float)rand()/RAND_MAX, (float)rand()/RAND_MAX, (float)rand()/RAND_MAX));
 				sMgr->addLight(light);
 			}
 
@@ -77,7 +77,7 @@ public:
 
 				light->pos=global_fps->getPos();
 				light->color=(glm::vec3(0.3f)+
-				5.0f*glm::vec3((float)rand()/RAND_MAX, (float)rand()/RAND_MAX, (float)rand()/RAND_MAX));
+				20.0f*glm::vec3((float)rand()/RAND_MAX, (float)rand()/RAND_MAX, (float)rand()/RAND_MAX));
 				sMgr->addLight(light);
 			}
 		}
