@@ -149,7 +149,7 @@ static const char *fragment_shader_spotlight=
 
 	
 	"float sample(in vec2 coords, in vec2 offset){\n"
-	"	return  texture(shadowMap, coords + offset/1024);\n"
+	"	return texture(shadowMap, coords + offset/1024);\n"
 	"}\n"
 	////////
 
@@ -162,8 +162,7 @@ static const char *fragment_shader_spotlight=
 	"	bias = clamp(bias, -0.1, 0); \n"
 	"	for (int i = 0; i<4; i++){\n"
 	//"		float sampleDepth =sample(shadowCoord.xy, kernel[i] * 2) * 2 - 1;\n"
-	"		int noise = (int(texture(noiseMap, normalize(pos.xy/pos.z) + shadowCoord.xy*2.0 + poissonKernel[i]/1000).x*1000))%4;\n"
-	"		float sampleDepth = texture(shadowMap, shadowCoord.xy + poissonKernel[noise]/1200).x*2 -1 ;\n"
+	"		float sampleDepth = texture(shadowMap, shadowCoord.xy + poissonKernel[i]/3600).x*2 -1 ;\n"
 	"		float sampleLinearDepth = converter.x / (converter.y-sampleDepth*converter.z);\n"
 	" 		float objectLinearDepth = converter.x / (converter.y-shadowCoord.z*converter.z);\n"
 	"		if( sampleLinearDepth + bias < objectLinearDepth ) {\n"
@@ -182,7 +181,7 @@ static const char *fragment_shader_spotlight=
 	"vec3 spec=texture(specMap, vTexCoord).rgb;\n"
 	"float ao=texture(AOMap, vTexCoord).r;"
 	"float d = length(pos-lightPos);\n"
-	"if(length(norm)<=0.5||d>=32) discard;\n"
+	"if(length(norm)<=0.5||d>=47) discard;\n"
 	"vec3 lightVec=normalize(lightPos-pos);\n"
 	"float diffuse=dot(norm, lightVec);\n"
 	"if(diffuse>=0.0){\n"
@@ -192,7 +191,7 @@ static const char *fragment_shader_spotlight=
 	"	shadowCoord.xyz/=shadowCoord.w;\n"
 	"	shadowCoord.xy=(shadowCoord.xy+vec2 (1.0))/2.0;\n"
 	"	float shadow_inten=shadowIntensity(shadowCoord.xyz, pos, norm); \n" // Decide if pixel should be litted
-	"	float falloff = 1.0-clamp((d-24.0)/8.0, 0.0, 1.0);\n"
+	"	float falloff = 1.0-clamp((d-35)/12.0, 0.0, 1.0);\n"
 	"	float d=length(lightPos-pos);\n"
 	"	float att=falloff*1.0/(0.9375+0.0625*d*d);\n"
 	"	float specular = pow(max(dot(reflect(-lightVec, norm), normalize(eyePos-pos)), 0), 30);\n"
@@ -228,12 +227,13 @@ static const char *fragment_shader_combine=
 	"uniform sampler2D lightedMap;\n"
 	"uniform sampler2D bloomMap;\n"
 	"uniform vec2 viewport;\n"
+	"uniform float gamma=2.2;\n"
 	"out vec4 color;\n"
 	"void main(){"
 	"vec2 vTexCoord=gl_FragCoord.xy/viewport;\n"
-	"vec4 lighted=texture(lightedMap, vTexCoord);\n"
-	"vec4 bloomed=texture(bloomMap, vTexCoord);"
-	"color=lighted+bloomed;\n"
+	"vec3 lighted=texture(lightedMap, vTexCoord).rgb;\n"
+	"vec3 bloomed=texture(bloomMap, vTexCoord).rgb;"
+	"color=vec4(pow(mix(lighted, bloomed, 0.9), vec3(1/gamma)), 1.0);\n"
 	"}";
 
 namespace r3d
@@ -271,7 +271,7 @@ namespace r3d
 		SpotLight *light=new SpotLight(cw);
 
 		m_lightRT = engine->newRenderTarget2D();
-		m_lightedMap = m_cw->getTextureManager()->registerColorTexture2D("LightedMap", cw->getWidth(), cw->getHeight(), PF_BGR);
+		m_lightedMap = m_cw->getTextureManager()->registerColorTexture2D("LightedMap", cw->getWidth(), cw->getHeight(), PF_BGRF);
 		ColorTexture2D *texts[]={m_lightedMap};
 		m_lightRT->attachColorTextures(1, texts);
 
@@ -310,11 +310,9 @@ namespace r3d
 		prepareViewRelativeUniform(m_programA, m_cw->getSceneManager()->getMainCamera());
 		prepareViewRelativeUniform(m_programSL, m_cw->getSceneManager()->getMainCamera());
 
-		glm::vec3 ambientColor(0.1f);
 		// lit the light one by one
 		for(auto light: m_cw->getSceneManager()->getLights())
 		{
-			ambientColor+=light->color;
 			switch(light->type)
 			{
 				case LT_POINT_LIGHT:
@@ -326,11 +324,7 @@ namespace r3d
 				default:;
 			}
 		}
-		//ambientColor/=m_cw->getSceneManager()->getLights().size();
-		//ambientColor*=0.5f;
-		ambientColor=glm::vec3(0.1f);
-
-		litAmbientLight(ambientColor);
+		litAmbientLight(glm::vec3(0.01f));
 
 		endLightPass();
 
@@ -427,7 +421,7 @@ namespace r3d
 	void Deferred::litSpotLight(Camera *cam, SpotLight *light )
 	{
 		// See if we need this light?
-		auto region=calcLitRegion(cam, light->pos, 32.0f);
+		auto region=calcLitRegion(cam, light->pos, 47.0f);
 		if(glm::length(region.second-region.first)<0.005f*1.414f)
 			return;
 

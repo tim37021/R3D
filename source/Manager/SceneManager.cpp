@@ -83,7 +83,7 @@ static const char *fragment_shader=
 
 	"void main(){\n"
 	"worldPosMap=gWorldPos;\n"
-	"vec3 color=vec3(texture(diffuseTexture, gTexCoord))*diffuse;\n"
+	"vec3 color=texture(diffuseTexture, gTexCoord).rgb*diffuse;\n"
 	"diffuseMap=(wireframeView==1? mix(vec3(0.0), color, edgeFactor()): color);\n"
 	"normalMap=gNorm;\n"
 	"specularMap=(specular.x<0?vec3(texture(specularTexture, gTexCoord)): specular);\n"

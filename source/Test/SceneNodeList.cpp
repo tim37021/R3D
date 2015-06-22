@@ -37,9 +37,7 @@ class SceneNodeList:public Rocket::Controls::DataSource
 				}
 				else if (columns[i] == "ptr")
 				{
-					char ptrstr[50];
-					sprintf(ptrstr,"%lld",(intptr_t)(*lit).get());
-					row.push_back(ptrstr);
+					row.push_back(std::to_string((intptr_t)(*lit).get()).c_str());
 				}
 			}
 		}

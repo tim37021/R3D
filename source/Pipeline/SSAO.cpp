@@ -42,7 +42,7 @@ static const char *fragment_shader=
 	"uniform sampler2D noiseMap;"
 	"uniform vec3 kernel[64];"
 	"uniform ivec3 noiseScale_kernelSize=ivec3(4, 4, 24);"
-	"uniform float radius=0.5f;"
+	"uniform float radius=2.0f;"
 	"uniform vec3 converter;"
 	"uniform vec2 viewport;"
 	"uniform mat4 view, pureView, proj;"

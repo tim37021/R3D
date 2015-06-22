@@ -42,7 +42,7 @@ namespace r3d
 		m_program=MakeShaderProgram(pfx->getEngine(), vertex_shader, geometry_shader, fragment_shader);
 		m_cw=m_pfx->getContextWindow();
 		
-		ColorTexture2D *text = m_cw->getTextureManager()->registerColorTexture2D(name, m_cw->getWidth()/2, m_cw->getHeight()/2, PF_BGR);
+		ColorTexture2D *text = m_cw->getTextureManager()->registerColorTexture2D(name, m_cw->getWidth()/2, m_cw->getHeight()/2, PF_BGRF);
 
 		// Prepare render target
 		m_renderTarget=pfx->getEngine()->newRenderTarget2D();
