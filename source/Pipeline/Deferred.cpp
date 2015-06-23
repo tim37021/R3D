@@ -233,7 +233,7 @@ static const char *fragment_shader_combine=
 	"vec2 vTexCoord=gl_FragCoord.xy/viewport;\n"
 	"vec3 lighted=texture(lightedMap, vTexCoord).rgb;\n"
 	"vec3 bloomed=texture(bloomMap, vTexCoord).rgb;"
-	"color=vec4(pow(mix(lighted, bloomed, 0.9), vec3(1/gamma)), 1.0);\n"
+	"color=vec4(pow(mix(lighted, bloomed, 0.8), vec3(1/gamma)), 1.0);\n"
 	"}";
 
 namespace r3d
@@ -265,7 +265,11 @@ namespace r3d
 		prepareProgramInput();
 
 		m_gBuffer = new GBuffer(engine, cw->getWidth(), cw->getHeight());
+
 		m_ssao = new SSAO(engine, cw, m_gBuffer->getPositionMap(), m_gBuffer->getDepthMap(), m_gBuffer->getNormalMap());
+		m_enableSSAO = true;
+		m_whiteMap = m_cw->getTextureManager()->registerColorTexture2D("white.png");
+
 		m_pfx = new PostFX(engine, cw);
 
 		SpotLight *light=new SpotLight(cw);
@@ -302,7 +306,8 @@ namespace r3d
 				std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 		m_gBuffer->endScene();
 
-		m_ssao->update(mainCamera);
+		if(m_enableSSAO)
+			m_ssao->update(mainCamera);
 
 		beginLightPass();
 
@@ -390,7 +395,10 @@ namespace r3d
 		m_gBuffer->getDiffuseMap()->bind(1);
 		m_gBuffer->getNormalMap()->bind(2);
 		m_gBuffer->getSpecularMap()->bind(3);
-		m_ssao->getBlurredAmbientMap()->bind(4);
+		if(m_enableSSAO)
+			m_ssao->getBlurredAmbientMap()->bind(4);
+		else
+			m_whiteMap->bind(4);
 		//ShadowMap bind (5) for each light source
 		m_noiseMap->bind(6);
 
@@ -429,7 +437,7 @@ namespace r3d
 		m_lightCamera->setDir(light->dir);
 		m_lightCamera->setUp(light->up);
 		m_lightCamera->setNear(0.4f);
-		m_lightCamera->setFar(40.0f);
+		m_lightCamera->setFar(47.0f);
 		m_lightCamera->setAspect(1.0f);
 		m_lightCamera->setFov(light->outerAngle*2.0f);
 		float near = m_lightCamera->getNear();
@@ -467,7 +475,10 @@ namespace r3d
 	void Deferred::litAmbientLight(const glm::vec3 &lColor)
 	{
 		m_gBuffer->getDiffuseMap()->bind(0);
-		m_ssao->getBlurredAmbientMap()->bind(1);
+		if(m_enableSSAO)
+			m_ssao->getBlurredAmbientMap()->bind(1);
+		else
+			m_whiteMap->bind(1);
 		m_programA->setUniform("lightColor", lColor);
 		m_renderer->drawArrays(m_programA.get(), m_vao, PT_POINTS, 1);
 	}

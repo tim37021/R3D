@@ -38,6 +38,8 @@ namespace r3d
 		void run();
 
 		SceneNode *getObject(uint32_t x, uint32_t y);
+		void enableSSAO(bool value) { m_enableSSAO=value; }
+		bool isEnableSSAO() const { return m_enableSSAO; }
 	private:
 		Engine *m_engine;
 		ContextWindow *m_cw;
@@ -49,6 +51,8 @@ namespace r3d
 
 		// post processing
 		SSAO *m_ssao;
+		bool m_enableSSAO;
+		ColorTexture2D *m_whiteMap;
 		PostFX *m_pfx;
 		PostEffect *m_bloom;
 

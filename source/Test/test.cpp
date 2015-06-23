@@ -121,6 +121,10 @@ public:
 					FPSMode=!FPSMode;
 				cw->getMouse()->setPos(cw->getWidth()/2, cw->getHeight()/2);
 				return;
+			case r3d::KC_F2:
+				if(action)
+					deferred_pipeline->enableSSAO(!deferred_pipeline->isEnableSSAO());
+				break;
 			default:
 				return;
 		}
