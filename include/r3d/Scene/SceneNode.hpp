@@ -33,7 +33,7 @@ namespace r3d
 	{
 	public:
 		SceneNode(SceneNodePtr parent, ContextWindow *cw, const char *name,
-			Transformation relative);
+			const Transformation &relative);
 		virtual ~SceneNode(){}
 
 		//!< render this node
@@ -72,6 +72,8 @@ namespace r3d
 			newChild->m_parent=this;
 		}
 
+		const char *getNodeType() const{ return m_nodeType; }
+
 		virtual void removeChild(const char *name);
 
 		Transformation *getTransformation()
@@ -80,7 +82,6 @@ namespace r3d
 		const std::list<SceneNodePtr> &getChildren() const { return m_children; }
 
 		const uint32_t getID() const { return m_id; }
-
 	protected:
 		//!< pointer to its parent node.
 		SceneNode *m_parent;
@@ -95,6 +96,8 @@ namespace r3d
 
 		//!< it of the node
 		uint32_t m_id;
+
+		const char *m_nodeType;
 
 	private:
 		//!< name of the node.

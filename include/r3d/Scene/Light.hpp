@@ -2,6 +2,7 @@
 #define __R3D_SCENE_LIGHT_HPP_
 
 #include <glm/glm.hpp>
+#include <r3d/Scene/SceneNode.hpp>
 
 namespace r3d
 {
@@ -40,9 +41,24 @@ namespace r3d
 		float outerAngle;
 		DepthTexture2D *dMap;
 		SpotLight(ContextWindow *cw, int width = 1024, int height = 1024);
-
-		
 	};
+
+	class LightSceneNode: public SceneNode
+	{
+	public:
+		LightSceneNode(SceneNodePtr parent, ContextWindow *cw, Light *, const char *name,
+			const Transformation &relative=Transformation());
+		virtual ~LightSceneNode(){}
+
+		//!< render this node
+		virtual void render(Renderer *renderer, Program *program, Camera *cam, 
+			const glm::mat4 &current=glm::mat4(1.0f), const glm::mat4 &currentRotation=glm::mat4(1.0f))=0;
+
+		Light *getLight() const { return m_light; }
+	private:
+		Light *m_light;
+	};
+
 }
 
 #endif

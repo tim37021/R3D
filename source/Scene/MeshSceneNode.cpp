@@ -24,7 +24,6 @@ inline static void swap(T &a, T &b)
 
 namespace r3d
 {
-
 	MeshSceneNode::MeshSceneNode(SceneNodePtr parent, ContextWindow *cw, 
 		Shape &shape, const char *name_, const Transformation &relative):
 		SceneNode(parent, cw, (name_? name_: shape.name.c_str()), relative)
@@ -67,6 +66,8 @@ namespace r3d
 		m_vao->enableAttribArray(2, normAtt);
 
 		m_indicesCount=shape.mesh.indices.size();
+
+		m_nodeType="Mesh";
 	}
 
 	void MeshSceneNode::render(Renderer *renderer, Program *program, Camera *cam, 

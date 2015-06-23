@@ -13,4 +13,19 @@ namespace r3d
 		dMap->setBorder(glm::vec4(1.0f));
 		dMap->setWrapping(W_CLAMP_TO_BORDER, W_CLAMP_TO_BORDER);
 	}
+
+	LightSceneNode::LightSceneNode(SceneNodePtr parent, ContextWindow *cw, Light *light,
+		const char *name, const Transformation &relative):
+		SceneNode(parent, cw, name, relative), m_light(light)
+	{
+		switch(m_light->type)
+		{
+			case LT_POINT_LIGHT:
+				m_nodeType="PointLight"; break;
+			case LT_SPOT_LIGHT:
+				m_nodeType="SpotLight"; break;
+			case LT_DIRECTIONAL_LIGHT:
+				m_nodeType="DirectionalLight"; break;
+		}
+	}
 } 
