@@ -25,7 +25,7 @@ namespace r3d
 		SSAO(Engine *engine, ContextWindow *cw, Texture2D *posMap, Texture2D *depthMap, Texture2D *normMap);
 		void update(Camera *cam);
 
-		void setSampleRadius(int32_t r);
+		void setSampleRadius(float r);
 
 		ColorTexture2D *getAmbientMap() const
 		{ return m_ambientMap; }

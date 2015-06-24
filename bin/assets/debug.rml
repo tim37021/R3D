@@ -21,6 +21,27 @@
 				text-align: left;
 			}
 		</style>
+		<script>
+			function math.Clamp( _in, low, high )
+				if (_in < low ) then return low end
+				if (_in > high ) then return high end
+				return _in
+			end
+
+			function kssaoevent(event)
+				element=event.current_element
+				if event.parameters['key_identifier']==72 then				
+					setSSAORadius(element.parent_node, 0)
+				end
+			end
+
+			function setSSAORadius(document, delta)
+				local r=document:GetElementById("ssao"):GetAttribute('value')+delta
+				r=math.Clamp(r, 0.0, 100.0)
+				SetSSAORadius(r)
+				document:GetElementById("ssao"):SetAttribute("value", r)
+			end
+		</script>
 	</head>
 	<body template="window" style="left: 0px; top: 25px;">
 	<h1 style="text-align: center; color: black;">Diffuse</h1>
@@ -35,11 +56,15 @@
 	<p style="text-align: center;"><img src="/SpecularMap" flipv width="400" height="250"/></p>
 	<h1 style="text-align: center; color: black;" >SSAO</h1>
 	<p style="text-align: center;"><img src="/BlurredSSAOMap" flipv width="400" height="250"/></p>
-	<h1 style="text-align: center; color: black;" >Shadow1024x1024</h1>
-	<p style="text-align: center;"><img src="/ShadowMap[1024x1024]" flipv width="400" height="250"/></p>
 	<h1 style="text-align: center; color: black;" >Lighted</h1>
 	<p style="text-align: center;"><img src="/LightedMap" flipv width="400" height="250"/></p>
 	<h1 style="text-align: center; color: black;" >Bloom</h1>
 	<p style="text-align: center;"><img src="/bloom" flipv width="400" height="250"/></p>
+
+	<h1 style="text-align: left; color: white; font-size: 18;">
+	SSAO Radius<br/><minusbut onClick="setSSAORadius(document,-0.5)"/>
+	<input type="text" id="ssao" size="5" maxlength="20" value="2.0" onkeydown="kssaoevent(event)"/>
+	<bl/><plusbut onClick="setSSAORadius(document,0.5)"/><br/>
+	</h1>
 	</body>
 </rml>

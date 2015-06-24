@@ -40,6 +40,7 @@ namespace r3d
 		SceneNode *getObject(uint32_t x, uint32_t y);
 		void enableSSAO(bool value) { m_enableSSAO=value; }
 		bool isEnableSSAO() const { return m_enableSSAO; }
+		void setSSAORadius(float r);
 	private:
 		Engine *m_engine;
 		ContextWindow *m_cw;
