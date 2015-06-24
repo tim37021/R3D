@@ -33,7 +33,7 @@ class SceneNodeList:public Rocket::Controls::DataSource
 				}
 				else if (columns[i] == "type")
 				{
-					row.push_back("light");
+					row.push_back((*lit)->getNodeType());
 				}
 				else if (columns[i] == "ptr")
 				{

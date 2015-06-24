@@ -38,9 +38,17 @@
 				choose_last=element
 			end
 			
-			function seturl(element)
-				print(element.inner_rml)
-				print(sceneurl:GetAttribute("value"))
+			function seturl(document, element, event)
+				print(element)
+				local path=document:GetElementById("sceneurl"):GetAttribute("value")
+				if path:len() > 1 then
+					path = path .. '/'
+				end
+				path = path .. element.child_nodes[0].inner_rml
+				local dbb=document:GetElementById("dt");
+				ElementDataGrid.SetDataSource(dbb, "scene."..path);
+
+				document:GetElementById("sceneurl"):SetAttribute("value", path)
 			end
 			
 			function AttachEvent(element) 
@@ -48,13 +56,12 @@
 				for k,v in pairs(pr) do
 					pr[k].child_nodes[2].style["display"] = "none"
 					pr[k]:AddEventListener('click', 'SelectObj(element)', True)
-					pr[k]:AddEventListener('dblclick', 'seturl(element)', True)
+					pr[k]:AddEventListener('dblclick', 'seturl(document, element)', True)
 				end
 				
 			end	
 
 			function SearchPath(element, document, event)
-				print(dirname(element:GetAttribute("value")))
 				if event.parameters['key_identifier']==72 then
 					local dbb=document:GetElementById("dt");
 					ElementDataGrid.SetDataSource(dbb, "scene."..element:GetAttribute("value"));
@@ -64,6 +71,9 @@
 
 			function SearchPath2(document)
 				local path=dirname(document:GetElementById("sceneurl"):GetAttribute("value"))
+				if path:sub(-1) == "/" and path:len()>1 then
+					path = path:sub(1, path:len()-1)
+				end
 				local dbb=document:GetElementById("dt");
 				ElementDataGrid.SetDataSource(dbb, "scene."..path);
 				document:GetElementById("sceneurl"):SetAttribute("value", path)

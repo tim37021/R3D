@@ -54,6 +54,46 @@ static int LUAGetDiffuse(lua_State *L){
 	return 1;
 }
 
+static int LUASetSpecular(lua_State *L){
+	glm::vec3 r;
+	r.r=lua_tonumber(L, 2);
+	r.g=lua_tonumber(L, 3);
+	r.b=lua_tonumber(L, 4);
+
+	lua_getfield(L, 1, "ptr");
+
+	auto *node=static_cast<r3d::SceneNode *>(lua_touserdata(L,-1));
+	auto mtl=node->getMaterial();
+	if(mtl)
+		mtl->setSpecular(r);
+	return 0;
+}
+
+static int LUAGetSpecular(lua_State *L){
+	const char* ch=lua_tostring(L,2);
+	lua_getfield(L, 1, "ptr");
+	auto *node=static_cast<r3d::SceneNode *>(lua_touserdata(L,-1));
+	auto mtl=node->getMaterial();
+
+	if(mtl)
+	{
+		switch(ch[0])
+		{
+		case 'r':
+			lua_pushnumber(L, mtl->getSpecular().r);
+			break;
+		case 'g':
+			lua_pushnumber(L, mtl->getSpecular().g);
+			break;
+		case 'b':
+			lua_pushnumber(L, mtl->getSpecular().b);
+			break;
+		}
+	}else
+		lua_pushnumber(L, 0.0);
+	return 1;
+}
+
 
 static int LUASetRotation(lua_State *L){
 	glm::vec3 r;
@@ -135,7 +175,7 @@ static int LUALoadObjScene(lua_State *L)
 	auto sMgr=cw->getSceneManager();
 	auto node=sMgr->loadObjScene(sMgr->getRootNode(), filename);
 	
-	lua_createtable(L, 0, 7);
+	lua_createtable(L, 0, 11);
 	lua_pushstring(L, "ptr");
 	lua_pushlightuserdata(L, node);
 	lua_settable(L, -3);
@@ -162,6 +202,12 @@ static int LUALoadObjScene(lua_State *L)
 	lua_settable(L, -3);
 	lua_pushstring(L, "GetDiffuse");
 	lua_pushcfunction (L, LUAGetDiffuse);
+	lua_settable(L, -3);
+	lua_pushstring(L, "SetSpecular");
+	lua_pushcfunction (L, LUASetSpecular);
+	lua_settable(L, -3);
+	lua_pushstring(L, "GetSpecular");
+	lua_pushcfunction (L, LUAGetSpecular);
 	lua_settable(L, -3);
 	return 1;
 }

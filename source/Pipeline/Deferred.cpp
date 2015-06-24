@@ -329,7 +329,7 @@ namespace r3d
 				default:;
 			}
 		}
-		litAmbientLight(glm::vec3(0.05f));
+		litAmbientLight(glm::vec3(0.025f));
 
 		endLightPass();
 

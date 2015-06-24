@@ -39,6 +39,7 @@ namespace r3d
 		{ m_wireframeView=value; }
 
 		glm::vec3 getDiffuse() const { return m_diffuse; }
+		glm::vec3 getSpecular() const { return m_specular; }
 
 		void prepareShader() const
 		{

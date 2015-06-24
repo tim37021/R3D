@@ -51,10 +51,9 @@ vec3 highlights(vec3 pixel, float thres);
 void main()
 {
 	vec2 tc = gl_FragCoord.xy / viewport;
-	vec3 color = blur(tc, 2.0);
-	color += blur(tc, 3.0);
-	color += blur(tc, 5.0);
-	color /= 3.0;
+	vec3 color = 6*blur(tc, 2.0);
+	color += 4*blur(tc, 3.0);
+	color/=10;
 	
 	color += sample(tc);
 	

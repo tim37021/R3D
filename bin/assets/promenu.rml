@@ -86,7 +86,21 @@
 					element:GetElementById("gdiff"):SetAttribute("value",g)
 					element:GetElementById("bdiff"):SetAttribute("value",b)
 				end
+			end
 
+			function setSpecular(element, r, g, b)
+				if obj_sel~=nil then
+					r=obj_sel:GetSpecular('r')+r
+					g=obj_sel:GetSpecular('g')+g
+					b=obj_sel:GetSpecular('b')+b
+					r=math.Clamp(r, 0, 1)
+					g=math.Clamp(g, 0, 1)
+					b=math.Clamp(b, 0, 1)
+					obj_sel:SetSpecular(r, g, b)
+					element:GetElementById("rspec"):SetAttribute("value",r)
+					element:GetElementById("gspec"):SetAttribute("value",g)
+					element:GetElementById("bspec"):SetAttribute("value",b)
+				end
 			end
 			
 			function kzevent(event)
@@ -111,6 +125,23 @@
 				end
 				if type=='b' then
 					setDiffuse(element.parent_node,0,0,element:GetAttribute('value')-obj_sel:GetDiffuse('b'))
+				end
+				end
+			end
+			end
+
+			function ksevent(event, type)
+			if obj_sel~=nil then
+				element=event.current_element
+				if event.parameters['key_identifier']==72 then				
+				if type=='r' then
+					setSpecular(element.parent_node,element:GetAttribute('value')-obj_sel:GetSpecular('r'),0,0)
+				end
+				if type=='g' then
+					setSpecular(element.parent_node,0,element:GetAttribute('value')-obj_sel:GetSpecular('g'),0)
+				end
+				if type=='b' then
+					setSpecular(element.parent_node,0,0,element:GetAttribute('value')-obj_sel:GetSpecular('b'))
 				end
 				end
 			end
@@ -177,6 +208,20 @@
 	b:<bl/><bl/><minusbut onClick="setDiffuse(element.parent_node,0,0,-0.125)"/>
 	<input type="text" id="bdiff" size="5" maxlength="20" value="0"  onkeydown="kdevent(event,'b')"/>
 	<bl/><plusbut onClick="setDiffuse(element.parent_node,0,0,0.125)"/><br/>
+	</h1>
+	<h1 style="text-align: left; color: white; font-size: 18;">
+	Specular<br/>
+	r:<bl/><bl/><minusbut onClick="setSpecular(element.parent_node,-0.125,0,0)"/>
+	<input type="text" id="rspec" size="5" maxlength="20" value="0"  onkeydown="ksevent(event,'r')"/>
+	<bl/><plusbut onClick="setSpecular(element.parent_node,0.125,0,0)"/><br/>
+	
+	g:<bl/><bl/><minusbut onClick="setSpecular(element.parent_node,0,-0.125,0)"/>
+	<input type="text" id="gspec" size="5" maxlength="20" value="0"  onkeydown="ksevent(event,'g')"/>
+	<bl/><plusbut onClick="setSpecular(element.parent_node,0,0.125,0)"/><br/>
+	
+	b:<bl/><bl/><minusbut onClick="setSpecular(element.parent_node,0,0,-0.125)"/>
+	<input type="text" id="bspec" size="5" maxlength="20" value="0"  onkeydown="ksevent(event,'b')"/>
+	<bl/><plusbut onClick="setSpecular(element.parent_node,0,0,0.125)"/><br/>
 	</h1>
 
 	</body>
