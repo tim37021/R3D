@@ -214,7 +214,7 @@ namespace r3d
 		}
 	}
 
-	void SSAO::setSampleRadius(int32_t r)
+	void SSAO::setSampleRadius(float r)
 	{
 		m_programSSAO->setUniform("radius", r);
 	}

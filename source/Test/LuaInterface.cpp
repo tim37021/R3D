@@ -9,6 +9,7 @@
 
 static r3d::Engine *engine;
 static SceneNodeList *datasource;
+static r3d::Deferred *pipeline;
 
 static lua_State *L;
 
@@ -178,6 +179,14 @@ static int LUAStrToUdata(lua_State *L){
 	return 1;
 }
 
+static int LUASetSSAORadius(lua_State *L)
+{
+	float radius=lua_tonumber(L, 1);
+	pipeline->setSSAORadius(radius);
+	return 0;	
+}
+
+
 void LuaInterface::OnFilesDropIn(uint32_t count, const char *files[])
 {
 	lua_getglobal(L, "OnFilesDropIn");
@@ -213,13 +222,15 @@ void LuaInterface::SetSelectObject(r3d::SceneNode *node)
 	}
 }
 
-void LuaInterface::Initialise(r3d::Engine *engine)
+void LuaInterface::Initialise(r3d::Engine *engine, r3d::Deferred *pipeline)
 {
 	::engine=engine;
+	::pipeline=pipeline;
 	L=Rocket::Core::Lua::Interpreter::GetLuaState();
 
 	lua_register(L, "LoadObjScene", LUALoadObjScene);
 	lua_register(L, "ToUserdata", LUAStrToUdata); 
+	lua_register(L, "SetSSAORadius", LUASetSSAORadius);
 
 	datasource = new SceneNodeList("scene", engine);
 }

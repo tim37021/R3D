@@ -100,9 +100,9 @@ static const char *fragment_shader=
 	"if(diffuse>=0.0){"
 	"float falloff = 1.0-clamp((d-24.0)/8.0, 0.0, 1.0);\n"
 	"float d=length(lightPos-pos);\n"
-	"float att=falloff*1.0/(0.9375+0.0625*d*d);"
+	"float att=falloff*1.0/(0.5+0.5*d*d);"
 	"float specular = pow(max(dot(reflect(-lightVec, norm), normalize(eyePos-pos)), 0), 30);\n"
-	"color=mix(ao, 1.0, diffuse)*att*vec4(diffuse*fColor*lightColor+specular*lightColor*spec, 1);} else discard;\n"
+	"color=mix(ao, 1.0, diffuse*diffuse)*att*vec4(diffuse*fColor*lightColor+specular*lightColor*spec, 1);} else discard;\n"
 	"}\n";
 
 static const char *fragment_shader_spotlight=
@@ -158,8 +158,8 @@ static const char *fragment_shader_spotlight=
 	///Using poisson//
 	"	float mapDepth = 0;\n"
 	"	float intense = 0;\n"
-	"	float bias = -0.05 * tan(acos(dot (normal,  normalize(lightPos - pos)))); \n"
-	"	bias = clamp(bias, -0.1, 0); \n"
+	"	float bias = -0.01 * tan(acos(dot (normal,  normalize(lightPos - pos)))); \n"
+	"	bias = clamp(bias, -0.07, 0); \n"
 	"	for (int i = 0; i<4; i++){\n"
 	//"		float sampleDepth =sample(shadowCoord.xy, kernel[i] * 2) * 2 - 1;\n"
 	"		float sampleDepth = texture(shadowMap, shadowCoord.xy + poissonKernel[i]/3600).x*2 -1 ;\n"
@@ -181,7 +181,7 @@ static const char *fragment_shader_spotlight=
 	"vec3 spec=texture(specMap, vTexCoord).rgb;\n"
 	"float ao=texture(AOMap, vTexCoord).r;"
 	"float d = length(pos-lightPos);\n"
-	"if(length(norm)<=0.5||d>=47) discard;\n"
+	"if(length(norm)<=0.5||d>=32) discard;\n"
 	"vec3 lightVec=normalize(lightPos-pos);\n"
 	"float diffuse=dot(norm, lightVec);\n"
 	"if(diffuse>=0.0){\n"
@@ -191,11 +191,11 @@ static const char *fragment_shader_spotlight=
 	"	shadowCoord.xyz/=shadowCoord.w;\n"
 	"	shadowCoord.xy=(shadowCoord.xy+vec2 (1.0))/2.0;\n"
 	"	float shadow_inten=shadowIntensity(shadowCoord.xyz, pos, norm); \n" // Decide if pixel should be litted
-	"	float falloff = 1.0-clamp((d-35)/12.0, 0.0, 1.0);\n"
+	"	float falloff = 1.0-clamp((d-28)/4.0, 0.0, 1.0);\n"
 	"	float d=length(lightPos-pos);\n"
-	"	float att=falloff*1.0/(0.9375+0.0625*d*d);\n"
+	"	float att=falloff*1.0/(0.5+0.5*d*d);\n"
 	"	float specular = pow(max(dot(reflect(-lightVec, norm), normalize(eyePos-pos)), 0), 30);\n"
-	"	vec4 lightIntense = mix(ao, 1.0, diffuse)*att*vec4(diffuse*fColor*lightColor+specular*lightColor*spec, 1);"
+	"	vec4 lightIntense = mix(ao, 1.0, diffuse*diffuse)*att*vec4(diffuse*fColor*lightColor+specular*lightColor*spec, 1);"
 	//Spotlight fading
 	"	if(angleCos < cos(innerAngle)) {\n"
 	"		float ratio = (acos(angleCos) - innerAngle)/(outerAngle - innerAngle);"
@@ -329,7 +329,7 @@ namespace r3d
 				default:;
 			}
 		}
-		litAmbientLight(glm::vec3(0.01f));
+		litAmbientLight(glm::vec3(0.05f));
 
 		endLightPass();
 
@@ -601,5 +601,10 @@ namespace r3d
 		}
 
 		return {{rect[0], rect[1]}, {rect[2], rect[3]}};
+	}
+
+	void Deferred::setSSAORadius(float r)
+	{
+		m_ssao->setSampleRadius(r);
 	}
 }

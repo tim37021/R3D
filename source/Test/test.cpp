@@ -62,7 +62,7 @@ public:
 				r3d::PointLight *light=new r3d::PointLight();
 				light->pos=global_fps->getPos();
 				light->color=(glm::vec3(0.3f)+
-				6.0f*glm::vec3((float)rand()/RAND_MAX, (float)rand()/RAND_MAX, (float)rand()/RAND_MAX));
+				24.0f*glm::vec3((float)rand()/RAND_MAX, (float)rand()/RAND_MAX, (float)rand()/RAND_MAX));
 				sMgr->addLight(light);
 			}
 
@@ -77,7 +77,7 @@ public:
 
 				light->pos=global_fps->getPos();
 				light->color=(glm::vec3(0.3f)+
-				20.0f*glm::vec3((float)rand()/RAND_MAX, (float)rand()/RAND_MAX, (float)rand()/RAND_MAX));
+				80.0f*glm::vec3((float)rand()/RAND_MAX, (float)rand()/RAND_MAX, (float)rand()/RAND_MAX));
 				sMgr->addLight(light);
 			}
 		}
@@ -178,7 +178,7 @@ static Rocket::Core::Context *SetupRocket(r3d::Engine *engine)
 	Rocket::Debugger::Initialise(context);
 	Rocket::Debugger::SetVisible(true);
 
-	LuaInterface::Initialise(engine);
+	LuaInterface::Initialise(engine, deferred_pipeline);
 
 	Rocket::Core::Lua::Interpreter::LoadFile("assets/start.lua");
 
