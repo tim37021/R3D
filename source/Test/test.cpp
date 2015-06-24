@@ -11,6 +11,7 @@
 #include <Rocket/Controls/Lua/Controls.h>
 #include "r3drocket.h"
 #include "LuaInterface.h"
+#include "SceneNodeList.h"
 
 
 static R3DRocket::SystemInterface *si;
@@ -19,6 +20,7 @@ static R3DRocket::RenderInterface *ri;
 static r3d::Camera *global_fps;
 static r3d::VertexArray *vao;
 r3d::Deferred *deferred_pipeline;
+extern SceneNodeList *datasource;
 
 class MyEventListener: public r3d::EventListener
 {
@@ -60,10 +62,12 @@ public:
 				auto sMgr=cw->getSceneManager();
 				
 				r3d::PointLight *light=new r3d::PointLight();
-				light->pos=global_fps->getPos();
+				light->pos=glm::vec3(0.0f);
 				light->color=(glm::vec3(0.3f)+
 				24.0f*glm::vec3((float)rand()/RAND_MAX, (float)rand()/RAND_MAX, (float)rand()/RAND_MAX));
-				sMgr->addLight(light);
+				auto node=sMgr->addLightSceneNode(sMgr->getRootNode(), light);
+				node->getTransformation()->setTranslation(global_fps->getPos());
+				datasource->notify(sMgr->getRootNode().get());
 			}
 
 			if(button==2&&action){//Mouse click middle
@@ -75,10 +79,12 @@ public:
 				light->innerAngle = 20;
 				light->outerAngle = 30;
 
-				light->pos=global_fps->getPos();
+				light->pos=glm::vec3(0.0f);
 				light->color=(glm::vec3(0.3f)+
 				80.0f*glm::vec3((float)rand()/RAND_MAX, (float)rand()/RAND_MAX, (float)rand()/RAND_MAX));
-				sMgr->addLight(light);
+				auto node=sMgr->addLightSceneNode(sMgr->getRootNode(), light);
+				node->getTransformation()->setTranslation(global_fps->getPos());
+				datasource->notify(sMgr->getRootNode().get());
 			}
 		}
 

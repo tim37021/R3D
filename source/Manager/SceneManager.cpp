@@ -179,4 +179,12 @@ namespace r3d
 		node->addChild(objNode);
 		return objNode.get();
 	}
+
+	SceneNode *SceneManager::addLightSceneNode(SceneNodePtr node, Light *light)
+	{
+		auto cw=m_engine->getCurrentContext();
+		auto objNode=SceneNodePtr(new LightSceneNode(node, cw, light));
+		node->addChild(objNode);
+		return objNode.get();
+	}
 }

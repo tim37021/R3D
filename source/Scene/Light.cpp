@@ -16,16 +16,21 @@ namespace r3d
 
 	LightSceneNode::LightSceneNode(SceneNodePtr parent, ContextWindow *cw, Light *light,
 		const char *name, const Transformation &relative):
-		SceneNode(parent, cw, name, relative), m_light(light)
+		SceneNode(parent, cw, name? name:"", relative), m_light(light)
 	{
 		switch(m_light->type)
 		{
 			case LT_POINT_LIGHT:
-				m_nodeType="PointLight"; break;
+				m_nodeType="PLight"; break;
 			case LT_SPOT_LIGHT:
-				m_nodeType="SpotLight"; break;
+				m_nodeType="SLight"; break;
 			case LT_DIRECTIONAL_LIGHT:
-				m_nodeType="DirectionalLight"; break;
+				m_nodeType="DLight"; break;
+		}
+
+		if(std::string(getName())=="")
+		{
+			setName(("NewLight"+std::to_string(getID())).c_str());
 		}
 	}
 } 

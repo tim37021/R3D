@@ -33,6 +33,7 @@ namespace r3d
 		SceneNode *loadObjScene(SceneNodePtr, const char *filename, const char *base=nullptr);
 		SceneNode *addMeshSceneNode(SceneNodePtr);
 		SceneNode *addEmptySceneNode(SceneNodePtr);
+		SceneNode *addLightSceneNode(SceneNodePtr, Light *);
 
 		void addLight(Light *light)
 		{ lights.push_back(light); }

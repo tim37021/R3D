@@ -11,7 +11,7 @@ namespace r3d
 	public:
 		EmptySceneNode(SceneNodePtr parent, 
 			ContextWindow *cw,
-			const char *name="Untitled", 
+			const char *name="", 
 			const Transformation &relative=Transformation()
 			):
 			SceneNode(parent, cw, name, relative)

@@ -15,14 +15,17 @@ class SceneNodeList:public Rocket::Controls::DataSource
 		
 		r3d::Engine *engine;
 		r3d::SceneNode *currentEntry;
+		std::string current_table;
 
 		SceneNodeList(const char *name, r3d::Engine *engine_):Rocket::Controls::DataSource(name), engine(engine_)
 		{
 			currentEntry=nullptr;
+			current_table="/";
 		}
 
 		void GetRow(Rocket::Core::StringList& row, const Rocket::Core::String& table, int row_index, const Rocket::Core::StringList& columns)
 		{
+			current_table=table.CString();
 			if(!currentEntry) return;
 			auto lit=currentEntry->getChildren().cbegin();
 			for(int i=0;i<row_index;i++,lit++);
@@ -96,18 +99,23 @@ class SceneNodeList:public Rocket::Controls::DataSource
 		}else
 			currentEntry=sMgr->getRootNode().get();
 
-		
+		current_table=table.CString();
 
 		return currentEntry?currentEntry->getChildren().size(): 0;
 	}
 	
-	void addnode()
+	void notify(r3d::SceneNode *node)
 	{
-		NotifyRowAdd("\\",GetNumRows("\\")-1, 1);
-	}
+		std::string path;
 
-	void update()
-	{
+		r3d::SceneNode *thisNode=node;
 
+		while(node)
+		{
+			path = std::string("/")+node->getName() + path;
+			node = node->getParent();
+		}
+
+		NotifyRowAdd(path.c_str(), thisNode->getChildren().size()-1, 1);
 	}
 };

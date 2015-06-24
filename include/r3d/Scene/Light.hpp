@@ -46,13 +46,13 @@ namespace r3d
 	class LightSceneNode: public SceneNode
 	{
 	public:
-		LightSceneNode(SceneNodePtr parent, ContextWindow *cw, Light *, const char *name,
+		LightSceneNode(SceneNodePtr parent, ContextWindow *cw, Light *, const char *name=nullptr,
 			const Transformation &relative=Transformation());
 		virtual ~LightSceneNode(){}
 
 		//!< render this node
 		virtual void render(Renderer *renderer, Program *program, Camera *cam, 
-			const glm::mat4 &current=glm::mat4(1.0f), const glm::mat4 &currentRotation=glm::mat4(1.0f))=0;
+			const glm::mat4 &current=glm::mat4(1.0f), const glm::mat4 &currentRotation=glm::mat4(1.0f)){}
 
 		Light *getLight() const { return m_light; }
 	private:

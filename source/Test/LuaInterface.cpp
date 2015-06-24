@@ -3,12 +3,12 @@
 #include <glm/glm.hpp>
 #include <Rocket/Core.h>
 #include <Rocket/Core/Lua/Interpreter.h>
-#include "SceneNodeList.cpp"
+#include "SceneNodeList.h"
 #include <cstdio>
 #include <cstdlib>
 
 static r3d::Engine *engine;
-static SceneNodeList *datasource;
+SceneNodeList *datasource;
 static r3d::Deferred *pipeline;
 
 static lua_State *L;
@@ -174,6 +174,7 @@ static int LUALoadObjScene(lua_State *L)
 	auto cw=engine->getCurrentContext();
 	auto sMgr=cw->getSceneManager();
 	auto node=sMgr->loadObjScene(sMgr->getRootNode(), filename);
+	datasource->notify(sMgr->getRootNode().get());
 	
 	lua_createtable(L, 0, 11);
 	lua_pushstring(L, "ptr");

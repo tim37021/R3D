@@ -6,6 +6,8 @@
 #include <glm/glm.hpp>
 #include <utility>
 #include <r3d/Core/Texture.hpp>
+#include <list>
+#include <tuple>
 
 namespace r3d
 {
@@ -25,6 +27,7 @@ namespace r3d
 	class ColorTexture2D;
 	class PostFX;
 	class PostEffect;
+	class Light;
 
 	typedef std::shared_ptr<RenderTarget2D> RenderTarget2DPtr;
 	typedef std::shared_ptr<Program> ProgramPtr;
@@ -66,8 +69,8 @@ namespace r3d
 		// attributeless vao
 		VertexArray *m_vao;
 
-		void litPointLight(Camera *cam, PointLight *light);
-		void litSpotLight(Camera *cam, SpotLight *);
+		void litPointLight(Camera *cam, std::tuple<Light *, glm::mat4, glm::mat4> &light);
+		void litSpotLight(Camera *cam, std::tuple<Light *, glm::mat4, glm::mat4> &light);
 		void litAmbientLight(const glm::vec3 &lColor);
 		void beginLightPass();
 		void endLightPass();
@@ -75,7 +78,7 @@ namespace r3d
 
 		std::pair<glm::vec2, glm::vec2> calcLitRegion(Camera *cam, const glm::vec3 &lightPos, float radius);
 
-		bool renderMaterial(Camera *cam, SceneNode *node, const glm::mat4 &trans, const glm::mat4 &rot);
+		bool renderMaterial(Camera *cam, std::list<std::tuple<Light *, glm::mat4, glm::mat4> > &l_list, SceneNode *node, const glm::mat4 &trans, const glm::mat4 &rot);
 		bool renderDepth(Camera *cam, SceneNode *node, const glm::mat4 &trans, const glm::mat4 &rot);
 		bool findObjectByID(uint32_t id, SceneNode *&searchResult, SceneNode *node, const glm::mat4 &trans, const glm::mat4 &rot);
 		void foreachSceneNode(SceneNode *root, std::function<bool(SceneNode *, const glm::mat4&, const glm::mat4&)> callback);

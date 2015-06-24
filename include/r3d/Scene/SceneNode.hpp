@@ -82,6 +82,8 @@ namespace r3d
 		const std::list<SceneNodePtr> &getChildren() const { return m_children; }
 
 		const uint32_t getID() const { return m_id; }
+
+		SceneNode *getParent() const { return m_parent; }
 	protected:
 		//!< pointer to its parent node.
 		SceneNode *m_parent;

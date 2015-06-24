@@ -272,8 +272,6 @@ namespace r3d
 
 		m_pfx = new PostFX(engine, cw);
 
-		SpotLight *light=new SpotLight(cw);
-
 		m_lightRT = engine->newRenderTarget2D();
 		m_lightedMap = m_cw->getTextureManager()->registerColorTexture2D("LightedMap", cw->getWidth(), cw->getHeight(), PF_BGRF);
 		ColorTexture2D *texts[]={m_lightedMap};
@@ -298,11 +296,13 @@ namespace r3d
 
 	void Deferred::run()
 	{
+		std::list<std::tuple<Light *, glm::mat4, glm::mat4> > lights;
+
 		auto mainCamera=m_cw->getSceneManager()->getMainCamera();
 		m_gBuffer->beginScene();
 		foreachSceneNode(m_cw->getSceneManager()->getRootNode().get(), 
 			std::bind(&Deferred::renderMaterial, this, 
-				mainCamera, 
+				mainCamera, std::ref(lights),
 				std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 		m_gBuffer->endScene();
 
@@ -316,15 +316,15 @@ namespace r3d
 		prepareViewRelativeUniform(m_programSL, m_cw->getSceneManager()->getMainCamera());
 
 		// lit the light one by one
-		for(auto light: m_cw->getSceneManager()->getLights())
+		for(auto &light: lights)
 		{
-			switch(light->type)
+			switch((std::get<0>(light))->type)
 			{
 				case LT_POINT_LIGHT:
-					litPointLight(mainCamera, (PointLight *)light);
+					litPointLight(mainCamera, light);
 					break;
 				case LT_SPOT_LIGHT:
-					litSpotLight(mainCamera, (SpotLight *)light);
+					litSpotLight(mainCamera, light);
 					break;
 				default:;
 			}
@@ -359,7 +359,7 @@ namespace r3d
 		}
 	}
 
-	bool Deferred::renderMaterial(Camera *cam, SceneNode *node, const glm::mat4 &trans, const glm::mat4 &rot)
+	bool Deferred::renderMaterial(Camera *cam, std::list<std::tuple<Light *, glm::mat4, glm::mat4> > &light, SceneNode *node, const glm::mat4 &trans, const glm::mat4 &rot)
 	{
 		auto mtl=node->getMaterial();
 		if(mtl)
@@ -368,6 +368,12 @@ namespace r3d
 			mtl->prepareShader();
 			mtl_shader->setUniform("id", node->getID());
 			node->render(m_renderer, mtl_shader, cam, trans, rot);
+		}
+
+		if(node->getNodeType()[1]=='L')
+		{
+			auto t=node->getTransformation();
+			light.push_back(std::make_tuple(((LightSceneNode *)node)->getLight(), trans*t->getMatrix(), rot*t->getRotationMatrix()));
 		}
 		return true;
 	}
@@ -416,9 +422,11 @@ namespace r3d
 		m_lightRT->unbind();
 	}
 
-	void Deferred::litPointLight(Camera *cam, PointLight *light)
+	void Deferred::litPointLight(Camera *cam, std::tuple<Light *, glm::mat4, glm::mat4> &light_)
 	{
-		m_programPL->setUniform("lightPos", light->pos);
+		PointLight *light=(PointLight *)std::get<0>(light_);
+		const glm::mat4 &trans=std::get<1>(light_);
+		m_programPL->setUniform("lightPos", glm::vec3(trans*glm::vec4(light->pos, 1.0f)));
 		m_programPL->setUniform("lightColor", light->color);
 		auto region=calcLitRegion(cam, light->pos, 32.0f);
 		m_programPL->setUniform("rectBottomLeft", region.first);
@@ -426,16 +434,23 @@ namespace r3d
 		m_renderer->drawArrays(m_programPL.get(), m_vao, PT_POINTS, 1);
 	}
 
-	void Deferred::litSpotLight(Camera *cam, SpotLight *light )
+	void Deferred::litSpotLight(Camera *cam, std::tuple<Light *, glm::mat4, glm::mat4> &light_)
 	{
+		SpotLight *light=(SpotLight *)std::get<0>(light_);
+		const glm::mat4 &trans=std::get<1>(light_);
+		const glm::mat4 &rot=std::get<2>(light_);
+
+		const glm::vec3 &pos=glm::vec3(trans*glm::vec4(light->pos, 1.0f));
 		// See if we need this light?
-		auto region=calcLitRegion(cam, light->pos, 47.0f);
+		auto region=calcLitRegion(cam, pos, 47.0f);
 		if(glm::length(region.second-region.first)<0.005f*1.414f)
 			return;
 
-		m_lightCamera->setPos(light->pos);
-		m_lightCamera->setDir(light->dir);
-		m_lightCamera->setUp(light->up);
+		const glm::vec3 &dir=glm::vec3(rot*glm::vec4(light->dir, 1.0f));
+		const glm::vec3 &up=glm::vec3(rot*glm::vec4(light->up, 1.0f));
+		m_lightCamera->setPos(pos);
+		m_lightCamera->setDir(dir);
+		m_lightCamera->setUp(up);
 		m_lightCamera->setNear(0.4f);
 		m_lightCamera->setFar(47.0f);
 		m_lightCamera->setAspect(1.0f);
@@ -459,9 +474,9 @@ namespace r3d
 		m_renderer->setViewport(0, 0, m_cw->getWidth(), m_cw->getHeight());
 		light->dMap->bind(5);
 
-		m_programSL->setUniform("lightPos", light->pos);
+		m_programSL->setUniform("lightPos", pos);
 		m_programSL->setUniform("lightColor", light->color);
-		m_programSL->setUniform("lightDir", glm::normalize(light->dir));
+		m_programSL->setUniform("lightDir", glm::normalize(dir));
 
 		m_programSL->setUniform("rectBottomLeft", region.first);
 		m_programSL->setUniform("rectTopRight", region.second);

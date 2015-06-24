@@ -39,6 +39,7 @@ namespace r3d
 		const glm::mat4 &getVMatrix() const;
 		const glm::mat4 &getPMatrix() const;
 		const glm::mat4 &getVPMatrix() const;
+		const glm::mat4 &getTMatrix() const;
 	protected:
 		Camera(ContextWindow *window);
 

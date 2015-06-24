@@ -17,9 +17,9 @@ namespace r3d
 		{
 			const glm::mat4 &scale=glm::scale(glm::mat4(1.0f), m_scale);
 			m_cacheRotationMatrix=glm::eulerAngleXYZ(m_rotation.x, m_rotation.y, m_rotation.z);
-			const glm::mat4 &translation=glm::translate(glm::mat4(1.0f), m_translation);
+			m_cacheTranslationMatrix=glm::translate(glm::mat4(1.0f), m_translation);
 			dirty=false;
-			m_cacheMatrix=translation*m_cacheRotationMatrix*scale;
+			m_cacheMatrix=m_cacheTranslationMatrix*m_cacheRotationMatrix*scale;
 		}
 		return m_cacheMatrix;
 	}
@@ -29,6 +29,13 @@ namespace r3d
 		if(dirty)
 			getMatrix();
 		return m_cacheRotationMatrix;
+	}
+
+	const glm::mat4 &Transformation::getTranslationMatrix() const
+	{
+		if(dirty)
+			getMatrix();
+		return m_cacheTranslationMatrix;
 	}
 }
 
