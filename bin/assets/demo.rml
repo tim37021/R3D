@@ -30,10 +30,20 @@
 			end
 
 			function SelectObj(element)
+				if obj_sel ~= nil then
+					obj_sel:EnableWireframeView(false)
+				end
 				if choose_last~=nil then
 					choose_last.style["color"]="black";
 				end
 				obj_sel.ptr=ToUserdata(element.child_nodes[2].inner_rml)
+				obj_sel:EnableWireframeView(true)
+				setTrans(tranmenu, 0, 0, 0)
+				setRot(tranmenu, 0, 0, 0)
+				setzoom(tranmenu, 1)
+				setDiffuse(tranmenu, 0, 0, 0)
+				setSpecular(tranmenu, 0, 0, 0)
+
 				element.style["color"]="red";
 				choose_last=element
 			end

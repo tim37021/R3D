@@ -426,9 +426,10 @@ namespace r3d
 	{
 		PointLight *light=(PointLight *)std::get<0>(light_);
 		const glm::mat4 &trans=std::get<1>(light_);
-		m_programPL->setUniform("lightPos", glm::vec3(trans*glm::vec4(light->pos, 1.0f)));
+		const glm::vec3 &pos=glm::vec3(trans*glm::vec4(light->pos, 1.0f));
+		m_programPL->setUniform("lightPos", pos);
 		m_programPL->setUniform("lightColor", light->color);
-		auto region=calcLitRegion(cam, light->pos, 32.0f);
+		auto region=calcLitRegion(cam, pos, 32.0f);
 		m_programPL->setUniform("rectBottomLeft", region.first);
 		m_programPL->setUniform("rectTopRight", region.second);
 		m_renderer->drawArrays(m_programPL.get(), m_vao, PT_POINTS, 1);
