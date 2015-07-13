@@ -66,7 +66,9 @@ static const char *fragment_shader_ambient=
 	"uniform sampler2D AOMap;"
 	"uniform vec2 viewport;"
 	"uniform vec3 lightColor;"
-	"out vec4 color;"
+	"layout(location=0) out vec4 color;\n"
+	"layout(location=1) out float shadowIntens;\n"
+
 	"void main(){"
 	"vec2 vTexCoord=gl_FragCoord.xy/viewport;"
 	"vec3 fColor=texture(diffuseMap, vTexCoord).rgb;"
@@ -85,7 +87,8 @@ static const char *fragment_shader=
 	"uniform vec3 eyePos;"
 	"uniform vec3 lightPos;\n"
 	"uniform vec3 lightColor;\n;"
-	"out vec4 color;\n"
+	"layout(location=0) out vec4 color;\n"
+	"layout(location=1) out float shadowIntens;\n"
 	"void main(){\n"
 	"vec2 vTexCoord=gl_FragCoord.xy/viewport;"
 	"vec3 pos=texture(posMap, vTexCoord).xyz;\n"
@@ -102,7 +105,9 @@ static const char *fragment_shader=
 	"float d=length(lightPos-pos);\n"
 	"float att=falloff*1.0/(0.5+0.5*d*d);"
 	"float specular = pow(max(dot(reflect(-lightVec, norm), normalize(eyePos-pos)), 0), 30);\n"
-	"color=mix(ao, 1.0, diffuse*diffuse)*att*vec4(diffuse*fColor*lightColor+specular*lightColor*spec, 1);} else discard;\n"
+	"color=mix(ao, 1.0, diffuse*diffuse)*att*vec4(diffuse*fColor*lightColor+specular*lightColor*spec, 1);\n"
+	"shadowIntens=0.0;\n"
+	"} else discard;\n"
 	"}\n";
 
 static const char *fragment_shader_spotlight=
@@ -123,7 +128,8 @@ static const char *fragment_shader_spotlight=
 	"uniform mat4 lightCamVp;\n"
 	"uniform float innerAngle;\n"
 	"uniform float outerAngle;\n"
-	"out vec4 color;\n"
+	"layout(location=0) out vec4 color;\n"
+	"layout(location=1) out float shadowIntens;\n"
 
 	////////PCF/////// 
 
@@ -166,7 +172,7 @@ static const char *fragment_shader_spotlight=
 	"		float sampleLinearDepth = converter.x / (converter.y-sampleDepth*converter.z);\n"
 	" 		float objectLinearDepth = converter.x / (converter.y-shadowCoord.z*converter.z);\n"
 	"		if( sampleLinearDepth + bias < objectLinearDepth ) {\n"
-	"			intense +=  0.2; \n" //exp(-5*(objectLinearDepth - sampleLinearDepth )/converter.z)*
+	"			intense +=  0.25; \n" //exp(-5*(objectLinearDepth - sampleLinearDepth )/converter.z)*
 	"		}\n"
 	"	}\n"
 	//////////////////
@@ -203,7 +209,8 @@ static const char *fragment_shader_spotlight=
 	"		lightIntense *= factor; \n"
 	"	}\n"
 
-	"	color=(1.0-shadow_inten)*lightIntense; \n"
+	"	color=lightIntense; \n"
+	"	shadowIntens=shadow_inten;\n"
 	"}\n"
 	"else discard;\n"
 
@@ -226,14 +233,34 @@ static const char *fragment_shader_combine=
 	"#version 330\n"
 	"uniform sampler2D lightedMap;\n"
 	"uniform sampler2D bloomMap;\n"
+	"uniform sampler2D shadowIntensityMap;\n"
 	"uniform vec2 viewport;\n"
 	"uniform float gamma=2.2;\n"
 	"out vec4 color;\n"
 	"void main(){"
 	"vec2 vTexCoord=gl_FragCoord.xy/viewport;\n"
 	"vec3 lighted=texture(lightedMap, vTexCoord).rgb;\n"
-	"vec3 bloomed=texture(bloomMap, vTexCoord).rgb;"
-	"color=vec4(pow(mix(lighted, bloomed, 0.8), vec3(1/gamma)), 1.0);\n"
+	"vec3 bloomed=texture(bloomMap, vTexCoord).rgb;\n"
+	"float shadow_inten = texture(shadowIntensityMap, vTexCoord).r;"
+	"color=vec4(pow((1.0-shadow_inten)*mix(lighted, bloomed, 0.8), vec3(1/gamma)), 1.0);\n"
+	"}";
+
+static const char *fragment_shader_blur=
+	"#version 330\n"
+	"uniform sampler2D text;"
+	"uniform vec2 textResol;"
+	"uniform vec2 viewport;"
+	"layout(location=0) out float color;"
+	"void main(){"
+	"vec2 vTexCoord=gl_FragCoord.xy/viewport;"
+	"const int radius=12;"
+    "const float kernel_size=float((radius*2+1)*(radius*2+1)/4);"
+    "float c=0.0;"
+	"for(int i=-radius; i<=radius; i+=2)"
+		"for(int j=-radius; j<=radius; j+=2)"
+			"c+=texture2D(text, vTexCoord+vec2(i, j)/textResol).r;"
+	"c=c/kernel_size;"
+	"color=c;"
 	"}";
 
 namespace r3d
@@ -274,8 +301,9 @@ namespace r3d
 
 		m_lightRT = engine->newRenderTarget2D();
 		m_lightedMap = m_cw->getTextureManager()->registerColorTexture2D("LightedMap", cw->getWidth(), cw->getHeight(), PF_BGRF);
-		ColorTexture2D *texts[]={m_lightedMap};
-		m_lightRT->attachColorTextures(1, texts);
+		m_rLightedMap = m_cw->getTextureManager()->registerColorTexture2D("ShadowIntensityMap", cw->getWidth(), cw->getHeight(), PF_R);
+		ColorTexture2D *texts[]={m_lightedMap, m_rLightedMap};
+		m_lightRT->attachColorTextures(2, texts);
 
 		// register bloom effect
 		m_bloom=m_pfx->pushEffect("bloom", m_lightedMap);
@@ -284,6 +312,15 @@ namespace r3d
 		m_renderTarget = engine->newRenderTarget2D();
 		m_renderTarget->attachDepthTexture(cw->getTextureManager()->registerDepthTexture2D("ShadowMap[1536x1536]", 1536, 1536, DF_24));
 		m_noiseMap = tMgr->registerColorTexture2D("noise.png");
+
+		// Blurring
+		m_programBlur=MakeShaderProgram(engine, vertex_shader, geometry_shader_ambient, fragment_shader_blur);
+		m_programBlur->setUniform("text", 0);
+		// Generate fbo for blurring
+		m_blurredRLightedMap = m_cw->getTextureManager()->registerColorTexture2D("BlurredShadowIntensityMap", cw->getWidth(), cw->getHeight(), PF_R);
+		m_blurRT = engine->newRenderTarget2D();
+		texts[0]=m_blurredRLightedMap;
+		m_blurRT->attachColorTextures(1, texts);
 	}
 
 	Deferred::~Deferred()
@@ -335,6 +372,7 @@ namespace r3d
 
 		m_pfx->runAll();
 
+		blurShadowIntensityMap();
 
 		combineStage();
 
@@ -521,6 +559,7 @@ namespace r3d
 
 		m_programCombine->setUniform("lighedMap", 0);
 		m_programCombine->setUniform("bloomMap", 1);
+		m_programCombine->setUniform("shadowIntensityMap", 2);
 	}
 
 	void Deferred::prepareViewRelativeUniform(ProgramPtr program, Camera *cam)
@@ -552,6 +591,7 @@ namespace r3d
 		m_programCombine->setUniform("viewport", {m_cw->getWidth(), m_cw->getHeight()});
 		m_lightedMap->bind(0);
 		m_bloom->getResult()->bind(1);
+		m_blurredRLightedMap->bind(2);
 		m_renderer->drawArrays(m_programCombine.get(), m_vao, PT_POINTS, 1);
 
 	}
@@ -622,5 +662,17 @@ namespace r3d
 	void Deferred::setSSAORadius(float r)
 	{
 		m_ssao->setSampleRadius(r);
+	}
+
+	void Deferred::blurShadowIntensityMap()
+	{
+		m_blurRT->bind();
+		// prepare shader input...
+		m_rLightedMap->bind(0);
+		m_programBlur->setUniform("viewport", {m_cw->getWidth(), m_cw->getHeight()});
+		m_programBlur->setUniform("textResol", {m_cw->getWidth(), m_cw->getHeight()});
+		m_renderer->clear();
+		m_renderer->drawArrays(m_programBlur.get(), m_vao, PT_POINTS, 1);
+		m_blurRT->unbind();
 	}
 }

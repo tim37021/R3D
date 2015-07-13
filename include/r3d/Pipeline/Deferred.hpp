@@ -61,10 +61,10 @@ namespace r3d
 		PostEffect *m_bloom;
 
 		// point light program
-		ProgramPtr m_programPL, m_programSL, m_programA, m_programDepth, m_programCombine;
+		ProgramPtr m_programPL, m_programSL, m_programA, m_programDepth, m_programCombine, m_programBlur;
 
-		RenderTarget2DPtr m_lightRT;
-		ColorTexture2D *m_lightedMap;
+		RenderTarget2DPtr m_lightRT, m_blurRT;
+		ColorTexture2D *m_lightedMap, *m_rLightedMap, *m_blurredRLightedMap;
 
 		// attributeless vao
 		VertexArray *m_vao;
@@ -75,6 +75,7 @@ namespace r3d
 		void beginLightPass();
 		void endLightPass();
 		void combineStage();
+		void blurShadowIntensityMap();
 
 		std::pair<glm::vec2, glm::vec2> calcLitRegion(Camera *cam, const glm::vec3 &lightPos, float radius);
 

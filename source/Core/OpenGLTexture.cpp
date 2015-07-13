@@ -8,7 +8,7 @@
 #define PUSHSTATE() GLint restoreId; glGetIntegerv( GL_TEXTURE_BINDING_2D, &restoreId );
 #define POPSTATE() glBindTexture( GL_TEXTURE_2D, restoreId );
 
-static GLenum PixelFormatOpenGLMap[]={GL_RED, GL_RED_INTEGER, GL_RGB, GL_BGR, GL_RGBA, GL_BGRA, GL_RGB, GL_BGR, GL_RGBA, GL_BGRA};
+static GLenum PixelFormatOpenGLMap[]={GL_RED, GL_RED, GL_RED_INTEGER, GL_RGB, GL_BGR, GL_RGBA, GL_BGRA, GL_RGB, GL_BGR, GL_RGBA, GL_BGRA};
 static GLenum WrappingOpenGLMap[]={GL_CLAMP_TO_EDGE, GL_CLAMP_TO_BORDER, GL_REPEAT, GL_MIRRORED_REPEAT};
 static GLenum FilterOpenGLMap[]={GL_NEAREST, GL_LINEAR, GL_NEAREST_MIPMAP_NEAREST,
 			GL_LINEAR_MIPMAP_NEAREST, GL_NEAREST_MIPMAP_LINEAR, GL_LINEAR_MIPMAP_LINEAR};
@@ -62,7 +62,7 @@ namespace r3d
 		// determine type for glTexSubImage2D
 		GLenum gltype;
 		PixelFormat pf=getPixelFormat();
-		if(pf==PF_RGBF||pf==PF_BGRF||pf==PF_RGBAF||pf==PF_BGRAF)
+		if(pf==PF_RF||pf==PF_RGBF||pf==PF_BGRF||pf==PF_RGBAF||pf==PF_BGRAF)
 			gltype=GL_FLOAT;
 		else if(pf==PF_OBJECT_R)
 			gltype=GL_UNSIGNED_INT;
@@ -106,6 +106,8 @@ namespace r3d
 		{
 			case PF_R:
 				return GL_R8;
+			case PF_RF:
+				return GL_R32F;
 			case PF_OBJECT_R:
 				return GL_R32UI;
 			case PF_RGB:
@@ -142,7 +144,7 @@ namespace r3d
 
 		GLenum gltype;
 		PixelFormat pf=getPixelFormat();
-		if(pf==PF_RGBF||pf==PF_BGRF||pf==PF_RGBAF||pf==PF_BGRAF)
+		if(pf==PF_RF||pf==PF_RGBF||pf==PF_BGRF||pf==PF_RGBAF||pf==PF_BGRAF)
 			gltype=GL_FLOAT;
 		else
 			gltype=GL_UNSIGNED_BYTE;
@@ -159,6 +161,8 @@ namespace r3d
 		{
 			case PF_R:
 				element_size=1; break;
+			case PF_RF:
+				element_size=4; break;
 			case PF_OBJECT_R:
 				element_size=4; break;
 			case PF_RGB:
