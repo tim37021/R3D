@@ -13,6 +13,7 @@ namespace r3d
 	enum PixelFormat
 	{
 		PF_R,
+		PF_RF,
 		// texture for storing object, is an unsigned int texture storing in R component
 		PF_OBJECT_R,
 		PF_RGB,
