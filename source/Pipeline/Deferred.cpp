@@ -114,6 +114,7 @@ static const char *fragment_shader_spotlight=
 	"uniform sampler2D AOMap;\n"
 	"uniform sampler2D shadowMap;\n"
 	"uniform sampler2D noiseMap;\n"
+	"uniform sampler2D M2Map;\n"
 	"uniform vec2 viewport;\n"
 	"uniform vec3 eyePos;\n"
 	"uniform vec3 lightPos;\n"
@@ -126,14 +127,6 @@ static const char *fragment_shader_spotlight=
 	"out vec4 color;\n"
 
 	////////PCF/////// 
-
-	"const int numSamplingPositions = 4;\n"
-	"vec2 kernel[9] = vec2 [](\n"
-	"	vec2(-1.0, -1.0), vec2(0.0, -1.0), vec2(1.0, -1.0),\n"
-	"	vec2(-1.0, 0.0), vec2(0.0, 0.0), vec2(1.0, 0.0),\n"
-	"	vec2(-1.0, 1.0), vec2(0.0, 1.0), vec2(1.0, 1.0)\n"
-	");\n"
-	
 	"vec2 poissonKernel[4] = vec2 [](\n"
 	"	vec2( -0.94201624, -0.39906216 ),\n"
   	"	vec2( 0.94558609, -0.76890725 ),\n"
@@ -141,36 +134,20 @@ static const char *fragment_shader_spotlight=
   	"	vec2( 0.34495938, 0.29387760 )\n"
 	");\n"
 
-	"float gaussian[9] = float [] (\n"
-	"	0.07511360795411207, 0.12384140315297386, 0.07511360795411207, \n"
-	"	0.12384140315297386, 0.20417995557165622, 0.12384140315297386, \n"
-	"	0.07511360795411207, 0.12384140315297386, 0.07511360795411207\n"
-	");\n"
-
-	
-	"float sample(in vec2 coords, in vec2 offset){\n"
-	"	return texture(shadowMap, coords + offset/1024);\n"
+	"vec2 getMoment(vec2 coord){\n"
+	"	float sampleDepth = texture(shadowMap, coord).x*2-1;\n"
+	"	float sampleLinearDepth = converter.x / (converter.y-sampleDepth*converter.z);\n"
+	"	float M2=texture(M2Map, coord).x;\n"
+	"	return vec2(sampleLinearDepth, M2);\n"
 	"}\n"
-	////////
 
-	"float shadowIntensity(vec3 shadowCoord, vec3 pos, vec3 normal){\n"
-	////////PCF/////// 
-	///Using poisson//
-	"	float mapDepth = 0;\n"
-	"	float intense = 0;\n"
-	"	float bias = -0.01 * tan(acos(dot (normal,  normalize(lightPos - pos)))); \n"
-	"	bias = clamp(bias, -0.07, 0); \n"
-	"	for (int i = 0; i<4; i++){\n"
-	//"		float sampleDepth =sample(shadowCoord.xy, kernel[i] * 2) * 2 - 1;\n"
-	"		float sampleDepth = texture(shadowMap, shadowCoord.xy + poissonKernel[i]/3600).x*2 -1 ;\n"
-	"		float sampleLinearDepth = converter.x / (converter.y-sampleDepth*converter.z);\n"
-	" 		float objectLinearDepth = converter.x / (converter.y-shadowCoord.z*converter.z);\n"
-	"		if( sampleLinearDepth + bias < objectLinearDepth ) {\n"
-	"			intense +=  0.2; \n" //exp(-5*(objectLinearDepth - sampleLinearDepth )/converter.z)*
-	"		}\n"
-	"	}\n"
-	//////////////////
-	"	return intense; \n"	
+	// Variance Shadow Mapping
+	"float shadowIntensity(vec2 moment, float objectLinearDepth){\n"
+	"	float p = step(moment.x, objectLinearDepth);\n"
+	"	float variance = max(moment.y - moment.x*moment.x, 0.002);\n"
+	"	float d = objectLinearDepth - moment.x;\n"
+	"	float pMax = 1.0-variance/(variance + d*d);\n"
+	"	return min(p, pMax);"
 	"}\n"
 
 	"void main(){\n"
@@ -179,7 +156,12 @@ static const char *fragment_shader_spotlight=
 	"vec3 fColor=texture(diffuseMap, vTexCoord).rgb;\n"
 	"vec3 norm=texture(normMap, vTexCoord).xyz;\n"
 	"vec3 spec=texture(specMap, vTexCoord).rgb;\n"
-	"float ao=texture(AOMap, vTexCoord).r;"
+	"float ao=texture(AOMap, vTexCoord).r;\n"
+	"vec4 shadowCoord=lightCamVp* vec4(pos, 1.0);\n"
+	"shadowCoord.xyz/=shadowCoord.w;\n"
+	"shadowCoord.xy=(shadowCoord.xy+vec2(1.0))/2.0;\n"
+	"shadowCoord.z=converter.x / (converter.y-shadowCoord.z*converter.z);\n"
+	"vec2 moment = getMoment(shadowCoord.xy);\n"
 	"float d = length(pos-lightPos);\n"
 	"if(length(norm)<=0.5||d>=32) discard;\n"
 	"vec3 lightVec=normalize(lightPos-pos);\n"
@@ -187,10 +169,7 @@ static const char *fragment_shader_spotlight=
 	"if(diffuse>=0.0){\n"
 	"	float angleCos = dot(-lightVec, lightDir); "
 	"	if(angleCos < cos(outerAngle)) discard;\n"
-	"	vec4 shadowCoord=lightCamVp* vec4(pos, 1.0);\n"
-	"	shadowCoord.xyz/=shadowCoord.w;\n"
-	"	shadowCoord.xy=(shadowCoord.xy+vec2 (1.0))/2.0;\n"
-	"	float shadow_inten=shadowIntensity(shadowCoord.xyz, pos, norm); \n" // Decide if pixel should be litted
+	"	float shadow_inten=shadowIntensity(moment, shadowCoord.z); \n" // Decide if pixel should be litted
 	"	float falloff = 1.0-clamp((d-28)/4.0, 0.0, 1.0);\n"
 	"	float d=length(lightPos-pos);\n"
 	"	float att=falloff*1.0/(0.5+0.5*d*d);\n"
@@ -214,13 +193,21 @@ static const char *vertex_shader_depth=
 	"layout(location=0) in vec3 pos;\n"
 	"layout(location=1) in vec2 texCoord;\n"
 	"layout(location=2) in vec3 norm;\n"
-	"uniform mat4 mvp;"
+	"uniform mat4 mvp;\n"
 	"void main(){\n"
-	"gl_Position=mvp*vec4(pos, 1.0);"
+	"gl_Position=mvp*vec4(pos, 1.0);\n"
 	"}\n";
 static const char *fragment_shader_depth = 
 	"#version 330\n"
-	"void main(){}";
+	"layout(location=0) out float M2;\n"
+	"uniform vec3 converter;\n"
+	"void main(){\n"
+	"float depth=gl_FragCoord.z*2-1;"
+	"float linearDepth=converter.x / (converter.y-depth*converter.z);\n"
+	"float dx=dFdx(linearDepth);\n"
+	"float dy=dFdy(linearDepth);\n"
+	"M2=linearDepth*linearDepth+0.25*(dx*dx+dy*dy);\n"
+	"}\n";
 ///////////////////////////////////
 static const char *fragment_shader_combine=
 	"#version 330\n"
@@ -233,7 +220,7 @@ static const char *fragment_shader_combine=
 	"vec2 vTexCoord=gl_FragCoord.xy/viewport;\n"
 	"vec3 lighted=texture(lightedMap, vTexCoord).rgb;\n"
 	"vec3 bloomed=texture(bloomMap, vTexCoord).rgb;"
-	"color=vec4(pow(mix(lighted, bloomed, 0.8), vec3(1/gamma)), 1.0);\n"
+	"color=vec4(pow(mix(lighted, bloomed, 0.0), vec3(1/gamma)), 1.0);\n"
 	"}";
 
 namespace r3d
@@ -282,7 +269,13 @@ namespace r3d
 		m_lightCamera = new Camera(m_cw, glm::vec3 (0.0f), glm::vec3 (0.0f), glm::vec3 (0.0f));
 	
 		m_renderTarget = engine->newRenderTarget2D();
-		m_renderTarget->attachDepthTexture(cw->getTextureManager()->registerDepthTexture2D("ShadowMap[1536x1536]", 1536, 1536, DF_24));
+		auto depthMap=cw->getTextureManager()->registerDepthTexture2D("ShadowMap[1536x1536]", 1536, 1536, DF_24);
+		auto depthM2Map=cw->getTextureManager()->registerColorTexture2D("ShadowMapM2[1536x1536]", 1536, 1536, PF_RF);
+		depthMap->setFilter(F_LINEAR, F_LINEAR);
+		depthM2Map->setFilter(F_LINEAR, F_LINEAR);
+		texts[0]=depthM2Map;
+		m_renderTarget->attachColorTextures(1, texts);
+		m_renderTarget->attachDepthTexture(depthMap);
 		m_noiseMap = tMgr->registerColorTexture2D("noise.png");
 	}
 
@@ -333,7 +326,7 @@ namespace r3d
 
 		endLightPass();
 
-		m_pfx->runAll();
+		//m_pfx->runAll();
 
 
 		combineStage();
@@ -379,6 +372,9 @@ namespace r3d
 	}
 	bool Deferred::renderDepth(Camera *cam, SceneNode *node, const glm::mat4 &trans, const glm::mat4 &rot)
 	{
+		float near = cam->getNear();
+		float far = cam->getFar();
+		m_programDepth->setUniform("converter", {2.0f*near*far, near+far, far-near});
 		node->render(m_renderer, m_programDepth.get(), cam, trans, rot);
 		return true;
 	}
@@ -455,25 +451,26 @@ namespace r3d
 		m_lightCamera->setNear(0.4f);
 		m_lightCamera->setFar(47.0f);
 		m_lightCamera->setAspect(1.0f);
-		m_lightCamera->setFov(light->outerAngle*2.0f);
+		m_lightCamera->setFov(45.0f);
 		float near = m_lightCamera->getNear();
 		float far = m_lightCamera->getFar();
 
 		m_renderer->enableDepthTest(true);
+		m_renderer->enableBlending(false);
 		m_renderTarget->bind();
 		m_renderer->setViewport(0, 0, light->dMap->getWidth(), light->dMap->getHeight());
-		m_engine->getRenderer()->enableFaceCulling(F_FRONT, true);
 		m_renderer->clear();
 		foreachSceneNode(m_cw->getSceneManager()->getRootNode().get(), 
 			std::bind(&Deferred::renderDepth, this, m_lightCamera, std::placeholders::_1, std::placeholders::_2
 				, std::placeholders::_3));
 		m_renderer->enableDepthTest(false);
-		m_engine->getRenderer()->enableFaceCulling(F_BACK, true);
 
 		m_lightRT->bind();
+		m_renderer->enableBlending(true, BP_ONE, BP_ONE, BF_ADD);
 
 		m_renderer->setViewport(0, 0, m_cw->getWidth(), m_cw->getHeight());
 		light->dMap->bind(5);
+		m_renderTarget->getColorTexture(0)->bind(7);
 
 		m_programSL->setUniform("lightPos", pos);
 		m_programSL->setUniform("lightColor", light->color);
@@ -515,6 +512,7 @@ namespace r3d
 		m_programSL->setUniform("AOMap", 4);
 		m_programSL->setUniform("shadowMap", 5);
 		m_programSL->setUniform("noiseMap",6);
+		m_programSL->setUniform("M2Map",7);
 
 		m_programA->setUniform("diffuseMap", 0);
 		m_programA->setUniform("AOMap", 1);
