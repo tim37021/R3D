@@ -269,8 +269,8 @@ namespace r3d
 		m_lightCamera = new Camera(m_cw, glm::vec3 (0.0f), glm::vec3 (0.0f), glm::vec3 (0.0f));
 	
 		m_renderTarget = engine->newRenderTarget2D();
-		auto depthMap=cw->getTextureManager()->registerDepthTexture2D("ShadowMap[1536x1536]", 1536, 1536, DF_24);
-		auto depthM2Map=cw->getTextureManager()->registerColorTexture2D("ShadowMapM2[1536x1536]", 1536, 1536, PF_RF);
+		auto depthMap=cw->getTextureManager()->registerDepthTexture2D("ShadowMap[1024x1024]", 1024, 1024, DF_24);
+		auto depthM2Map=cw->getTextureManager()->registerColorTexture2D("ShadowMapM2[1024x1024]", 1024, 1024, PF_RF);
 		depthMap->setFilter(F_LINEAR, F_LINEAR);
 		depthM2Map->setFilter(F_LINEAR, F_LINEAR);
 		texts[0]=depthM2Map;

@@ -73,7 +73,7 @@ public:
 			if(button==2&&action){//Mouse click middle
 				auto sMgr=cw->getSceneManager();
 				
-				r3d::SpotLight *light=new r3d::SpotLight(cw, 1536, 1536);
+				r3d::SpotLight *light=new r3d::SpotLight(cw, 1024, 1024);
 				light->dir = global_fps->getDir();
 				light->up = global_fps->getUp();
 				light->innerAngle = 20;
