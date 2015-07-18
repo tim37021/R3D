@@ -25,7 +25,7 @@ inline static void swap(T &a, T &b)
 namespace r3d
 {
 	MeshSceneNode::MeshSceneNode(SceneNodePtr parent, ContextWindow *cw, 
-		Shape &shape, const char *name_, const Transformation &relative):
+		Shape &shape, const char *name_, const Transformation &relative, bool useTangent):
 		SceneNode(parent, cw, (name_? name_: shape.name.c_str()), relative)
 	{
 		std::string name=(name_? name_: shape.name.c_str());
@@ -37,6 +37,36 @@ namespace r3d
 							glm::vec3(shape.mesh.normals.at(v*3), shape.mesh.normals.at(v*3+1), shape.mesh.normals.at(v*3+2))});
 		}
 
+		if(useTangent)
+		{
+			// construct tangent and bitangent vector if useTangent is true
+			m_vertexTangents.resize(m_vertices.size());
+			for(uint32_t i=0; i<shape.mesh.indices.size(); i+=3)
+			{
+				const glm::vec3 &o = m_vertices[shape.mesh.indices[i]].pos;
+				const glm::vec3 &a = m_vertices[shape.mesh.indices[i+1]].pos;
+				const glm::vec3 &b = m_vertices[shape.mesh.indices[i+2]].pos;
+
+				const glm::vec2 &uvo = m_vertices[shape.mesh.indices[i]].texCoord;
+				const glm::vec2 &uva = m_vertices[shape.mesh.indices[i+1]].texCoord;
+				const glm::vec2 &uvb = m_vertices[shape.mesh.indices[i+2]].texCoord;
+
+				// Edges of the triangle : postion delta
+				const glm::vec3 &o_a = a-o;
+				const glm::vec3 &o_b = b-o;
+
+				// UV delta
+				const glm::vec2 &uv_o_a = uva-uvo;
+				const glm::vec2 &uv_o_b = uvb-uvo;
+
+				float r = 1.0f / (uv_o_a.x*uv_o_b.y - uv_o_a.y*uv_o_b.x);
+				const glm::vec3 &tangent = (o_a*uv_o_b.y - o_b*uv_o_a.y)*r;
+				const glm::vec3 &bitangent = (o_b*uv_o_a.x - o_a*uv_o_b.x)*r;
+
+				m_vertexTangents[shape.mesh.indices[i]].tangent+=tangent;
+				m_vertexTangents[shape.mesh.indices[i]].bitangent+=bitangent;
+			}
+		}
 
 		// We must move object to the middle
 		findAABB();
@@ -50,20 +80,43 @@ namespace r3d
 		auto vaoMgr=cw->getVertexArrayManager();
 		auto bMgr=cw->getBufferManager();
 		
-		auto vbo=bMgr->registerVertexBuffer(name, m_vertices.data(), sizeof(Vertex)*m_vertices.size(), BU_STATIC_DRAW);
+		uint32_t stride = sizeof(Vertex)+(useTangent? sizeof(VertexTangent): 0);
+
+		auto vbo=bMgr->registerVertexBuffer(name, nullptr, stride*m_vertices.size(), BU_STATIC_DRAW);
 		auto ibo=bMgr->registerIndexBuffer(name, shape.mesh.indices, BU_STATIC_DRAW);
 	
+		// upload our data manually
+		void *mappedBuffer=vbo->lock(BA_WRITE_ONLY);
+		for(uint32_t i=0; i<m_vertices.size(); i++)
+		{
+			*(Vertex *)mappedBuffer=m_vertices[i];
+			if(useTangent)
+			{
+				void *mappedBufferTangent=(int8_t *)mappedBuffer+sizeof(Vertex);
+				*(VertexTangent *)mappedBufferTangent=m_vertexTangents[i];
+			}
+			mappedBuffer=(uint8_t *)mappedBuffer+stride;
+		}
+		vbo->unlock();
+
 		m_vao=vaoMgr->registerVertexArray(name);
 		m_vao->bindVertexBuffer(vbo);
 		m_vao->bindIndexBuffer(ibo);
 
-		AttribPointer vertAtt(r3d::RT_FLOAT, 3, sizeof(Vertex), 0);
-		AttribPointer texCoordAtt(r3d::RT_FLOAT, 2, sizeof(Vertex), 3*sizeof(float));
-		AttribPointer normAtt(r3d::RT_FLOAT, 3, sizeof(Vertex), 5*sizeof(float));
+		AttribPointer vertAtt(RT_FLOAT, 3, stride, 0);
+		AttribPointer texCoordAtt(RT_FLOAT, 2, stride, 3*sizeof(float));
+		AttribPointer normAtt(RT_FLOAT, 3, stride, 5*sizeof(float));
+		AttribPointer tangentAtt(RT_FLOAT, 3, stride, 8*sizeof(float));
+		AttribPointer bitangentAtt(RT_FLOAT, 3, stride, 11*sizeof(float));
 
 		m_vao->enableAttribArray(0, vertAtt);
 		m_vao->enableAttribArray(1, texCoordAtt);
 		m_vao->enableAttribArray(2, normAtt);
+		if(useTangent)
+		{
+			m_vao->enableAttribArray(4, tangentAtt);
+			m_vao->enableAttribArray(5, bitangentAtt);
+		}
 
 		m_indicesCount=shape.mesh.indices.size();
 

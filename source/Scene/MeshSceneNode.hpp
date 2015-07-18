@@ -28,7 +28,9 @@ namespace r3d
 		MeshSceneNode(SceneNodePtr parent, 
 			ContextWindow *cw, 
 			Shape &shape,
-			const char *name=nullptr, const Transformation &relative=Transformation());
+			const char *name=nullptr, 
+			const Transformation &relative=Transformation(),
+			bool useTangent=false);
 
 		//!> Render whole scene
 		virtual void render(Renderer *, Program *program, Camera *, 
@@ -38,6 +40,7 @@ namespace r3d
 		VertexArray *m_vao;
 		uint32_t m_indicesCount;
 		std::vector<Vertex> m_vertices;
+		std::vector<VertexTangent> m_vertexTangents;
 		AABB m_aabb;
 		AABB m_aabbOriginal;
 		
