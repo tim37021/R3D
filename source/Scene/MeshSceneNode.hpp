@@ -28,9 +28,9 @@ namespace r3d
 		MeshSceneNode(SceneNodePtr parent, 
 			ContextWindow *cw, 
 			Shape &shape,
+			bool useTangent=false,
 			const char *name=nullptr, 
-			const Transformation &relative=Transformation(),
-			bool useTangent=false);
+			const Transformation &relative=Transformation());
 
 		//!> Render whole scene
 		virtual void render(Renderer *, Program *program, Camera *, 

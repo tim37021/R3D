@@ -15,15 +15,21 @@ static const char *vertex_shader=
 	"layout(location=0) in vec3 pos;\n"
 	"layout(location=1) in vec2 texCoord;\n"
 	"layout(location=2) in vec3 norm;\n"
+	"layout(location=3) in vec3 tangent;\n"
+	"layout(location=4) in vec3 bitangent;\n"
 	"uniform mat4 mvp;"
 	"uniform mat4 model;"
-	"out vec3 vNorm;"
-	"out vec3 vWorldPos;"
-	"out vec2 vTexCoord;"
+	"out vec3 vNorm;\n"
+	"out vec3 vWorldPos;\n"
+	"out vec2 vTexCoord;\n"
+	"out vec3 vTangent;\n"
+	"out vec3 vBitangent;\n"
 	"void main(){\n"
 	"vWorldPos=(model*vec4(pos, 1.0)).xyz;"
 	"vTexCoord=texCoord;"
 	"vNorm=norm;"
+	"vTangent=tangent;\n"
+	"vBitangent=bitangent;\n"
 	"gl_Position=mvp*vec4(pos, 1.0);"
 	"}\n";
 
@@ -34,10 +40,14 @@ static const char *geometry_shader=
 	"in vec3 vNorm[3];\n"
 	"in vec3 vWorldPos[3];\n"
 	"in vec2 vTexCoord[3];\n"
+	"in vec3 vTangent[3];\n"
+	"in vec3 vBitangent[3];\n"
 	"out vec3 gNorm;\n"
 	"out vec3 gWorldPos;\n"
 	"out vec2 gTexCoord;\n"
 	"out vec3 vBC;\n"
+	"out vec3 gTangent;\n"
+	"out vec3 gBitangent;\n"
 	"uniform int enableSmooth=1;"
 	"uniform mat4 nmat;"
 	"vec3 barycentric[3] = vec3[3](vec3(1, 0, 0), vec3(0, 1, 0), vec3(0, 0, 1));"
@@ -50,6 +60,9 @@ static const char *geometry_shader=
 	"gNorm=(enableSmooth==1? (nmat*vec4(vNorm[i], 1.0)).xyz: norm);\n"
 	"gWorldPos=vWorldPos[i];\n"
 	"gTexCoord=vTexCoord[i];\n"
+	"gTangent=vTangent[i];\n"
+	"gBitangent=vBitangent[i];\n"
+	"\n"
 	"vBC=barycentric[i];\n"
 	"EmitVertex();\n"
 	"}"
@@ -65,15 +78,19 @@ static const char *fragment_shader=
 	"layout(location = 4) out uint objectMap;\n"
 	"uniform vec3 diffuse;\n"
 	"uniform vec3 specular;\n"
-	"uniform vec3 emission;"
+	"uniform vec3 emission;\n"	
 	"uniform sampler2D diffuseTexture;\n"
 	"uniform sampler2D specularTexture;\n"
-	"uniform uint id;"
-	"uniform int wireframeView;"
+	"uniform sampler2D normalTexture;\n"
+	"uniform uint id;\n"
+	"uniform int wireframeView;\n"
+	"uniform int useNormalMap;\n"
 	"in vec2 gTexCoord;\n"
 	"in vec3 gWorldPos;\n"
 	"in vec3 gNorm;\n"
 	"in vec3 vBC;\n"
+	"in vec3 gTangent;\n"
+	"in vec3 gBitangent;\n"
 
 	"float edgeFactor(){\n"
 	"    vec3 d = fwidth(vBC);\n"
@@ -82,10 +99,13 @@ static const char *fragment_shader=
 	"}"
 
 	"void main(){\n"
+	"mat3 tbn = mat3(gTangent, gBitangent, gNorm);\n"
+
 	"worldPosMap=gWorldPos;\n"
 	"vec3 color=pow(texture(diffuseTexture, gTexCoord).rgb, vec3(2.2))*diffuse;\n"
 	"diffuseMap=(wireframeView==1? mix(vec3(0.0), color, edgeFactor()): color);\n"
-	"normalMap=gNorm;\n"
+	"vec3 norm_w = tbn*(texture(normalTexture, gTexCoord).rgb*2.0-vec3(1.0));\n"
+	"normalMap=normalize(gNorm+norm_w);\n"
 	"specularMap=(specular.x<0?vec3(texture(specularTexture, gTexCoord)): specular);\n"
 	"objectMap=id;\n"
 	"}\n";
@@ -135,18 +155,29 @@ namespace r3d
 		node->addChild(objNode);
 		for(auto &shape: shapes)
 		{
-			MeshSceneNode *newNode = new MeshSceneNode(objNode, cw, shape);
+			MeshSceneNode *newNode;
 			
 			auto m_defaultMaterial = std::make_shared<Material>(m_program);
 
+			m_defaultMaterial->setDiffuse(tMgr->registerColorTexture2D("white.png"));
+
+			// Find available material
 			int32_t mid=-1;
 			for(uint32_t i=0; mid==-1&&i<shape.mesh.material_ids.size(); i++)
 				mid=shape.mesh.material_ids[i]>=0? shape.mesh.material_ids[i]: mid;
-
-			m_defaultMaterial->setDiffuse(tMgr->registerColorTexture2D("white.png"));
 			if(mid>=0)
 			{
 				auto material=materials[mid];
+
+				if(material.normal_texname!="")
+				{
+					// construct object with tangent and bitangent
+					newNode = new MeshSceneNode(objNode, cw, shape, true);
+					auto tex=tMgr->registerColorTexture2D(basePath+material.normal_texname);
+					m_defaultMaterial->setNormalMap(tex);
+				}
+				else
+					newNode = new MeshSceneNode(objNode, cw, shape);
 
 				// We use both texture and diffuse for color masking
 				if(material.diffuse_texname!="")
@@ -163,7 +194,8 @@ namespace r3d
 					m_defaultMaterial->setSpecular(tex);
 				}else
 					m_defaultMaterial->setSpecular(glm::vec3(material.specular[0], material.specular[1], material.specular[2]));
-			}
+			}else
+				newNode = new MeshSceneNode(objNode, cw, shape);
 			newNode->setMaterial(m_defaultMaterial);
 
 			objNode->addChild(SceneNodePtr(newNode));

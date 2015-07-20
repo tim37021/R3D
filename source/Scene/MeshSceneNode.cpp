@@ -25,7 +25,7 @@ inline static void swap(T &a, T &b)
 namespace r3d
 {
 	MeshSceneNode::MeshSceneNode(SceneNodePtr parent, ContextWindow *cw, 
-		Shape &shape, const char *name_, const Transformation &relative, bool useTangent):
+		Shape &shape, bool useTangent, const char *name_, const Transformation &relative):
 		SceneNode(parent, cw, (name_? name_: shape.name.c_str()), relative)
 	{
 		std::string name=(name_? name_: shape.name.c_str());
@@ -51,7 +51,7 @@ namespace r3d
 				const glm::vec2 &uva = m_vertices[shape.mesh.indices[i+1]].texCoord;
 				const glm::vec2 &uvb = m_vertices[shape.mesh.indices[i+2]].texCoord;
 
-				// Edges of the triangle : postion delta
+				// Edges of the triangle : position delta
 				const glm::vec3 &o_a = a-o;
 				const glm::vec3 &o_b = b-o;
 
@@ -65,7 +65,17 @@ namespace r3d
 
 				m_vertexTangents[shape.mesh.indices[i]].tangent+=tangent;
 				m_vertexTangents[shape.mesh.indices[i]].bitangent+=bitangent;
+				m_vertexTangents[shape.mesh.indices[i+1]].tangent+=tangent;
+				m_vertexTangents[shape.mesh.indices[i+1]].bitangent+=bitangent;
+				m_vertexTangents[shape.mesh.indices[i+2]].tangent+=tangent;
+				m_vertexTangents[shape.mesh.indices[i+2]].bitangent+=bitangent;
 			}
+		}
+
+		for(uint32_t i=0; i<m_vertexTangents.size(); i++)
+		{
+			m_vertexTangents[i].tangent=glm::normalize(m_vertexTangents[i].tangent);
+			m_vertexTangents[i].bitangent=glm::normalize(m_vertexTangents[i].bitangent);
 		}
 
 		// We must move object to the middle
@@ -114,8 +124,8 @@ namespace r3d
 		m_vao->enableAttribArray(2, normAtt);
 		if(useTangent)
 		{
-			m_vao->enableAttribArray(4, tangentAtt);
-			m_vao->enableAttribArray(5, bitangentAtt);
+			m_vao->enableAttribArray(3, tangentAtt);
+			m_vao->enableAttribArray(4, bitangentAtt);
 		}
 
 		m_indicesCount=shape.mesh.indices.size();

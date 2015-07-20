@@ -13,7 +13,7 @@ namespace r3d
 	public:
 		Material(ProgramPtr program): 
 			m_ambient(0.05f), m_diffuse(1.0f), m_specular(1.0f),
-			m_emission(0.0f), m_dMap(nullptr), m_sMap(nullptr), 
+			m_emission(0.0f), m_dMap(nullptr), m_sMap(nullptr), m_nMap(nullptr),
 			m_wireframeView(false), m_program(program)
 		{}
 
@@ -34,6 +34,9 @@ namespace r3d
 
 		void setEmission(const glm::vec3 &v)
 		{ m_emission=v; }
+
+		void setNormalMap(ColorTexture2D *text)
+		{ m_nMap=text; }
 
 		void enableWireframeView(bool value)
 		{ m_wireframeView=value; }
@@ -63,6 +66,14 @@ namespace r3d
 				m_program->setUniform("specular", {-1, -1, -1});
 			}
 
+			if(m_nMap)
+			{
+				m_nMap->bind(2);
+				m_program->setUniform("normalTexture", 2);
+				m_program->setUniform("useNormalMap", 1);
+			}else
+				m_program->setUniform("useNormalMap", 0);
+
 			m_program->setUniform("diffuse", m_diffuse);
 		}
 
@@ -77,6 +88,7 @@ namespace r3d
 
 		ColorTexture2D *m_dMap;
 		ColorTexture2D *m_sMap;
+		ColorTexture2D *m_nMap;
 
 		float shininess;
 
