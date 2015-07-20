@@ -91,7 +91,7 @@
 		</script>
 	</head>
 	<body template="window">
-	<button onclick="SearchPath2(document)" style="width: 25px; height: 25px">&lt;-</button><br />
+	<button onclick="SearchPath2(document)" style="width: 25px; height: 25px;">&lt;-</button><br/>
 	<input onkeydown="SearchPath(element, document, event)" id="sceneurl" type="text" value="/" style="display:inline-block;width:90%;margin-left:15px;"/>
 	<datagrid id='dt' source="" onrowadd="AttachEvent(element)">
 		<col fields="name" width="40%">Name:</col>

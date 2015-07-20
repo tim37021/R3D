@@ -49,11 +49,12 @@ function Startup()
 	comwin:GetElementById("window").style["display"]="none"
 	comwin.style["height"]="0px";
 	comwin:Show()
+	
 	scnlist=maincontext:LoadDocument("assets/demo.rml")
-	scnlist:GetElementById("title").inner_rml="Scene List"
-	local ds=scnlist:GetElementById("dt")
-	sceneurl=scnlist:GetElementById("sceneurl")--!!!!!!!!!!!!!!!!!!!!!!!!!!!!URL
-	ElementDataGrid.SetDataSource(ds,"scene."..scnlist:GetElementById("sceneurl"):GetAttribute("value"))
+	--scnlist:GetElementById("title").inner_rml="Scene List"
+	--local ds=scnlist:GetElementById("dt")
+	--sceneurl=scnlist:GetElementById("sceneurl")--!!!!!!!!!!!!!!!!!!!!!!!!!!!!URL
+	--ElementDataGrid.SetDataSource(ds,"scene."..scnlist:GetElementById("sceneurl"):GetAttribute("value"))
 	scnlist:Show()
 	
 	maincontext:LoadDocument("assets/menu.rml"):Show()
