@@ -16,7 +16,7 @@ static const char *vertex_shader=
 	"layout(location=1) in vec2 texCoord;\n"
 	"layout(location=2) in vec3 norm;\n"
 	"layout(location=3) in vec3 tangent;\n"
-	"layout(location=4) in vec3 bitangent;\n"
+	//"layout(location=4) in vec3 bitangent;\n"
 	"uniform mat4 mvp;"
 	"uniform mat4 model;"
 	"out vec3 vNorm;\n"
@@ -29,7 +29,7 @@ static const char *vertex_shader=
 	"vTexCoord=texCoord;"
 	"vNorm=norm;"
 	"vTangent=tangent;\n"
-	"vBitangent=bitangent;\n"
+	//"vBitangent=bitangent;\n"
 	"gl_Position=mvp*vec4(pos, 1.0);"
 	"}\n";
 
@@ -41,7 +41,7 @@ static const char *geometry_shader=
 	"in vec3 vWorldPos[3];\n"
 	"in vec2 vTexCoord[3];\n"
 	"in vec3 vTangent[3];\n"
-	"in vec3 vBitangent[3];\n"
+	//"in vec3 vBitangent[3];\n"
 	"out vec3 gNorm;\n"
 	"out vec3 gWorldPos;\n"
 	"out vec2 gTexCoord;\n"
@@ -61,7 +61,7 @@ static const char *geometry_shader=
 	"gWorldPos=vWorldPos[i];\n"
 	"gTexCoord=vTexCoord[i];\n"
 	"gTangent=vTangent[i];\n"
-	"gBitangent=vBitangent[i];\n"
+	//"gBitangent=vBitangent[i];\n"
 	"\n"
 	"vBC=barycentric[i];\n"
 	"EmitVertex();\n"
@@ -90,7 +90,7 @@ static const char *fragment_shader=
 	"in vec3 gNorm;\n"
 	"in vec3 vBC;\n"
 	"in vec3 gTangent;\n"
-	"in vec3 gBitangent;\n"
+	//"in vec3 gBitangent;\n"
 
 	"float edgeFactor(){\n"
 	"    vec3 d = fwidth(vBC);\n"
@@ -99,13 +99,14 @@ static const char *fragment_shader=
 	"}"
 
 	"void main(){\n"
-	"mat3 tbn = mat3(gTangent, gBitangent, gNorm);\n"
+	"vec3 bitan = cross(gTangent, gNorm);"
+	"mat3 tbn = mat3(gTangent, bitan, gNorm);\n"
 
 	"worldPosMap=gWorldPos;\n"
 	"vec3 color=pow(texture(diffuseTexture, gTexCoord).rgb, vec3(2.2))*diffuse;\n"
 	"diffuseMap=(wireframeView==1? mix(vec3(0.0), color, edgeFactor()): color);\n"
 	"vec3 norm_w = tbn*(texture(normalTexture, gTexCoord).rgb*2.0-vec3(1.0));\n"
-	"normalMap=normalize(gNorm+norm_w);\n"
+	"normalMap=(useNormalMap==1?normalize(gNorm+norm_w): gNorm);\n"
 	"specularMap=(specular.x<0?vec3(texture(specularTexture, gTexCoord)): specular);\n"
 	"objectMap=id;\n"
 	"}\n";

@@ -125,7 +125,7 @@ namespace r3d
 		if(useTangent)
 		{
 			m_vao->enableAttribArray(3, tangentAtt);
-			m_vao->enableAttribArray(4, bitangentAtt);
+			//m_vao->enableAttribArray(4, bitangentAtt);
 		}
 
 		m_indicesCount=shape.mesh.indices.size();
