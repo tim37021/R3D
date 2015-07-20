@@ -118,7 +118,7 @@ static const char *fragment_shader=
 	"diffuseMap=(wireframeView==1? mix(vec3(0.0), color, edgeFactor()): color);\n"
 	"vec3 norm_w = gTBN*(texture(normalTexture, ggTexCoord).rgb*2.0-vec3(1.0));\n"
 	"normalMap=normalize(gNorm+normalMapIntensity*norm_w);\n"
-	"specularMap=(specular.x<0?vec3(texture(specularMap, ggTexCoord)): specular);\n"
+	"specularMap=(specular.x<0?texture(specularTexture, ggTexCoord).xyz: specular);\n"
 	"objectMap=id;\n"
 	"}\n";
 
