@@ -579,6 +579,13 @@ std::string LoadMtl(std::map<std::string, int> &material_map,
       continue;
     }
 
+    // bump texture
+    if ((0 == strncmp(token, "map_Bump", 8)) && isSpace(token[8])) {
+      token += 9;
+      material.bump_texname = token;
+      continue;
+    }
+
     // unknown parameter
     const char *_space = strchr(token, ' ');
     if (!_space) {

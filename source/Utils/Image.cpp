@@ -269,11 +269,12 @@ namespace r3d
 		if ( depth == 24 && descriptor != 0 ) throw FormatException(); // Check for alpha channel if bit depth is 32
 		if ( depth == 32 ) hasAlpha = true; else hasAlpha=false; // check alpha channel?
 		if ( depth == 8 ) 
+		{
 			if ( bytesPerPixel == 1 )
 				isGrayscale=true;
 			else
 				throw FormatException(); // only support 8 bit grayscale
-
+		}
 		// If pixels are RLE encoded, they need to be unpacked first
 		if ( type == 10 )
 			DecodeRLE( data, width * height * bytesPerPixel, bytesPerPixel );
@@ -587,6 +588,9 @@ namespace r3d
 			else if ( info->color_type == PNG_COLOR_TYPE_RGBA )
 				for ( uint16_t x = 0; x < info->width; x++ )
 					image[ x + y * info->width ] = Color( row[x*4+0], row[x*4+1], row[x*4+2], row[x*4+3] );
+			else if( info->color_type == PNG_COLOR_TYPE_GRAY)
+				for ( uint16_t x = 0; x < info->width; x++ )
+					image[ x + y * info->width ] = Color( row[x], row[x], row[x] );
 			else
 				throw FormatException();
 		}

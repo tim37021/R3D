@@ -47,7 +47,10 @@ static const char *geometry_shader=
 	"out vec2 gTexCoord;\n"
 	"out vec3 vBC;\n"
 	"out vec3 gTangent;\n"
-	"out vec3 gBitangent;\n"
+	//"out vec3 gBitangent;\n"
+	"out mat3 gTBN;\n"
+	"out mat3 gInvTBN;\n"
+
 	"uniform int enableSmooth=1;"
 	"uniform mat4 nmat;"
 	"vec3 barycentric[3] = vec3[3](vec3(1, 0, 0), vec3(0, 1, 0), vec3(0, 0, 1));"
@@ -57,10 +60,13 @@ static const char *geometry_shader=
 	"vec3 norm=normalize(cross(oa, ob));\n"
 	"for(int i=0; i<3; i++){\n"
 	"gl_Position=gl_in[i].gl_Position;\n"
-	"gNorm=(enableSmooth==1? (nmat*vec4(vNorm[i], 1.0)).xyz: norm);\n"
+	"gNorm=(enableSmooth==1? (nmat*vec4(vNorm[i], 0.0)).xyz: norm);\n"
 	"gWorldPos=vWorldPos[i];\n"
 	"gTexCoord=vTexCoord[i];\n"
-	"gTangent=vTangent[i];\n"
+	"gTangent=(nmat*vec4(vTangent[i], 0.0)).xyz;\n"
+	"vec3 bitan = cross(gTangent, gNorm);"
+	"gTBN = mat3(gTangent, bitan, gNorm);\n"
+	"gInvTBN = transpose(gTBN);"
 	//"gBitangent=vBitangent[i];\n"
 	"\n"
 	"vBC=barycentric[i];\n"
@@ -82,14 +88,19 @@ static const char *fragment_shader=
 	"uniform sampler2D diffuseTexture;\n"
 	"uniform sampler2D specularTexture;\n"
 	"uniform sampler2D normalTexture;\n"
+	"uniform sampler2D heightTexture;\n"
+	"uniform vec3 eyePos;\n"
 	"uniform uint id;\n"
 	"uniform int wireframeView;\n"
-	"uniform int useNormalMap;\n"
+	"uniform float normalMapIntensity;\n"
+	"uniform float parallaxMapIntensity;\n"
 	"in vec2 gTexCoord;\n"
 	"in vec3 gWorldPos;\n"
 	"in vec3 gNorm;\n"
 	"in vec3 vBC;\n"
 	"in vec3 gTangent;\n"
+	"in mat3 gTBN;\n"
+	"in mat3 gInvTBN;\n"
 	//"in vec3 gBitangent;\n"
 
 	"float edgeFactor(){\n"
@@ -99,15 +110,15 @@ static const char *fragment_shader=
 	"}"
 
 	"void main(){\n"
-	"vec3 bitan = cross(gTangent, gNorm);"
-	"mat3 tbn = mat3(gTangent, bitan, gNorm);\n"
+	"vec3 viewVecTangnet = normalize(gInvTBN*(eyePos-gWorldPos));\n"
+	"vec2 ggTexCoord = gTexCoord + viewVecTangnet.xy*0.05*(texture(heightTexture, gTexCoord).x-0.1);\n"
 
 	"worldPosMap=gWorldPos;\n"
-	"vec3 color=pow(texture(diffuseTexture, gTexCoord).rgb, vec3(2.2))*diffuse;\n"
+	"vec3 color=pow(texture(diffuseTexture, ggTexCoord).rgb, vec3(2.2))*diffuse;\n"
 	"diffuseMap=(wireframeView==1? mix(vec3(0.0), color, edgeFactor()): color);\n"
-	"vec3 norm_w = tbn*(texture(normalTexture, gTexCoord).rgb*2.0-vec3(1.0));\n"
-	"normalMap=(useNormalMap==1?normalize(gNorm+norm_w): gNorm);\n"
-	"specularMap=(specular.x<0?vec3(texture(specularTexture, gTexCoord)): specular);\n"
+	"vec3 norm_w = gTBN*(texture(normalTexture, ggTexCoord).rgb*2.0-vec3(1.0));\n"
+	"normalMap=normalize(gNorm+normalMapIntensity*norm_w);\n"
+	"specularMap=(specular.x<0?vec3(texture(heightTexture, ggTexCoord)): specular);\n"
 	"objectMap=id;\n"
 	"}\n";
 
@@ -176,6 +187,13 @@ namespace r3d
 					newNode = new MeshSceneNode(objNode, cw, shape, true);
 					auto tex=tMgr->registerColorTexture2D(basePath+material.normal_texname);
 					m_defaultMaterial->setNormalMap(tex);
+
+					// If bump map exist, we can do parallax mapping
+					if(material.bump_texname!="")
+					{
+						tex=tMgr->registerColorTexture2D(basePath+material.bump_texname);
+						m_defaultMaterial->setHeightMap(tex);
+					}
 				}
 				else
 					newNode = new MeshSceneNode(objNode, cw, shape);
@@ -195,6 +213,7 @@ namespace r3d
 					m_defaultMaterial->setSpecular(tex);
 				}else
 					m_defaultMaterial->setSpecular(glm::vec3(material.specular[0], material.specular[1], material.specular[2]));
+			
 			}else
 				newNode = new MeshSceneNode(objNode, cw, shape);
 			newNode->setMaterial(m_defaultMaterial);

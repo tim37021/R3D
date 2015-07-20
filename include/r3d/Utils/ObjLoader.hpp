@@ -30,6 +30,7 @@ struct material_t{
   std::string diffuse_texname;
   std::string specular_texname;
   std::string normal_texname;
+  std::string bump_texname;
   std::map<std::string, std::string> unknown_parameter;
 };
 

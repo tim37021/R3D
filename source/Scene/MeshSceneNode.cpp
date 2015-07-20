@@ -147,6 +147,7 @@ namespace r3d
 			program->setUniform("mvp", cam->getVPMatrix()*tmpMatrix);
 			program->setUniform("model", tmpMatrix);
 			program->setUniform("nmat", tmpRotation);
+			program->setUniform("eyePos", cam->getPos());
 			renderer->drawElements(program, m_vao, PT_TRIANGLES, m_indicesCount);
 		}
 	}
