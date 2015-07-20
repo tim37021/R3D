@@ -113,6 +113,16 @@
 			end
 			end
 
+			function knevent(event)
+			if obj_sel~=nil then
+				element=event.current_element
+				if event.parameters['key_identifier']==72 then
+					local intensity=obj_sel:GetNormalMapIntensity()
+					setnorm(element.parent_node,element:GetAttribute('value')-obj_sel:GetNormalMapIntensity())
+				end
+			end
+			end
+
 			function kdevent(event, type)
 			if obj_sel~=nil then
 				element=event.current_element
@@ -152,6 +162,14 @@
 				x=obj_sel:GetScale('x')*x
 				obj_sel:SetScale(x,x,x)
 				element:GetElementById("zoom"):SetAttribute("value",x)
+			end
+			end
+
+			function setnorm(element,n)
+			if obj_sel~=nil then
+				n=obj_sel:GetNormalMapIntensity()+n
+				obj_sel:SetNormalMapIntensity(n)
+				element:GetElementById("norm"):SetAttribute("value", n)
 			end
 			end
 		</script>
@@ -223,6 +241,13 @@
 	<input type="text" id="bspec" size="5" maxlength="20" value="0"  onkeydown="ksevent(event,'b')"/>
 	<bl/><plusbut onClick="setSpecular(element.parent_node,0,0,0.125)"/><br/>
 	</h1>
+
+	<h1 style="text-align: left; color: white; font-size: 18;">
+	Normal Mapping intensity<br/><minusbut onClick="setnorm(element.parent_node, -0.1)"/>
+	<input type="text" id="norm" size="5" maxlength="20" value="1" onkeydown="knevent(event)"/>
+	<bl/><plusbut onClick="setnorm(element.parent_node, 0.1)"/><br/>
+	</h1>
+	<hr/>
 
 	</body>
 </rml>

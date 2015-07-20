@@ -178,6 +178,31 @@ static int LUASetWireframeView(lua_State *L)
 	return 0;
 }
 
+static int LUAGetNormalMapIntensity(lua_State *L)
+{
+	lua_getfield(L, 1, "ptr");
+	auto *node=static_cast<r3d::SceneNode *>(lua_touserdata(L, -1));
+	auto mtl=node->getMaterial();
+	
+	float intensity=0.0f;
+	if(mtl)
+		intensity=mtl->getNormalMapIntensity();
+	lua_pushnumber(L, intensity);
+	return 1;
+}
+
+static int LUASetNormalMapIntensity(lua_State *L)
+{
+	float intensity=lua_tonumber(L, 2);
+	lua_getfield(L, 1, "ptr");
+	auto *node=static_cast<r3d::SceneNode *>(lua_touserdata(L, -1));
+	auto mtl=node->getMaterial();
+	
+	if(mtl)
+		mtl->setNormalMapIntensity(intensity);
+	return 0;
+}
+
 static int LUALoadObjScene(lua_State *L)
 {
 	const char *filename=lua_tostring(L, 1);
@@ -187,7 +212,7 @@ static int LUALoadObjScene(lua_State *L)
 	auto node=sMgr->loadObjScene(sMgr->getRootNode(), filename);
 	datasource->notify(sMgr->getRootNode().get());
 	
-	lua_createtable(L, 0, 12);
+	lua_createtable(L, 0, 14);
 	lua_pushstring(L, "ptr");
 	lua_pushlightuserdata(L, node);
 	lua_settable(L, -3);
@@ -223,6 +248,12 @@ static int LUALoadObjScene(lua_State *L)
 	lua_settable(L, -3);
 	lua_pushstring(L, "EnableWireframeView");
 	lua_pushcfunction (L, LUASetWireframeView);
+	lua_settable(L, -3);
+	lua_pushstring(L, "GetNormalMapIntensity");
+	lua_pushcfunction (L, LUAGetNormalMapIntensity);
+	lua_settable(L, -3);
+	lua_pushstring(L, "SetNormalMapIntensity");
+	lua_pushcfunction (L, LUASetNormalMapIntensity);
 	lua_settable(L, -3);
 	return 1;
 }
