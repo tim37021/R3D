@@ -11,15 +11,17 @@ namespace r3d
 	public:
 		EmptySceneNode(SceneNodePtr parent, 
 			ContextWindow *cw,
-			const char *name="Untitled", 
+			const char *name="", 
 			const Transformation &relative=Transformation()
 			):
-			SceneNode(parent, cw, name, relative){}
-		virtual void render(Renderer *renderer, Camera *cam, 
-			const glm::mat4 &current=glm::mat4(1.0f))
+			SceneNode(parent, cw, name, relative)
 		{
-			for(SceneNodePtr &child: m_children)
-				child->render(renderer, cam, current*m_relative.getMatrix());
+			m_nodeType="Empty";
+		}
+		virtual void render(Renderer *renderer, Program *program, Camera *cam, 
+			const glm::mat4 &current=glm::mat4(1.0f), const glm::mat4 &currentRotation=glm::mat4(1.0f))
+		{ 
+			// Don't draw! 
 		}
 	};
 }

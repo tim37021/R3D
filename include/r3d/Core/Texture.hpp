@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <glm/glm.hpp>
 
 namespace r3d
 {
@@ -11,6 +12,10 @@ namespace r3d
 
 	enum PixelFormat
 	{
+		PF_R,
+		PF_RF,
+		// texture for storing object, is an unsigned int texture storing in R component
+		PF_OBJECT_R,
 		PF_RGB,
 		PF_BGR,
 		PF_RGBA,
@@ -61,10 +66,14 @@ namespace r3d
 		virtual void *lock()=0;
 		virtual void unlock()=0;
 
+		virtual const glm::vec4 &getBorder()= 0 ;
+		virtual void setBorder(const glm::vec4 border) = 0;
+
 		const void *getData() const { return m_data.get(); }
 	protected:
 		//! data will be stored in raw major
 		std::shared_ptr<void> m_data;
+		glm::vec4 m_border;
 	};
 
 	class Texture2D: public ITexture
@@ -82,8 +91,9 @@ namespace r3d
 			allocator(width, height);
 		}
 
-		virtual void setWrapping(Wrapping s, Wrapping t)=0;
-		virtual void setFilter(Filter min, Filter mag)=0;
+		virtual void setWrapping(Wrapping s, Wrapping t) = 0;
+		virtual void setFilter(Filter min, Filter mag) = 0;
+		virtual void generateMipmap() = 0;
 
 		uint32_t getWidth() const
 		{ return m_width; }
@@ -91,6 +101,9 @@ namespace r3d
 		uint32_t getHeight() const
 		{ return m_height; }
 
+		const glm::vec4 &getBorder() { return m_border ;}
+		virtual void setBorder(const glm::vec4 border) { m_border = border ;}
+		
 
 	protected:
 		virtual void allocator(uint32_t width, uint32_t height)=0;

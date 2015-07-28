@@ -1,0 +1,102 @@
+<rml>
+	<head>
+		<title>Demo</title>
+		<link type="text/template" href="window.rml" />
+		<style>
+			body
+			{
+				width: 300px;
+				height: 280px;
+				orih: 280px;
+				position: absolute;
+				right: 10px;
+				top: 370px;
+			}
+			div#content
+			{
+				text-align: left;
+			}
+		</style>
+		<script>
+			choose_last=nil
+
+			function dirname(str)
+				if str:match(".-/.-") then
+					local name = string.gsub(str, "(.*/)(.*)", "%1")
+					return name
+				else
+					return ''
+				end
+			end
+
+			function SelectObj(element)
+				if obj_sel ~= nil then
+					obj_sel:EnableWireframeView(false)
+				end
+				if choose_last~=nil then
+					choose_last.style["color"]="black";
+				end
+				obj_sel.ptr=ToUserdata(element.child_nodes[2].inner_rml)
+				obj_sel:EnableWireframeView(true)
+				setTrans(tranmenu, 0, 0, 0)
+				setRot(tranmenu, 0, 0, 0)
+				setzoom(tranmenu, 1)
+				setDiffuse(tranmenu, 0, 0, 0)
+				setSpecular(tranmenu, 0, 0, 0)
+
+				element.style["color"]="red";
+				choose_last=element
+			end
+			
+			function seturl(document, element, event)
+				print(element)
+				local path=document:GetElementById("sceneurl"):GetAttribute("value")
+				if path:len() > 1 then
+					path = path .. '/'
+				end
+				path = path .. element.child_nodes[0].inner_rml
+				local dbb=document:GetElementById("dt");
+				ElementDataGrid.SetDataSource(dbb, "scene."..path);
+
+				document:GetElementById("sceneurl"):SetAttribute("value", path)
+			end
+			
+			function AttachEvent(element) 
+				local pr=element.child_nodes[1].child_nodes;
+				for k,v in pairs(pr) do
+					pr[k].child_nodes[2].style["display"] = "none"
+					pr[k]:AddEventListener('click', 'SelectObj(element)', True)
+					pr[k]:AddEventListener('dblclick', 'seturl(document, element)', True)
+				end
+				
+			end	
+
+			function SearchPath(element, document, event)
+				if event.parameters['key_identifier']==72 then
+					local dbb=document:GetElementById("dt");
+					ElementDataGrid.SetDataSource(dbb, "scene."..element:GetAttribute("value"));
+				end
+
+			end
+
+			function SearchPath2(document)
+				local path=dirname(document:GetElementById("sceneurl"):GetAttribute("value"))
+				if path:sub(-1) == "/" and path:len()>1 then
+					path = path:sub(1, path:len()-1)
+				end
+				local dbb=document:GetElementById("dt");
+				ElementDataGrid.SetDataSource(dbb, "scene."..path);
+				document:GetElementById("sceneurl"):SetAttribute("value", path)
+			end
+		</script>
+	</head>
+	<body template="window">
+	<button onclick="SearchPath2(document)" style="width: 25px; height: 25px;">&lt;-</button><br/>
+	<input onkeydown="SearchPath(element, document, event)" id="sceneurl" type="text" value="/" style="display:inline-block;width:90%;margin-left:15px;"/>
+	<datagrid id='dt' source="" onrowadd="AttachEvent(element)">
+		<col fields="name" width="40%">Name:</col>
+		<col fields="type" width="20%">Type:</col>
+		<col fields="ptr" width="0px"/>
+	</datagrid>
+	</body>
+</rml>

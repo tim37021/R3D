@@ -19,15 +19,19 @@ set(SOURCE
 	${SOURCE_DIR_BASE}/Manager/TextureManager.cpp
 	${SOURCE_DIR_BASE}/Manager/SceneManager.cpp
 	${SOURCE_DIR_BASE}/Pipeline/GBuffer.cpp
+	${SOURCE_DIR_BASE}/Pipeline/Deferred.cpp
 	${SOURCE_DIR_BASE}/Pipeline/PostFX.cpp
 	${SOURCE_DIR_BASE}/Pipeline/DefaultPostFX.cpp
+	${SOURCE_DIR_BASE}/Pipeline/SSAO.cpp
 	${SOURCE_DIR_BASE}/Utils/tiny_obj_loader.cc
 	${SOURCE_DIR_BASE}/Utils/Image.cpp
 	${SOURCE_DIR_BASE}/Renderer/OpenGLRenderer.cpp
 	${SOURCE_DIR_BASE}/Shader/OpenGLProgram.cpp
 	${SOURCE_DIR_BASE}/Shader/OpenGLShader.cpp
+	${SOURCE_DIR_BASE}/Shader/ProgramUtils.cpp
 	${SOURCE_DIR_BASE}/Scene/SceneNode.cpp
 	${SOURCE_DIR_BASE}/Scene/MeshSceneNode.cpp
+	${SOURCE_DIR_BASE}/Scene/Light.cpp
 	${SOURCE_DIR_BASE}/Window/ContextWindow.cpp
 	${SOURCE_DIR_BASE}/Window/GLFW3ContextWindow.cpp
 	PARENT_SCOPE

@@ -34,6 +34,20 @@ namespace r3d
 		BP_ONE_MINUS_DST_ALPHA
 	};
 
+	enum FillMode
+	{
+		FM_POINT,
+		FM_LINE,
+		FM_FILL
+	};
+
+	enum Face
+	{
+		F_FRONT,
+		F_BACK,
+		F_FRONT_AND_BACK
+	};
+
 	class VertexArray;
 
 	class Renderer
@@ -41,8 +55,10 @@ namespace r3d
 	public:
 		virtual ~Renderer(){}
 		virtual void clear()=0;
+		virtual void setViewport(int32_t, int32_t, uint32_t, uint32_t)=0;
+		virtual void setFillMode(FillMode)=0;
 		virtual void enableDepthTest(bool value)=0;
-		virtual void enableBackfaceCulling(bool value)=0;
+		virtual void enableFaceCulling(Face, bool value)=0;
 		virtual void enableScissorTest(bool enable)=0;
 		virtual void setScissorRegion(int32_t, int32_t, uint32_t, uint32_t)=0;
 		virtual void enableBlending(bool value, BlendParameter sf=BP_ONE, BlendParameter df=BP_ZERO, BlendFunction bf=BF_ADD)=0;

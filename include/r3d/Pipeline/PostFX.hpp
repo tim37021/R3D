@@ -13,6 +13,7 @@ namespace r3d
 	class ContextWindow;
 	class VertexArray;
 	class RenderTarget2D;
+	class Texture2D;
 
 	typedef std::shared_ptr<RenderTarget2D> RenderTarget2DPtr;
 
@@ -20,30 +21,34 @@ namespace r3d
 	{
 	public:
 		PostEffectInstancer()=default;
-		PostEffectInstancer(PostEffect *(*ctor)(PostFX *), void (*dtor)(PostEffect *)):
+		PostEffectInstancer(PostEffect *(*ctor)(PostFX *, Texture2D *), void (*dtor)(PostEffect *)):
 			m_constructor(ctor), m_destructor(dtor){}
 		PostEffectInstancer(const PostEffectInstancer &)=default;
-		PostEffect *newPostEffect(PostFX *pfx) { return m_constructor(pfx); }
+		PostEffect *newPostEffect(PostFX *pfx, Texture2D *input) { return m_constructor(pfx, input); }
 		void freePostEffect(PostEffect *effect) { m_destructor(effect); }
 	private:
-		PostEffect *(*m_constructor)(PostFX *);
+		PostEffect *(*m_constructor)(PostFX *, Texture2D *);
 		void (*m_destructor)(PostEffect *);
 	};
 
 	class PostEffect
 	{
 	public:
-		PostEffect(PostFX *pfx, const std::string &effectName);
+		PostEffect(PostFX *pfx, const std::string &effectName, Texture2D *input);
 		virtual ~PostEffect(){}
 		virtual void run()=0;
+		virtual Texture2D *getResult()=0;
 
 		const std::string getName() const
 		{ return m_effectName; }
 
 	protected:
 		PostFX *m_pfx;
-		std::string m_effectName;
 		Engine *m_engine;
+		std::string m_effectName;
+		Texture2D *m_text;
+		
+		
 		ContextWindow *m_cw;
 	};
 
@@ -54,22 +59,17 @@ namespace r3d
 		~PostFX();
 
 		void runAll();
-		void pushEffect(const std::string &effectName);
+		PostEffect *pushEffect(const std::string &effectName, Texture2D *input);
 		void clear();
 
 		static void Initialise();
 
 		Engine *getEngine() { return m_engine; }
 		ContextWindow *getContextWindow() { return m_cw; }
-		VertexArray *getVAO() { return m_vao; }
 
-		void beginSource();
-		void endSource();
 	private:
 		Engine *m_engine;
 		ContextWindow *m_cw;
-		VertexArray *m_vao;
-		RenderTarget2DPtr m_fbosource;
 
 		std::list<PostEffect *> effects;
 	};

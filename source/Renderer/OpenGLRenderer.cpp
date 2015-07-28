@@ -8,6 +8,8 @@ static GLenum BlendParameterOpenGLMap[]=
 {GL_ZERO, GL_ONE, GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR, GL_DST_COLOR, GL_ONE_MINUS_DST_COLOR,
 	GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_DST_ALPHA,	GL_ONE_MINUS_DST_ALPHA};
 static GLenum BlendFunctionOpenGLMap[]={GL_FUNC_ADD, GL_FUNC_SUBTRACT, GL_FUNC_REVERSE_SUBTRACT};
+static GLenum FillModeOpenGLMap[]={GL_POINT, GL_LINE, GL_FILL};
+static GLenum FaceOpenGLMap[]={GL_FRONT, GL_BACK, GL_FRONT_AND_BACK};
 namespace r3d
 {
 	OpenGLRenderer::OpenGLRenderer(Engine *engine)
@@ -20,6 +22,16 @@ namespace r3d
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	}
 
+	void OpenGLRenderer::setViewport(int32_t x, int32_t y, uint32_t width, uint32_t height)
+	{
+		glViewport(x, y, width, height);
+	}
+
+	void OpenGLRenderer::setFillMode(FillMode f)
+	{
+		glPolygonMode(GL_FRONT_AND_BACK, FillModeOpenGLMap[f]);
+	}
+
 	void OpenGLRenderer::enableDepthTest(bool value)
 	{
 		if(value)
@@ -28,13 +40,13 @@ namespace r3d
 			glDisable(GL_DEPTH_TEST);
 	}
 
-	void OpenGLRenderer::enableBackfaceCulling(bool value)
+	void OpenGLRenderer::enableFaceCulling(Face f, bool value)
 	{
 		if(value)
 			glEnable(GL_CULL_FACE);
 		else
 			glDisable(GL_CULL_FACE);
-		glCullFace(GL_BACK);
+		glCullFace(FaceOpenGLMap[f]);
 	}
 	void OpenGLRenderer::enableScissorTest(bool enable)
 	{

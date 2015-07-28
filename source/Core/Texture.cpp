@@ -22,6 +22,12 @@ namespace r3d
 		int element_size;
 		switch(m_pf)
 		{
+			case PF_R:
+				element_size=1; break;
+			case PF_RF:
+				element_size=4; break;
+			case PF_OBJECT_R:
+				element_size=4; break;
 			case PF_RGB:
 			case PF_BGR:
 				element_size=3; break;

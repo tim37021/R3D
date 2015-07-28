@@ -12,33 +12,49 @@ namespace r3d
 		const glm::vec3 &pos, const glm::vec3 &dir, const glm::vec3 &up):
 		m_window(window), m_pos(pos), m_dir(dir), m_up(up), m_dirty(true)
 	{
-
+		m_near = 0.1f;
+		m_far = 1000.0f;
+		m_aspect = (float)window->getWidth() / window->getHeight();
 	}
 
 	Camera::Camera(ContextWindow *window): m_window(window)
 	{
-
+		m_near = 0.1f;
+		m_far = 1000.0f;
+		m_aspect = (float)window->getWidth() / window->getHeight();
 	}
 
 	const glm::mat4 &Camera::getVMatrix() const
 	{
 		if(m_dirty)
 		{
-			const glm::mat4 &proj=glm::perspective(m_fov, (float)m_window->getWidth()/m_window->getHeight(), 0.1f, 999999.0f);
+			m_proj=glm::perspective(m_fov, m_aspect, m_near, m_far);
 			m_viewcache=glm::lookAt(m_pos, m_pos+m_dir, m_up);
-			m_cache=proj*m_viewcache;
+			m_cache=m_proj*m_viewcache;
 			m_dirty=false;
 		}
 		return m_viewcache;
+	}
+
+	const glm::mat4 &Camera::getPMatrix() const
+	{
+		if(m_dirty)
+		{
+			m_proj=glm::perspective(m_fov, m_aspect, m_near, m_far);
+			m_viewcache=glm::lookAt(m_pos, m_pos+m_dir, m_up);
+			m_cache=m_proj*m_viewcache;
+			m_dirty=false;
+		}
+		return m_proj;
 	}
 
 	const glm::mat4 &Camera::getVPMatrix() const
 	{
 		if(m_dirty)
 		{
-			const glm::mat4 &proj=glm::perspective(m_fov, (float)m_window->getWidth()/m_window->getHeight(), 0.1f, 999999.0f);
+			m_proj=glm::perspective(m_fov, m_aspect, m_near, m_far);
 			m_viewcache=glm::lookAt(m_pos, m_pos+m_dir, m_up);
-			m_cache=proj*m_viewcache;
+			m_cache=m_proj*m_viewcache;
 			m_dirty=false;
 		}
 		return m_cache;
@@ -46,14 +62,14 @@ namespace r3d
 
 	const Frustum Camera::getFrustum(){
 		Frustum frustum;
-		frustum.setFrustum(m_pos, m_dir, m_up, m_fov, (float)m_window->getWidth()/m_window->getHeight(), 0.1f, 999999.0f);
+		frustum.setFrustum(m_pos, m_dir, m_up, m_fov+10, m_aspect, m_near, m_far);
 		// std::cout<<frustum.p[0].x<<" "<<frustum.p[0].y<<" "<<frustum.p[0].z<<" "<<frustum.p[0].w<<std::endl;
 		return frustum;
 	}
 
 	FPSCamera::FPSCamera(ContextWindow *window, float fov, const glm::vec3 &pos)
 		: Camera(window), m_horizontalAngle(3.14f), m_verticalAngle(0.0f),
-		m_speed(3.0f), m_mouseSpeed(0.2f), m_lastUpdate(0.0f)
+		m_speed(12.0f), m_mouseSpeed(0.2f), m_lastUpdate(0.0f)
 	{
 		m_pos=pos;
 		m_fov=fov;

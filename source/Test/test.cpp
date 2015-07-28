@@ -50,7 +50,7 @@ static const char *compute_shader=
 	"float globalCoef = sin(float(gl_WorkGroupID.x+gl_WorkGroupID.y)*0.1 + roll)*0.5;"
 	"imageStore(destTex, storePos, vec4(1.0-globalCoef*localCoef));"
 	"}";
-
+/*
 static ProgramPtr MakeShaderProgram(const Engine *engine, const char *vsource,
 	const char *gsource, const char *fsource)
 {
@@ -82,7 +82,7 @@ static ProgramPtr MakeShaderProgram(const Engine *engine, const char *csource)
 	program->link();
 
 	return program;
-}
+}*/
 
 int main(int argc, char *argv[])
 {

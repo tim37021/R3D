@@ -1,5 +1,5 @@
 #version 330
-out vec4 outColor;
+out vec3 outColor;
 uniform vec2 viewport;
 uniform sampler2D text;
 
@@ -51,15 +51,13 @@ vec3 highlights(vec3 pixel, float thres);
 void main()
 {
 	vec2 tc = gl_FragCoord.xy / viewport;
-	vec3 color = blur(tc, 2.0);
-	color += blur(tc, 3.0);
-	color += blur(tc, 5.0);
-	color /= 3.0;
+	vec3 color = 6*blur(tc, 2.0);
+	color += 4*blur(tc, 3.0);
+	color/=10;
 	
 	color += sample(tc);
 	
-	outColor.xyz = mix(sample(tc), color, 0.3);
-	outColor.w = 1.0;
+	outColor = color;
 }
 
 vec3 sample(vec2 tc)

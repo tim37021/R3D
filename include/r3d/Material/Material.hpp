@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <r3d/Shader/Program.hpp>
 #include <r3d/Core/Texture.hpp>
+#include <r3d/Renderer/Renderer.hpp>
 
 namespace r3d
 {
@@ -12,8 +13,15 @@ namespace r3d
 	public:
 		Material(ProgramPtr program): 
 			m_ambient(0.05f), m_diffuse(1.0f), m_specular(1.0f),
-			m_emission(0.0f), m_dMap(nullptr), m_sMap(nullptr), m_program(program)
-		{}
+			m_emission(0.0f), m_dMap(nullptr), m_sMap(nullptr), m_nMap(nullptr),
+			m_bMap(nullptr), m_normalMapIntensity(1.0f), m_parallaxMapIntensity(1.0f), 
+			m_wireframeView(false), m_program(program)
+		{
+			m_program->setUniform("diffuseTexture", 0);
+			m_program->setUniform("specularTexture", 1);
+			m_program->setUniform("normalTexture", 2);
+			m_program->setUniform("heightTexture", 3);
+		}
 
 		void setAmbient(const glm::vec3 &v)
 		{ m_ambient=v; }
@@ -33,7 +41,22 @@ namespace r3d
 		void setEmission(const glm::vec3 &v)
 		{ m_emission=v; }
 
+		void setNormalMapIntensity(float value)
+		{ m_normalMapIntensity = value; }
+
+		void setNormalMap(ColorTexture2D *text)
+		{ m_nMap=text; }
+
+		void setHeightMap(ColorTexture2D *text)
+		{ m_bMap=text; }
+
+		void enableWireframeView(bool value)
+		{ m_wireframeView=value; }
+
 		glm::vec3 getDiffuse() const { return m_diffuse; }
+		glm::vec3 getSpecular() const { return m_specular; }
+
+		float getNormalMapIntensity() const { return m_normalMapIntensity; }
 
 		void prepareShader() const
 		{
@@ -42,19 +65,29 @@ namespace r3d
 			m_program->setUniform("specular", m_specular);
 
 			m_program->setUniform("emission", m_emission);
+			m_program->setUniform("wireframeView", (int)m_wireframeView);
 
 			if(m_dMap)
-			{
 				m_dMap->bind(0);
-				m_program->setUniform("diffuseTexture", 0);
-			}
 
 			if(m_sMap)
 			{
 				m_sMap->bind(1);
-				m_program->setUniform("specularTexture", 1);
 				m_program->setUniform("specular", {-1, -1, -1});
 			}
+
+			if(m_nMap)
+			{
+				m_nMap->bind(2);
+				m_program->setUniform("normalMapIntensity", m_normalMapIntensity);
+
+				if(m_bMap)
+				{
+					m_bMap->bind(3);
+					m_program->setUniform("parallaxMapIntensity", m_parallaxMapIntensity);
+				}
+			}else
+				m_program->setUniform("normalMapIntensity", 0.0f);
 
 			m_program->setUniform("diffuse", m_diffuse);
 		}
@@ -70,8 +103,13 @@ namespace r3d
 
 		ColorTexture2D *m_dMap;
 		ColorTexture2D *m_sMap;
+		ColorTexture2D *m_nMap;
+		ColorTexture2D *m_bMap;
 
-		float shininess;
+		float m_normalMapIntensity;
+		float m_parallaxMapIntensity;
+
+		bool m_wireframeView;
 
 		ProgramPtr m_program;
 	};

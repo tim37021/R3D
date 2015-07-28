@@ -31,7 +31,7 @@
 #include <fstream>
 #include <sstream>
 
-#include "tiny_obj_loader.h"
+#include <r3d/Utils/ObjLoader.hpp>
 
 namespace tinyobj {
 
@@ -576,6 +576,13 @@ std::string LoadMtl(std::map<std::string, int> &material_map,
     if ((0 == strncmp(token, "map_Ns", 6)) && isSpace(token[6])) {
       token += 7;
       material.normal_texname = token;
+      continue;
+    }
+
+    // bump texture
+    if ((0 == strncmp(token, "map_Bump", 8)) && isSpace(token[8])) {
+      token += 9;
+      material.bump_texname = token;
       continue;
     }
 
