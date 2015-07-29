@@ -1,4 +1,9 @@
 #include <r3d/r3d.hpp>
+#include <string>
+#include <fstream>
+#include <memory>
+
+#define toRadian(d) (d*3.1415f/180)
 
 using namespace r3d;
 
@@ -39,77 +44,57 @@ static const char *fragment_shader=
 	"color=texture(text, vTexCoord);"
 	"}";
 
-static const char *compute_shader=
-	"#version 430\n"
-	"uniform float roll;"
-	"writeonly uniform image2D destTex;"
-	"layout (local_size_x = 16, local_size_y = 16) in;"
-	"void main() {"
-	"ivec2 storePos = ivec2(gl_GlobalInvocationID.xy);"
-	"float localCoef = length(vec2(ivec2(gl_LocalInvocationID.xy)-8)/8.0);"
-	"float globalCoef = sin(float(gl_WorkGroupID.x+gl_WorkGroupID.y)*0.1 + roll)*0.5;"
-	"imageStore(destTex, storePos, vec4(1.0-globalCoef*localCoef));"
-	"}";
-/*
-static ProgramPtr MakeShaderProgram(const Engine *engine, const char *vsource,
-	const char *gsource, const char *fsource)
+static std::string readfile(const char *filename)
 {
-	auto program=engine->newProgram();
-	auto vs=engine->newShader(ST_VERTEX_SHADER);
-	auto gs=engine->newShader(ST_GEOMETRY_SHADER);
-	auto fs=engine->newShader(ST_FRAGMENT_SHADER);
-	vs->source(vsource);
-	gs->source(gsource);
-	fs->source(fsource);
-	vs->compile();
-	gs->compile();
-	fs->compile();
-	program->attachShader(vs);
-	program->attachShader(fs);
-	program->attachShader(gs);
-	program->link();
-
-	return program;
+	std::ifstream ifs(filename);
+	if(!ifs)
+		exit(EXIT_FAILURE);
+	return std::string( (std::istreambuf_iterator<char>(ifs)),
+                       (std::istreambuf_iterator<char>()));
 }
-
-static ProgramPtr MakeShaderProgram(const Engine *engine, const char *csource)
-{
-	auto program=engine->newProgram();
-	auto cs=engine->newShader(ST_COMPUTE_SHADER);
-	cs->source(csource);
-	cs->compile();
-	program->attachShader(cs);
-	program->link();
-
-	return program;
-}*/
 
 int main(int argc, char *argv[])
 {
-	if(argc!=2) return 1;
 	Engine *engine = new r3d::Engine(RA_OPENGL_4_3);
-	ContextWindow *cw=engine->newContextWindow(800, 600, "R3D Example");
+	ContextWindow *cw=engine->newContextWindow(800, 800, "R3D Example");
 	Renderer *renderer=engine->getRenderer();
 
 	// In order to load/create texture, we need texture manager
 	TextureManager *tMgr=cw->getTextureManager();
 	// Or you can use Texture2D *
-	ColorTexture2D *text=tMgr->registerColorTexture2D(argv[1]);
+	ColorTexture2D *text=tMgr->registerColorTexture2D("white", 800, 800, PF_BGRA);
+	ColorTexture2D *rndText=tMgr->registerColorTexture2D("noise.png");
 
 	// We need a dummy vertex array to do attributeless rendering
 	VertexArray *vao=cw->getVertexArrayManager()->registerVertexArray("DUMMY");
 
 	ProgramPtr program=MakeShaderProgram(engine, vertex_shader, geometry_shader, fragment_shader);
-	ProgramPtr program_cs=MakeShaderProgram(engine, compute_shader);
+	ProgramPtr program_cs=MakeShaderProgram(engine, readfile("./shaders/pathtracer.cs").c_str());
+
+	std::shared_ptr<Camera> fps(new FPSCamera(cw, 45.0f, glm::vec3(5.0f, 0.0f, 0.0f)));
+
+	renderer->enableDepthTest(false);
+	renderer->enableBlending(true, BP_ONE, BP_ONE, BF_ADD);
+
+	cw->getMouse()->setPos(cw->getWidth()/2, cw->getHeight()/2);
+	fps->update(engine->getTime());
 
 	while(!cw->isCloseButtonClicked())
 	{
 		renderer->clear();
+		fps->update(engine->getTime());
 
-		program_cs->setUniform("roll", (float)engine->getTime());
+		rndText->bind(1);
+		program_cs->setUniform("uTexRandom", 1);
+		program_cs->setUniform("randFactor", {(float)rand()/RAND_MAX, (float)rand()/RAND_MAX});
+		program_cs->setUniform("eyePos", fps->getPos());
+		program_cs->setUniform("eyeDir", fps->getDir());
+		program_cs->setUniform("eyeUp", fps->getUp());
+		program_cs->setUniform("near", fps->getNear());
+		program_cs->setUniform("fov", toRadian(fps->getFov()));
 		program_cs->setUniform("destTex", 0);
-		text->bindImage(0, 0, AL_WRITE_ONLY);
-		program_cs->dispatchCompute(512/16, 512/16, 1);
+		text->bindImage(0, 0, AL_READ_WRITE);
+		program_cs->dispatchCompute(800, 800, 1);
 
 
 		// Because we render without attribute, and generate quad with geometry shader
