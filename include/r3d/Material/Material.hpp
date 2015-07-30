@@ -87,7 +87,10 @@ namespace r3d
 					m_program->setUniform("parallaxMapIntensity", m_parallaxMapIntensity);
 				}
 			}else
+			{
 				m_program->setUniform("normalMapIntensity", 0.0f);
+				m_program->setUniform("parallaxMapIntensity", 0.0f);
+			}
 
 			m_program->setUniform("diffuse", m_diffuse);
 		}

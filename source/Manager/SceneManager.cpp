@@ -111,13 +111,13 @@ static const char *fragment_shader=
 
 	"void main(){\n"
 	"vec3 viewVecTangnet = normalize(gInvTBN*(eyePos-gWorldPos));\n"
-	"vec2 ggTexCoord = gTexCoord + viewVecTangnet.xy*0.05*(texture(heightTexture, gTexCoord).x-0.1);\n"
+	"vec2 ggTexCoord = gTexCoord + parallaxMapIntensity*viewVecTangnet.xy*0.05*(texture(heightTexture, gTexCoord).x-0.1);\n"
 
 	"worldPosMap=gWorldPos;\n"
 	"vec3 color=pow(texture(diffuseTexture, ggTexCoord).rgb, vec3(2.2))*diffuse;\n"
 	"diffuseMap=(wireframeView==1? mix(vec3(0.0), color, edgeFactor()): color);\n"
 	"vec3 norm_w = gTBN*(texture(normalTexture, ggTexCoord).rgb*2.0-vec3(1.0));\n"
-	"normalMap=normalize(gNorm+normalMapIntensity*norm_w);\n"
+	"normalMap=normalize(normalize(gNorm)+normalMapIntensity*norm_w);\n"
 	"specularMap=(specular.x<0?texture(specularTexture, ggTexCoord).xyz: specular);\n"
 	"objectMap=id;\n"
 	"}\n";
